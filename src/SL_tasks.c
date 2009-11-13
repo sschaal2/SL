@@ -455,8 +455,6 @@ setTaskByName(char *name)
       strcpy(current_task_name, tptr->name);
       if (strcmp(name,NO_TASK) != 0)
 	last_change_function     = tptr->change_function;
-      else
-	setServoMode(MOTORSERVO);
 
       return TRUE;
     }

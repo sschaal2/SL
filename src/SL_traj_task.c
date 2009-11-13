@@ -39,8 +39,6 @@ static double     sampling_freq;
 static int        traj_index;
 static int        repeat_flag;
 static int        invdyn_flag=FALSE;
-static int        invdyn_servo_flag = FALSE;
-
 
 /* global variables */
 
@@ -147,8 +145,6 @@ init_traj_task(void)
 
   /* enable inverse dynamics control */
   get_int("Use inverse dynamics",invdyn_flag,&invdyn_flag);
-  if (invdyn_flag)
-    get_int("Use inverse dynamics servo",invdyn_servo_flag,&invdyn_servo_flag);
 
   /* go to start posture */
   traj_index = 1;
@@ -167,12 +163,6 @@ init_traj_task(void)
       return FALSE;
   }
 
-  /* switch the servo mode */
-  if (invdyn_servo_flag)
-    setServoMode(INVDYNSERVO);
-  else
-    setServoMode(MOTORSERVO);
-  
   /* do we really want to do this task? */
 
   ans = 999;
@@ -255,7 +245,7 @@ run_traj_task(void)
     }
   }
 
-  if (invdyn_flag && !invdyn_servo_flag)
+  if (invdyn_flag)
     SL_InverseDynamics(joint_state,joint_des_state,endeff);
  
   return TRUE;

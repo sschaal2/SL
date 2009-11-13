@@ -41,7 +41,6 @@ static int        firsttime = TRUE;
 static int        special_flag = FALSE;
 static double     movement_time = 1.0;
 static double     tau;
-static int        invdyn_servo_flag = FALSE;
 
 /* global functions */
 void add_goto_cart_task(void);
@@ -141,8 +140,6 @@ init_goto_cart_task(void)
     tau = movement_time;
 
     
-    get_int("Use inverse dynamics servo?", invdyn_servo_flag,&invdyn_servo_flag);
-    
     /* input the cartesian goal */
     for (i=1; i<=n_endeffs; ++i) {
       
@@ -208,13 +205,6 @@ init_goto_cart_task(void)
   for (i=1; i<=n_endeffs;++i) {
     cnext[i] = cart_des_state[i];
   }
-
-  /* switch the servo mode */
-  if (invdyn_servo_flag)
-    setServoMode(INVDYNSERVO);
-  else
-    setServoMode(MOTORSERVO);
-  
 
   if (!special_flag) {
     
@@ -324,8 +314,7 @@ run_goto_cart_task(void)
   }
 
   /* compute inverse dynamics */
-  if (!invdyn_servo_flag)
-    SL_InverseDynamics(joint_state,joint_des_state,endeff);
+  SL_InverseDynamics(joint_state,joint_des_state,endeff);
 
   return TRUE;
 

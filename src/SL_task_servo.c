@@ -1292,46 +1292,11 @@ send_raw_blobs2D(void)
 int 
 setServoMode(int type)
 {
-  
-  int i;
 
-  if (strcmp(current_task_name,NO_TASK) != 0) {
-    printf("Servo Mode can only be change if no other task is running!\n");
-    return FALSE;
-  }
-
-  switch (type) {
-  case MOTORSERVO:
-    if (servo_mode == INVDYNSERVO) {
-      for (i=1; i<=n_dofs; ++i) {
-	joint_des_state[i].thdd  = 0.0;
-	joint_des_state[i].uex = 0.0;
-      }
-    }
-    servo_mode = MOTORSERVO;
-    break;
-
-  case INVDYNSERVO:
-    if (servo_mode == MOTORSERVO) {
-      for (i=1; i<=n_dofs; ++i) {
-	joint_des_state[i].thdd = 0.0;
-	joint_des_state[i].uex  = 0.0;
-      }
-    }
-    servo_mode = INVDYNSERVO;
-    break;
-
-  case CARTSERVO:
-    servo_mode = CARTSERVO;
-    break;
-
-  default:
-    servo_mode = MOTORSERVO;
-
-  }
+  printf("setServoMode is depricated --- simply remove statement from your code\n");
+  servo_mode = MOTORSERVO;
   
   return TRUE;
-  
 }
 
 

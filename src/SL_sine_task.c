@@ -37,7 +37,6 @@ static int          *n_sine;
 static SL_DJstate   *target;
 static double        task_time;
 static double        speed=1.0;
-static int           invdyn_servo_flag=0;
 
 /* global variables */
 
@@ -119,9 +118,6 @@ init_sine_task(void)
   /* allow or speed adjustment */
   get_double("Frequency Multiplier",speed,&speed);
 
-  /* enable inverse dynamics control */
-  get_int("Use inverse dynamics servo",invdyn_servo_flag,&invdyn_servo_flag);
-
   /* read the script for this task */
   if (!read_sine_script())
     return FALSE;
@@ -137,12 +133,6 @@ init_sine_task(void)
 
   if (!go_target_wait_ID(target))
     return FALSE;
-
-  /* switch the servo mode */
-  if (invdyn_servo_flag)
-    setServoMode(INVDYNSERVO);
-  else
-    setServoMode(MOTORSERVO);
 
   /* do we really want to do this task? */
   ans = 999;
@@ -197,8 +187,8 @@ run_sine_task(void)
     }
   }
 
-  if (!invdyn_servo_flag)
-    SL_InverseDynamics(joint_state,joint_des_state,endeff);
+
+  SL_InverseDynamics(joint_state,joint_des_state,endeff);
 
   return TRUE;
 

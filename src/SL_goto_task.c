@@ -208,8 +208,6 @@ init_goto_task(void)
     
   }
 
-  setServoMode(MOTORSERVO);
-
   return TRUE;
 
 }
