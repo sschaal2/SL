@@ -1,0 +1,2149 @@
+/*!=============================================================================
+  ==============================================================================
+
+  \ingroup SLcommon
+
+  \file    SL_common.c
+
+  \author 
+  \date   
+
+  ==============================================================================
+  \remarks
+
+      File includes functions that are shared by many processors 
+
+  ============================================================================*/
+
+// SL general includes of system headers
+#include "SL_system_headers.h"
+
+/* private includes */
+#include "SL.h"
+#include "SL_common.h"
+#include "utility.h"
+#include "SL_man.h"
+
+// global variables and their default assignments
+char config_files[][100] = {
+  {"ConfigFilesSim.cf"},
+  {"Gains.cf"},
+  {"SensorCalibration.cf"},
+  {"SensorFilter.cf"},
+  {"LinkParameters.cf"},
+  {"SensorOffset.cf"},
+  {"WhichDOFs.cf"},
+  {"Objects.cf"},
+  {"ServoParameters.cf"},
+  {"StereoParameters.cf"}
+};
+
+// local variables
+static char config_file_tags[][40]= {
+  {"ConfigFiles"},
+  {"Gains"}, 
+  {"SensorCalibration"},
+  {"SensorFilter"},
+  {"LinkParameters"},
+  {"SensorOffset"},
+  {"WhichDOFs"},
+  {"Objects"},
+  {"ServoParameters"},
+  {"StereoParameters"}
+};
+
+/* external variables */
+extern int servo_enabled;
+
+/* global functions */
+
+/* local functions */
+static void bwhere_sim(void);
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  where
+\date  Feb 1999
+\remarks 
+
+ various functions to print info about all DOFs
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+int
+where_utility(int start, int n_dofs)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: motor servo is not running!!\n");
+  }
+
+  printf("Current States:\n");
+
+  for (i=start; i<=start+n_dofs-1; ++i) {
+
+    printf("%5s: th=% 5.3f  thd=% 6.3f  load=% 6.2f  u=% 6.2f  ff=% 6.2f\n",
+	   joint_names[i],
+	   joint_state[i].th,
+	   joint_state[i].thd,
+	   joint_state[i].load,
+	   joint_state[i].u,
+	   joint_des_state[i].uff);
+
+  }
+  printf("\n");
+
+  return TRUE;
+
+}
+
+void
+where(void)
+
+{
+  where_utility(1,n_dofs);
+}
+
+int
+where_des_utility(int start, int n_dofs)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: motor servo is not running!!\n");
+  }
+
+  printf("Desired States:\n");
+
+  for (i=start; i<=start+n_dofs-1; ++i) {
+
+    printf("%5s: th=% 5.3f  thd=% 6.3f  thdd=% 9.3f  ff=% 6.2f\n",
+	   joint_names[i],
+	   joint_des_state[i].th,
+	   joint_des_state[i].thd,
+	   joint_des_state[i].thdd,
+	   joint_des_state[i].uff);
+
+  }
+  printf("\n");
+
+  return TRUE;
+
+}
+
+void
+where_des(void)
+
+{
+  where_des_utility(1,n_dofs);
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  cwhere
+\date  Feb 1999
+\remarks 
+
+ print the cartesian information
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+void
+cwhere(void)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  printf("Current Cartesian States:\n");
+
+  for (i=1; i<=n_endeffs; ++i) {
+
+    printf("%10s: x=% 5.3f (% 5.3f)    y=% 5.3f (% 5.3f)    z=% 5.3f (% 5.3f)\n",
+	   cart_names[i],
+	   cart_state[i].x[_X_],cart_des_state[i].x[_X_],
+	   cart_state[i].x[_Y_],cart_des_state[i].x[_Y_],
+	   cart_state[i].x[_Z_],cart_des_state[i].x[_Z_]);
+    printf("            xd=% 5.3f (% 5.3f)   yd=% 5.3f (% 5.3f)   zd=% 5.3f (% 5.3f)\n",
+	   cart_state[i].xd[_X_],cart_des_state[i].xd[_X_],
+	   cart_state[i].xd[_Y_],cart_des_state[i].xd[_Y_],
+	   cart_state[i].xd[_Z_],cart_des_state[i].xd[_Z_]);
+    printf("            xdd=% 5.3f (% 5.3f)  ydd=% 5.3f (% 5.3f)  zdd=% 5.3f (% 5.3f)\n",
+	   cart_state[i].xdd[_X_],cart_des_state[i].xdd[_X_],
+	   cart_state[i].xdd[_Y_],cart_des_state[i].xdd[_Y_],
+	   cart_state[i].xdd[_Z_],cart_des_state[i].xdd[_Z_]);
+    printf("\n");
+
+
+    printf("            q0=% 5.3f (% 5.3f)    q1=% 5.3f (% 5.3f)    q2=% 5.3f (% 5.3f)    q3=% 5.3f (% 5.3f)\n",
+	   cart_orient[i].q[1],cart_des_orient[i].q[1],
+	   cart_orient[i].q[2],cart_des_orient[i].q[2],
+	   cart_orient[i].q[3],cart_des_orient[i].q[3],
+	   cart_orient[i].q[4],cart_des_orient[i].q[4]);
+    printf("            qd0=% 5.3f (% 5.3f)   qd1=% 5.3f (% 5.3f)   qd2=% 5.3f (% 5.3f)   qd3=% 5.3f (% 5.3f)\n",
+	   cart_orient[i].qd[1],cart_des_orient[i].qd[1],
+	   cart_orient[i].qd[2],cart_des_orient[i].qd[2],
+	   cart_orient[i].qd[3],cart_des_orient[i].qd[3],
+	   cart_orient[i].qd[4],cart_des_orient[i].qd[4]);
+    printf("            qdd0=% 5.3f (% 5.3f)  qdd1=% 5.3f (% 5.3f)  qdd2=% 5.3f (% 5.3f)  qdd3=% 5.3f (% 5.3f)\n",
+	   cart_orient[i].qdd[1],cart_des_orient[i].qdd[1],
+	   cart_orient[i].qdd[2],cart_des_orient[i].qdd[2],
+	   cart_orient[i].qdd[3],cart_des_orient[i].qdd[3],
+	   cart_orient[i].qdd[4],cart_des_orient[i].qdd[4]);
+    printf("\n");
+    printf("\n");
+
+
+  }
+  printf("\n");
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  check_range
+\date  Dec 1997
+   
+\remarks 
+
+          checks the desired states for out of range values
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     des   : array of SL_DJstates
+
+ ******************************************************************************/
+int
+check_range(SL_DJstate *des)
+
+{
+
+  int i,j;
+  int flag = TRUE;
+
+  for (i=1; i<=n_dofs; ++i) {
+
+    if (des[i].th > joint_range[i][MAX_THETA]) {
+      flag = FALSE;
+      des[i].th = joint_range[i][MAX_THETA];
+    }
+    if (des[i].th < joint_range[i][MIN_THETA]) {
+      flag = FALSE;
+      des[i].th = joint_range[i][MIN_THETA];
+    }
+
+    if (des[i].uff > u_max[i]) {
+      flag = FALSE;
+      des[i].uff = u_max[i];
+    }
+    if (des[i].uff < -u_max[i]) {
+      flag = FALSE;
+      des[i].uff = -u_max[i];
+    }
+
+  }
+
+  return flag;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  bwhere
+\date  Feb 1999
+\remarks 
+
+ print the blob information
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     flag : show all blobs (otherwise only those with status 1
+
+ ******************************************************************************/
+static void
+bwhere_sim(void)
+{
+  bwhere(FALSE);
+}
+void
+bwhere(int flag)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  if (flag != 0 && flag != 1)
+    flag = 0;
+
+  printf("Current Blob States:\n");
+
+  for (i=1; i<=max_blobs; ++i) {
+
+    if (flag || blobs[i].status) {
+      
+      printf("%10s: Status = %d\n",blob_names[i],blobs[i].status);
+      printf("             x=% 5.3f    y=% 5.3f    z=% 5.3f\n",
+	     blobs[i].blob.x[_X_],
+	     blobs[i].blob.x[_Y_],
+	     blobs[i].blob.x[_Z_]);
+      printf("            xd=% 5.3f   yd=% 5.3f   zd=% 5.3f\n",
+	     blobs[i].blob.xd[_X_],
+	     blobs[i].blob.xd[_Y_],
+	     blobs[i].blob.xd[_Z_]);
+      printf("            xdd=% 5.3f  ydd=% 5.3f  zdd=% 5.3f\n",
+	     blobs[i].blob.xdd[_X_],
+	     blobs[i].blob.xdd[_Y_],
+	     blobs[i].blob.xdd[_Z_]);
+      printf("\n");
+      
+      printf("\n");
+    
+    }
+  }
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  lwhere
+\date  Feb 1999
+\remarks 
+
+ print the cartesian information about the links
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+void
+lwhere(void)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  printf("Current (Desired) Link Cartesian States:\n");
+
+  for (i=0; i<=n_links; ++i) {
+
+    printf("%10s: x=% 5.3f (% 5.3f)   y=% 5.3f  (% 5.3f)   z=% 5.3f (% 5.3f)\n",
+	   link_names[i],
+	   link_pos[i][_X_],link_pos_des[i][_X_],
+	   link_pos[i][_Y_],link_pos_des[i][_Y_],
+	   link_pos[i][_Z_],link_pos_des[i][_Z_]);
+  }
+  printf("\n");
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  linfo
+\date  Feb 1999
+\remarks 
+
+ print the information about all links
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+void
+linfo(void)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  printf("Current m*cog,axis,origin information of each joint:\n");
+
+  for (i=1; i<=n_dofs; ++i) {
+
+    printf("%10s: mcogx=% 5.3f    mcogy=% 5.3f    mcogz=% 5.3f\n",
+	   joint_names[i],
+	   joint_cog_mpos[i][_X_],
+	   joint_cog_mpos[i][_Y_],
+	   joint_cog_mpos[i][_Z_]);
+    printf("%10s  axisx=% 5.3f    axisy=% 5.3f    axisz=% 5.3f\n",
+	   "",
+	   joint_axis_pos[i][_X_],
+	   joint_axis_pos[i][_Y_],
+	   joint_axis_pos[i][_Z_]);
+    printf("%10s  origx=% 5.3f    origy=% 5.3f    origz=% 5.3f\n",
+	   "",
+	   joint_origin_pos[i][_X_],
+	   joint_origin_pos[i][_Y_],
+	   joint_origin_pos[i][_Z_]);
+  }
+  printf("\n");
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  where_misc
+\date  March 2003
+\remarks 
+
+ print the state of miscellaneous sensors
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+void
+where_misc(void)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  printf("Current Miscellaneous Sensor States:\n");
+
+  for (i=1; i<=n_misc_sensors; ++i) {
+
+    printf("%20s = % 5.3f\n",
+	   misc_sensor_names[i],
+	   misc_sensor[i]);
+  }
+  printf("\n");
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  init_commands
+\date  Feb 1999
+\remarks 
+
+ initializes man pages for commands
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+int
+init_commands(void)
+{
+  addToMan("where","print all current state information",where);
+  addToMan("where_des","print all desired joint information",where_des);
+  addToMan("cwhere","cartesian state of endeffectors",cwhere);
+  addToMan("lwhere","cartesian state of links",lwhere);
+  addToMan("linfo","axis,cog,orgin info of each link",linfo);
+  addToMan("bwhere","cartesian state of vision blobs",bwhere_sim);
+  addToMan("rbwhere","current state of vision blobs",rbwhere);
+  addToMan("rbwhere2D","current state of 2D vision blobs",rbwhere2D);
+  addToMan("where_base","current state of base coordiante system",where_base);
+  addToMan("where_misc","current state of miscellanious sensors",where_misc);
+  addToMan("where_cog","current state of the COG",where_cog);
+
+  return TRUE;
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_sensor_offsets
+\date  May 2000
+\remarks 
+
+parses the sensor offset configuration file into global variables
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname : file name of file where config files are stored
+
+ ******************************************************************************/
+int
+read_sensor_offsets(char *fname) {
+
+  int j,i,rc;
+  char   string[100];
+  FILE  *in;
+
+  /* get the max, min, and offsets of the position sensors */
+
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen(string,"r");
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  /* find all joint variables and read them into the appropriate array */
+
+  for (i=1; i<= n_dofs; ++i) {
+    if (!find_keyword(in, &(joint_names[i][0]))) {
+      printf("ERROR: Cannot find offset for >%s<!\n",joint_names[i]);
+      fclose(in);
+      return FALSE;
+    }
+    rc=fscanf(in,"%lf %lf %lf %lf %lf %lf",
+	&joint_range[i][MIN_THETA], &joint_range[i][MAX_THETA],
+	   &(joint_default_state[i].th),
+	   &(joint_opt_state[i].th),
+	   &(joint_opt_state[i].w),
+	   &joint_range[i][THETA_OFFSET]);
+    joint_default_state[i].thd = 0;
+    joint_default_state[i].uff = 0;
+  }
+  
+  fclose(in);
+
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_gains
+\date  May 2000
+\remarks 
+
+parses the gain configuration file into global variables
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname : the name of the link parameter file
+ \param[out]    gth   : p-gains
+ \param[out]    gthd  : d-gains
+ \param[out]    gint  : i-gains
+
+ ******************************************************************************/
+int
+read_gains(char *fname, double *gth, double *gthd, double *gint) {
+
+  int j,i,rc;
+  char   string[100];
+  FILE  *in;
+  double dum;
+
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen(string,"r");
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  /* find all joint variables and read them into the appropriate array */
+
+  for (i=1; i<= n_dofs; ++i) {
+    if (!find_keyword(in, &(joint_names[i][0]))) {
+      printf("ERROR: Cannot find offset for >%s<!\n",joint_names[i]);
+      fclose(in);
+      return FALSE;
+    } else {
+      if (gth != NULL && gthd !=NULL && gint != NULL)
+	rc=fscanf(in,"%lf %lf %lf %lf",
+	       &gth[i],&gthd[i],&gint[i],&u_max[i]);
+      else
+	rc=fscanf(in,"%lf %lf %lf %lf",
+	       &dum,&dum,&dum,&u_max[i]);
+    }
+  }
+  
+  fclose(in);
+
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_link_parameters
+\date  May 2000
+\remarks 
+
+parses the link parameters configuration file into global variables
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname : the name of the link parameter file
+
+ ******************************************************************************/
+int
+read_link_parameters(char *fname) {
+
+  int j,i,n,rc;
+  char   string[100];
+  FILE  *in;
+  double dum;
+
+  /* read the link parameters */
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen(string,"r");
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  /* find all joint variables and read them into the appropriate array;
+     note that joint zero is the base, if present */
+  
+  for (i=0; i<= n_dofs; ++i) {
+    if (!find_keyword(in, &(joint_names[i][0]))) {
+      if (strcmp(joint_names[i],"dummy") != 0) {
+	printf("ERROR: Cannot find link parameters for >%s<!\n",
+	       joint_names[i]);
+	fclose(in);
+	return FALSE;
+      }
+    } else {
+      rc=fscanf(in,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+	     &(links[i].m),
+	     &(links[i].mcm[_X_]),
+	     &(links[i].mcm[_Y_]),
+	     &(links[i].mcm[_Z_]),
+	     &(links[i].inertia[_X_][_X_]),
+	     &(links[i].inertia[_X_][_Y_]),
+	     &(links[i].inertia[_X_][_Z_]),
+	     &(links[i].inertia[_Y_][_Y_]),
+	     &(links[i].inertia[_Y_][_Z_]),
+	     &(links[i].inertia[_Z_][_Z_]),
+	     &(links[i].vis));
+      for (j= _X_; j<= _Z_; ++j)
+	for (n=j; n<= _Z_; ++n)
+	  links[i].inertia[n][j]=links[i].inertia[j][n];
+    }
+  }
+ 
+  fclose(in);
+  
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_whichDOFs
+\date  May 2000
+\remarks 
+
+parses the whichDOFs  configuration file into global variables given a
+keyworkd
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname   : configration file name
+ \param[in]     keyword : which parameter set to use
+
+ ******************************************************************************/
+int
+read_whichDOFs(char *fname, char *keyword) {
+
+  int j,i,n,rc;
+  char   string[100];
+  FILE  *in;
+  double dum;
+  int    count = 0;
+
+  /* read the link parameters */
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen(string,"r");
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  /* find the appropriate data set from the keyword */
+  if (!find_keyword(in, keyword)) {
+      printf("ERROR: Cannot find keyword >%s< in >%s<!\n",
+	     keyword,fname);
+      return FALSE;
+  }
+    
+  /* read all following strings and determine which DOF they are concerned with */
+  for (i=1; i<=n_dofs; ++i)
+    whichDOFs[i] = FALSE;
+
+  for (i=1; i<= n_dofs; ++i) {
+    rc=fscanf(in,"%s",string);
+    for (j=1; j<=n_dofs; ++j) {
+      if (strcmp(string,joint_names[j]) == 0) {
+	whichDOFs[j] = TRUE;
+	++count;
+	break;
+      }
+    }
+    /* if we did not find a joint name -> break */
+    if (j == n_dofs+1) 
+      break;
+  }
+
+  printf("Found %d DOFs for whichDOFs array\n",count);
+
+  fclose(in);
+  
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_servoParameters
+\date  May 2000
+\remarks 
+
+parses the servoParameters.cf file for the given keyword
+
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname     : configration file name
+ \param[in]     keyword   : name of the servo for which parsing is done
+ \param[out]    priority  : priority of the servo [0-100]
+ \param[out]    stacksize : stacksize for this servo [byte]
+ \param[out]    cpuID     : ID of CPU where to put the job
+ \param[out]    dns       : number of delay nano seconds to insert into process
+                            to avoid lock-up of linux
+
+ ******************************************************************************/
+int
+read_servoParameters(char *fname, char *keyword, int *priority, int *stacksize,
+		     int *cpuID, int *dns) 
+
+{
+  int j,i,n,rc;
+  char   string[100];
+  FILE  *in;
+  double dum;
+  int    count = 0;
+
+  /* read the parameters */
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen(string,"r");
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  /* find the appropriate data set from the keyword */
+  if (!find_keyword(in, keyword)) {
+      printf("ERROR: Cannot find keyword >%s< in >%s<!\n",
+	     keyword,fname);
+      return FALSE;
+  }
+    
+  // read the two pieces of information 
+  rc=fscanf(in,"%d %d %d %d",priority,stacksize,cpuID,dns);
+  if (rc != 4) {
+    printf("Error when reading from >%s< in >%s<!\n",keyword,fname);
+    return FALSE;
+  }
+
+  fclose(in);
+
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  setDefaultPosture
+\date  
+   
+\remarks 
+
+       sets the desired states of the robot to the default
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+    none
+
+ ******************************************************************************/
+void
+setDefaultPosture(void)
+{
+
+  int i;
+
+  for (i=1; i<=n_dofs; ++i) 
+    joint_des_state[i] = joint_default_state[i];
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  conversion functions between float and double structures
+\date  
+   
+\remarks 
+
+       
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+    the double structure pointer
+    the float  structure pointer
+ \param[in]     n    : the number of elements
+ \param[in]     flag : DOUBLE2FLOAT or FLOAT2DOUBLE
+
+ ******************************************************************************/
+void
+cSL_Jstate(SL_Jstate *sd, SL_fJstate *sf, int n, int flag)
+{ 
+  int i,j;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i) {
+      sf[i].th   = sd[i].th;
+      sf[i].thd  = sd[i].thd;
+      sf[i].thdd = sd[i].thdd;
+      sf[i].u    = sd[i].u;
+      sf[i].ufb  = sd[i].ufb;
+      sf[i].load = sd[i].load;
+    }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i) {
+      sd[i].th   = sf[i].th;
+      sd[i].thd  = sf[i].thd;
+      sd[i].thdd = sf[i].thdd;
+      sd[i].u    = sf[i].u;
+      sd[i].ufb  = sf[i].ufb;
+      sd[i].load = sf[i].load;
+    }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+void
+cSL_SDJstate(SL_DJstate *sd, SL_fSDJstate *sf, int n, int flag)
+{ 
+  int i,j;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i) {
+      sf[i].th   = sd[i].th;
+      sf[i].thd  = sd[i].thd;
+      sf[i].uff  = sd[i].uff;
+    }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i) {
+      sd[i].th   = sf[i].th;
+      sd[i].thd  = sf[i].thd;
+      sd[i].uff  = sf[i].uff;
+    }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+void
+cSL_DJstate(SL_DJstate *sd, SL_fDJstate *sf, int n, int flag)
+{ 
+  int i,j;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i) {
+      sf[i].th   = sd[i].th;
+      sf[i].thd  = sd[i].thd;
+      sf[i].thdd = sd[i].thdd;
+      sf[i].uff  = sd[i].uff;
+      sf[i].uex  = sd[i].uex;
+    }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i) {
+      sd[i].th   = sf[i].th;
+      sd[i].thd  = sf[i].thd;
+      sd[i].thdd = sf[i].thdd;
+      sd[i].uff  = sf[i].uff;
+      sd[i].uex  = sf[i].uex;
+    }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+void
+cSL_Cstate(SL_Cstate *sd, SL_fCstate *sf, int n, int flag)
+{ 
+  int i,j;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i) {
+      for (j=1; j<=N_CART; ++j) {
+	sf[i].x[j]   = sd[i].x[j];
+	sf[i].xd[j]  = sd[i].xd[j];
+	sf[i].xdd[j] = sd[i].xdd[j];
+      }
+    }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i) {
+      for (j=1; j<=N_CART; ++j) {
+	sd[i].x[j]   = sf[i].x[j];
+	sd[i].xd[j]  = sf[i].xd[j];
+	sd[i].xdd[j] = sf[i].xdd[j];
+      }
+    }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+void
+cSL_Corient(SL_Corient *sd, SL_fCorient *sf, int n, int flag)
+{ 
+  int i,j;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i) {
+      for (j=1; j<=N_CART; ++j) {
+	sf[i].a[j]   = sd[i].a[j];
+	sf[i].ad[j]  = sd[i].ad[j];
+	sf[i].add[j] = sd[i].add[j];
+      }
+    }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i) {
+      for (j=1; j<=N_CART; ++j) {
+	sd[i].a[j]   = sf[i].a[j];
+	sd[i].ad[j]  = sf[i].ad[j];
+	sd[i].add[j] = sf[i].add[j];
+      }
+    }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+void
+cSL_quat(SL_quat *sd, SL_fquat *sf, int n, int flag)
+{ 
+  int i,j;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i) {
+      for (j=1; j<=N_QUAT; ++j) {
+	sf[i].q[j]   = sd[i].q[j];
+	sf[i].qd[j]  = sd[i].qd[j];
+	sf[i].qdd[j] = sd[i].qdd[j];
+      }
+      for (j=1; j<=N_CART; ++j) {
+	sf[i].ad[j]  = sd[i].ad[j];
+	sf[i].add[j] = sd[i].add[j];
+      }
+    }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i) {
+      for (j=1; j<=N_QUAT; ++j) {
+	sd[i].q[j]   = sf[i].q[j];
+	sd[i].qd[j]  = sf[i].qd[j];
+	sd[i].qdd[j] = sf[i].qdd[j];
+      }
+      for (j=1; j<=N_CART; ++j) {
+	sd[i].ad[j]  = sf[i].ad[j];
+	sd[i].add[j] = sf[i].add[j];
+      }
+    }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+void
+cSL_VisionBlob(SL_VisionBlob *sd, SL_fVisionBlob *sf, int n, int flag)
+{ 
+  int i,j;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i) {
+      sf[i].status = sd[i].status;
+      cSL_Cstate(&(sd[i].blob)-1,&(sf[i].blob)-1,1,flag);
+    }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i) {
+      sd[i].status = sf[i].status;
+      cSL_Cstate(&(sd[i].blob)-1,&(sf[i].blob)-1,1,flag);
+    }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+void
+cSL_VisionBlobaux(Blob2D sd[][2+1], SL_fVisionBlobaux *sf, int n, int flag)
+{ 
+  int i,j,k;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i)
+      {
+	for( j=1; j<=2; j++ )
+	  {
+	    sf[i].status[j] = sd[i][j].status;
+	    for( k=1; k<=2; k++ )
+	      sf[i].blob[j][k] = sd[i][j].x[k];
+	  }
+      }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i)
+      {
+	for( j=1; j<=2; j++ )
+	  {
+	    sd[i][j].status = sf[i].status[j];
+	    for( k=1; k<=2; k++ )
+	      sd[i][j].x[k] = sf[i].blob[j][k];
+	  }
+      }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+void
+cBlob3D(Blob3D *sd, fBlob3D *sf, int n, int flag)
+{ 
+  int i,j;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i) {
+      sf[i].status = sd[i].status;
+      for (j=1; j<=N_CART; ++j) {
+	sf[i].x[j]   = sd[i].x[j];
+      }
+    }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i) {
+      sd[i].status = sf[i].status;
+      for (j=1; j<=N_CART; ++j) {
+	sd[i].x[j]   = sf[i].x[j];
+      }
+    }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+void
+cBlob2D(Blob2D sd[][2+1], fBlob2D *sf, int n, int flag)
+{ 
+  int i,j,r;
+  int count = 0;
+
+  switch (flag) {
+  case DOUBLE2FLOAT:
+    for (i=1; i<=n; ++i) {
+      for (r=1; r<=2; ++r) {
+	++count;
+	sf[count].status = sd[i][r].status;
+	for (j=1; j<=2; ++j) {
+	  sf[count].x[j]   = sd[i][r].x[j];
+	}
+      }
+    }
+    break;
+  case FLOAT2DOUBLE:
+    for (i=1; i<=n; ++i) {
+      for (r=1; r<=2; ++r) {
+	++count;
+	sd[i][r].status = sf[count].status;
+	for (j=1; j<=2; ++j) {
+	  sd[i][r].x[j]   = sf[count].x[j];
+	}
+      }
+    }
+    break;
+  default:
+    printf("Error in float/double conversion\n");
+  }
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  rbwhere
+\date  Feb 1999
+\remarks 
+
+ print the raw blob information
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+void
+rbwhere(void)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  printf("Current Raw Blob States:\n");
+
+  for (i=1; i<=max_blobs; i++) {
+
+    if (raw_blobs2D[i][1].status || raw_blobs2D[i][2].status) {
+      
+      printf("%10s: Status = %d %d\n",blob_names[i],
+	     raw_blobs2D[i][1].status, raw_blobs2D[i][2].status);
+      printf("             x=% 5.3f    y=% 5.3f     x=% 5.3f    y=% 5.3f\n",
+	     raw_blobs2D[i][1].x[_X_],
+	     raw_blobs2D[i][1].x[_Y_],
+	     raw_blobs2D[i][2].x[_X_],
+	     raw_blobs2D[i][2].x[_Y_]);
+      printf("\n");
+
+    }
+
+  }
+  printf("\n");
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  rbwhere2D
+\date  Feb 1999
+\remarks 
+
+ print the raw blob information for 2D blobs
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+void
+rbwhere2D(void)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  printf("Current Raw Blob 2D States:\n");
+
+  for (i=1; i<=max_blobs; ++i) {
+
+    for (j=1; j<=2; ++j) {
+
+      if (raw_blobs2D[i][j].status) {
+	
+	printf("%10s.%d: Status = %d\n",
+	       blob_names[i],j,raw_blobs2D[i][j].status);
+	printf("             x=% 5.3f    y=% 5.3f\n",
+	       raw_blobs2D[i][j].x[_X_],
+	       raw_blobs2D[i][j].x[_Y_]);
+	printf("\n");
+      }
+    }
+
+  }
+  printf("\n");
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  where_base
+\date  Feb 1999
+\remarks 
+
+ print the cartesian information if the base coordinate system
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+void
+where_base(void)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  printf("Current Base State:\n");
+
+
+  printf("            x=% 5.3f    y=% 5.3f    z=% 5.3f\n",
+	 base_state.x[_X_],base_state.x[_Y_],base_state.x[_Z_]);
+  printf("            xd=% 5.3f   yd=% 5.3f   zd=% 5.3f\n",
+	 base_state.xd[_X_],base_state.xd[_Y_],base_state.xd[_Z_]);
+  printf("            xdd=% 5.3f  ydd=% 5.3f  zdd=% 5.3f\n",
+	 base_state.xdd[_X_],base_state.xdd[_Y_],base_state.xdd[_Z_]);
+  printf("\n");
+
+  printf("            ad=% 5.3f   bd=% 5.3f   gd=% 5.3f\n",
+	 base_orient.ad[_X_],base_orient.ad[_Y_],base_orient.ad[_Z_]);
+  printf("            add=% 5.3f  bdd=% 5.3f  gdd=% 5.3f\n",
+	 base_orient.add[_X_],base_orient.add[_Y_],base_orient.add[_Z_]);
+  printf("\n");
+
+  printf("            q0=% 5.3f    q1=% 5.3f    q2=% 5.3f    q3=% 5.3f\n",
+	 base_orient.q[1],base_orient.q[2],base_orient.q[3],base_orient.q[4]);
+  printf("            q0d=% 5.3f   q1d=% 5.3f   q2d=% 5.3f   q3d=% 5.3f\n",
+	 base_orient.qd[1],base_orient.qd[2],base_orient.qd[3],base_orient.qd[4]);
+  printf("            q0dd=% 5.3f  q1dd=% 5.3f  q2dd=% 5.3f  q3dd=% 5.3f\n",
+	 base_orient.qdd[1],base_orient.qdd[2],base_orient.qdd[3],base_orient.qdd[4]);
+  printf("\n");
+
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  where_cog
+\date  Feb 1999
+\remarks 
+
+ print the cartesian information if the cog
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+void
+where_cog(void)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  printf("Current COG State:\n");
+
+
+  printf("            x=% 5.3f    y=% 5.3f    z=% 5.3f\n",
+	 cog.x[_X_],cog.x[_Y_],cog.x[_Z_]);
+  printf("            xd=% 5.3f   yd=% 5.3f   zd=% 5.3f\n",
+	 cog.xd[_X_],cog.xd[_Y_],cog.xd[_Z_]);
+  printf("            xdd=% 5.3f  ydd=% 5.3f  zdd=% 5.3f\n",
+	 cog.xdd[_X_],cog.xdd[_Y_],cog.xdd[_Z_]);
+  printf("\n");
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  linkQuat
+\date  July 2005
+\remarks 
+
+ computes the quaternian from its rotation matrix
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     R   : rotation matrix
+ \param[out]    q   : quaternian structure for output
+
+ ******************************************************************************/
+void
+linkQuat(Matrix R, SL_quat *q)
+{
+  int i,j;
+  double T,S,qx,qy,qz,qw;
+
+  T = 1.0 + R[1][1] + R[2][2] + R[3][3];
+
+  if ( T > 0.00000001 ) {
+
+    S  = 0.5 / sqrt(T);
+    qw = 0.25 / S;
+    qx = ( R[3][2] - R[2][3] ) * S;
+    qy = ( R[1][3] - R[3][1] ) * S;
+    qz = ( R[2][1] - R[1][2] ) * S;
+
+  } else {
+
+    if ((R[1][1] > R[2][2]) && (R[1][1] > R[3][3])) { 
+      S = sqrt( 1.0 + R[1][1] - R[2][2] - R[3][3] ) * 2; 
+      qx = 0.25 * S;
+      qy = (R[1][2] + R[2][1] ) / S; 
+      qz = (R[1][3] + R[3][1] ) / S; 
+      qw = (R[2][3] - R[3][2] ) / S;
+    } else if (R[2][2] > R[3][3]) { 
+      S = sqrt( 1.0 + R[2][2] - R[1][1] - R[3][3] ) * 2; 
+      qx = (R[1][2] + R[2][1] ) / S; 
+      qy = 0.25 * S;
+      qz = (R[2][3] + R[3][2] ) / S; 
+      qw = (R[1][3] - R[3][1] ) / S;
+    } else { 
+      S = sqrt( 1.0 + R[3][3] - R[1][1] - R[2][2] ) * 2; 
+      qx = (R[1][3] + R[3][1] ) / S; 
+      qy = (R[2][3] + R[3][2] ) / S; 
+      qz = 0.25 * S;
+      qw = (R[1][2] - R[2][1] ) / S;
+    } 
+
+  }
+  
+  q->q[_Q0_] = qw;
+  q->q[_Q1_] = qx;
+  q->q[_Q2_] = qy;
+  q->q[_Q3_] = qz;
+  
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatDerivatives
+\date  July 2005
+\remarks 
+
+ computes the quaternian derivatives from the angular velocity and the
+ quaternion
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : structure containing the quaternion and angular vel. and acc.
+ \param[out]    q   : the quaternion velocity and acceleration will be filled in
+
+ ******************************************************************************/
+void
+quatDerivatives(SL_quat *q)
+{
+  int i,j;
+  double Q[4+1][3+1];
+  double Qd[4+1][3+1];
+
+  Q[1][1] = -q->q[_Q1_];
+  Q[1][2] = -q->q[_Q2_];
+  Q[1][3] = -q->q[_Q3_];
+
+  Q[2][1] =  q->q[_Q0_];
+  Q[2][2] =  q->q[_Q3_];
+  Q[2][3] = -q->q[_Q2_];
+
+  Q[3][1] = -q->q[_Q3_];
+  Q[3][2] =  q->q[_Q0_];
+  Q[3][3] =  q->q[_Q1_];
+
+  Q[4][1] =  q->q[_Q2_];
+  Q[4][2] = -q->q[_Q1_];
+  Q[4][3] =  q->q[_Q0_];
+
+
+  for (i=1; i<=N_QUAT; ++i) {
+    q->qd[i] = 0.0;
+    for (j=1; j<=N_CART; ++j)
+      q->qd[i] += 0.5*Q[i][j]*q->ad[j];
+  }
+  
+  
+  Qd[1][1] = -q->qd[_Q1_];
+  Qd[1][2] = -q->qd[_Q2_];
+  Qd[1][3] = -q->qd[_Q3_];
+
+  Qd[2][1] =  q->qd[_Q0_];
+  Qd[2][2] =  q->qd[_Q3_];
+  Qd[2][3] = -q->qd[_Q2_];
+
+  Qd[3][1] = -q->qd[_Q3_];
+  Qd[3][2] =  q->qd[_Q0_];
+  Qd[3][3] =  q->qd[_Q1_];
+
+  Qd[4][1] =  q->qd[_Q2_];
+  Qd[4][2] = -q->qd[_Q1_];
+  Qd[4][3] =  q->qd[_Q0_];
+
+  for (i=1; i<=N_QUAT; ++i) {
+    q->qdd[i] = 0.0;
+    for (j=1; j<=N_CART; ++j)
+      q->qdd[i] += 0.5*Qd[i][j]*q->ad[j] + 0.5*Q[i][j]*q->add[j];;
+  }
+
+  
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatToAngularVelocity
+\date  July 2005
+\remarks 
+
+ computes the angular velocity from quaternian position and derivatives 
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : structure containing the quaternion and its velocity
+ \param[out]    q   : fills in the angular velocity
+
+ ******************************************************************************/
+void
+quatToAngularVelocity(SL_quat *q)
+{
+  int i,j;
+  double Q[4+1][3+1];
+  double Qd[4+1][3+1];
+
+  q->ad[_A_] = 2.*(  -q->q[_Q1_]*q->qd[_Q0_]
+		     +q->q[_Q0_]*q->qd[_Q1_]
+		     -q->q[_Q3_]*q->qd[_Q2_]
+		     +q->q[_Q2_]*q->qd[_Q3_] );
+
+
+  q->ad[_B_] = 2.*(  -q->q[_Q2_]*q->qd[_Q0_]
+		     +q->q[_Q3_]*q->qd[_Q1_]
+		     +q->q[_Q0_]*q->qd[_Q2_]
+		     -q->q[_Q1_]*q->qd[_Q3_] );
+
+
+  q->ad[_G_] = 2.*(  -q->q[_Q3_]*q->qd[_Q0_]
+		     -q->q[_Q2_]*q->qd[_Q1_]
+		     +q->q[_Q1_]*q->qd[_Q2_]
+		     +q->q[_Q0_]*q->qd[_Q3_] );
+
+  
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatToRotMat
+\date  July 2005
+\remarks 
+
+ converts a quaternion into a rotation matrix, where the rotation matrix
+ is the transformation from global to local coordinates
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : structure containing the quaternion and its velocity
+ \param[out]    R   : 3 by 3 rotation matrix
+
+ ******************************************************************************/
+void
+quatToRotMat(SL_quat *q, Matrix R)
+{
+
+  R[1][1] = -1.0 + 2.0*sqr(q->q[_Q0_]) + 2.0*sqr(q->q[_Q1_]);
+  R[2][2] = -1.0 + 2.0*sqr(q->q[_Q0_]) + 2.0*sqr(q->q[_Q2_]);
+  R[3][3] = -1.0 + 2.0*sqr(q->q[_Q0_]) + 2.0*sqr(q->q[_Q3_]);
+
+  R[1][2] = 2.0 * (q->q[_Q1_]*q->q[_Q2_] + q->q[_Q0_]*q->q[_Q3_]);
+  R[1][3] = 2.0 * (q->q[_Q1_]*q->q[_Q3_] - q->q[_Q0_]*q->q[_Q2_]);
+  R[2][1] = 2.0 * (q->q[_Q1_]*q->q[_Q2_] - q->q[_Q0_]*q->q[_Q3_]);
+  R[2][3] = 2.0 * (q->q[_Q2_]*q->q[_Q3_] + q->q[_Q0_]*q->q[_Q1_]);
+  R[3][1] = 2.0 * (q->q[_Q1_]*q->q[_Q3_] + q->q[_Q0_]*q->q[_Q2_]);
+  R[3][2] = 2.0 * (q->q[_Q2_]*q->q[_Q3_] - q->q[_Q0_]*q->q[_Q1_]);
+  
+}
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatToRotMatInv
+\date  July 2005
+\remarks 
+
+ converts a quaternion into a rotation matrix, where the rotation matrix
+ is the transformation from local to global coordinates
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : structure containing the quaternion and its velocity
+ \param[out]    R   : 3 by 3 rotation matrix
+
+ ******************************************************************************/
+void
+quatToRotMatInv(SL_quat *q, Matrix R)
+{
+
+  R[1][1] = -1.0 + 2.0*sqr(q->q[_Q0_]) + 2.0*sqr(q->q[_Q1_]);
+  R[2][2] = -1.0 + 2.0*sqr(q->q[_Q0_]) + 2.0*sqr(q->q[_Q2_]);
+  R[3][3] = -1.0 + 2.0*sqr(q->q[_Q0_]) + 2.0*sqr(q->q[_Q3_]);
+
+  R[2][1] = 2.0 * (q->q[_Q1_]*q->q[_Q2_] + q->q[_Q0_]*q->q[_Q3_]);
+  R[3][1] = 2.0 * (q->q[_Q1_]*q->q[_Q3_] - q->q[_Q0_]*q->q[_Q2_]);
+  R[1][2] = 2.0 * (q->q[_Q1_]*q->q[_Q2_] - q->q[_Q0_]*q->q[_Q3_]);
+  R[3][2] = 2.0 * (q->q[_Q2_]*q->q[_Q3_] + q->q[_Q0_]*q->q[_Q1_]);
+  R[1][3] = 2.0 * (q->q[_Q1_]*q->q[_Q3_] + q->q[_Q0_]*q->q[_Q2_]);
+  R[2][3] = 2.0 * (q->q[_Q2_]*q->q[_Q3_] - q->q[_Q0_]*q->q[_Q1_]);
+  
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatMatrix
+\date  July 2005
+\remarks 
+
+ converts a quaternion into a matrix Q(q) which can be used in Quaternion
+ multiplication, e.g., q12 = q2 * q1 = Q(q2)*q1. A good source for the math
+ is Flashner's book.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : structure containing the quaternion
+ \param[out]    Q   : a 4x4 matrix
+
+
+ ******************************************************************************/
+void
+quatMatrix(SL_quat *q, Matrix Q)
+{
+  int i,j;
+  
+  Q[1][1] =  q->q[_Q0_];
+  Q[1][2] = -q->q[_Q1_];
+  Q[1][3] = -q->q[_Q2_];
+  Q[1][4] = -q->q[_Q3_];
+
+  Q[2][1] =  q->q[_Q1_];
+  Q[2][2] =  q->q[_Q0_];
+  Q[2][3] =  q->q[_Q3_];
+  Q[2][4] = -q->q[_Q2_];
+
+  Q[3][1] =  q->q[_Q2_];
+  Q[3][2] = -q->q[_Q3_];
+  Q[3][3] =  q->q[_Q0_];
+  Q[3][4] =  q->q[_Q1_];
+
+  Q[4][1] =  q->q[_Q3_];
+  Q[4][2] =  q->q[_Q2_];
+  Q[4][3] = -q->q[_Q1_];
+  Q[4][4] =  q->q[_Q0_];
+}
+
+#ifndef VX  
+#endif
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  revoluteGJacColumn
+\date  January 2006
+\remarks 
+
+ computes one column for the geometric jacobian of a revolute joint
+ from the given input vectors
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     p    : position of endeffector
+ \param[in]     pi   : position of joint origin
+ \param[in]     zi   : unit vector of joint axis
+ \param[out]    c    : column vector of Jacobian
+
+ ******************************************************************************/
+void
+revoluteGJacColumn(Vector p, Vector pi, Vector zi, Vector c)
+{
+  int i,j;
+
+  c[1] = zi[2] * (p[3]-pi[3]) - zi[3] * (p[2]-pi[2]);
+  c[2] = zi[3] * (p[1]-pi[1]) - zi[1] * (p[3]-pi[3]);
+  c[3] = zi[1] * (p[2]-pi[2]) - zi[2] * (p[1]-pi[1]);
+  c[4] = zi[1];
+  c[5] = zi[2];
+  c[6] = zi[3];
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  compute_cog
+\date  March 2005
+   
+\remarks 
+
+      computes the center of gravity, assuming, of course, well estimated
+      parameters of the robot
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+     All results can be computed based on global variables. Results are
+     assigned to the cog structure.
+
+
+ ******************************************************************************/
+#define BASE 0
+void
+compute_cog(void)
+{
+  int    i,j;
+  double mass;
+
+  for (j=1; j<=N_CART; ++j) {
+    cog.x[j]     = joint_cog_mpos[BASE][j];
+    cog_des.x[j] = joint_cog_mpos_des[BASE][j];
+  }
+
+  mass = links[BASE].m;
+
+  for (i=1; i<=n_dofs; ++i) {
+    for (j=1; j<=N_CART; ++j) {
+      cog.x[j]     += joint_cog_mpos[i][j];
+      cog_des.x[j] += joint_cog_mpos_des[i][j];
+    }
+    mass += links[i].m;
+  }
+
+  if (mass != 0 ){
+    for (j=1; j<=N_CART; ++j) {
+      cog.x[j] /= mass;
+      cog_des.x[j] /= mass;
+    }
+  } else {
+    for (j=1; j<=N_CART; ++j) {
+      cog.x[j] = 0;
+      cog_des.x[j] = 0;
+    }
+  }
+
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  eulerToQuatInv
+\date  January 2006
+\remarks 
+
+ converts an a-b-g Euler angle notation to a quaternion
+
+ Note: this computation is based on a rotation matrix which is transforming
+       from local to global coordinates (which I usually call an inverse
+       transformation).
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     a    : vector of rotation angles (a,b,g)
+ \param[out]    q    : quaternion
+
+ ******************************************************************************/
+void
+eulerToQuatInv(Vector a, SL_quat *q)
+{
+  int i,j;
+  static Matrix R;
+  static int firsttime = TRUE;
+
+  if (firsttime) {
+    firsttime = FALSE;
+    R = my_matrix(1,N_CART,1,N_CART);
+  }
+
+  eulerToRotMat(a,R); // SL quaternions denote the inverse transformation
+                      // i.e., local->global
+  linkQuat(R,q);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  eulerToQuat
+\date  January 2006
+\remarks 
+
+ converts an a-b-g Euler angle notation to a quaternion
+
+ Note: this computation is based on a rotation matrix which is transforming
+       from global to local coordinates (which I usually call a forward
+       transformation).
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     a    : vector of rotation angles (a,b,g)
+ \param[out]    q    : quaternion
+
+ ******************************************************************************/
+void
+eulerToQuat(Vector a, SL_quat *q)
+{
+  int i,j;
+  static Matrix R;
+  static int firsttime = TRUE;
+
+  if (firsttime) {
+    firsttime = FALSE;
+    R = my_matrix(1,N_CART,1,N_CART);
+  }
+
+  eulerToRotMatInv(a,R); // SL quaternions denote the inverse transformation
+                         // i.e., local->global
+  linkQuat(R,q);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  eulerToRotMat
+\date  January 2006
+\remarks 
+
+ converts an a-b-g Euler angle notation to a rotation matrix. This is
+ the forward transformation (from global to local coordinates), computed
+ as 
+
+  Rz*Ry*Rx  where
+
+  Rx = {{1, 0, 0}, {0, Cos[a], Sin[a]}, {0, -Sin[a], Cos[a]}}
+  Ry = {{Cos[b], 0, -Sin[b]}, {0, 1, 0}, {Sin[b], 0, Cos[b]}}
+  Rz = {{Cos[g], Sin[g], 0}, {-Sin[g], Cos[g], 0}, {0, 0, 1}}
+
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     a    : vector of rotation angles (a,b,g)
+ \param[out]    R    : rotation matrix
+
+ ******************************************************************************/
+void
+eulerToRotMat(Vector a, Matrix R)
+{
+
+  R[1][1] =  cos(a[2])*cos(a[3]);
+  R[1][2] =  cos(a[3])*sin(a[1])*sin(a[2]) + cos(a[1])*sin(a[3]);
+  R[1][3] = -(cos(a[1])*cos(a[3])*sin(a[2])) +sin(a[1])*sin(a[3]);
+  R[2][1] = -(cos(a[2])*sin(a[3]));
+  R[2][2] =  cos(a[1])*cos(a[3]) - sin(a[1])*sin(a[2])*sin(a[3]);
+  R[2][3] =  cos(a[3])*sin(a[1]) + cos(a[1])*sin(a[2])*sin(a[3]);
+  R[3][1] =  sin(a[2]);
+  R[3][2] = -(cos(a[2])*sin(a[1]));
+  R[3][3] =  cos(a[1])*cos(a[2]);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  eulerToRotMatInv
+\date  January 2006
+\remarks 
+
+ converts an a-b-g Euler angle notation to a rotation matrix. This is
+ the inverse transformation (from local to globa coordinates), computed
+ as 
+
+  Rx'*Ry'*Rz'  where
+
+  Rx = {{1, 0, 0}, {0, Cos[a], Sin[a]}, {0, -Sin[a], Cos[a]}}
+  Ry = {{Cos[b], 0, -Sin[b]}, {0, 1, 0}, {Sin[b], 0, Cos[b]}}
+  Rz = {{Cos[g], Sin[g], 0}, {-Sin[g], Cos[g], 0}, {0, 0, 1}}
+
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     a    : vector of rotation angles (a,b,g)
+ \param[out]    R    : rotation matrix
+
+ ******************************************************************************/
+void
+eulerToRotMatInv(Vector a, Matrix R)
+{
+
+  R[1][1] =  cos(a[2])*cos(a[3]);
+  R[2][1] =  cos(a[3])*sin(a[1])*sin(a[2]) + cos(a[1])*sin(a[3]);
+  R[3][1] = -(cos(a[1])*cos(a[3])*sin(a[2])) +sin(a[1])*sin(a[3]);
+  R[1][2] = -(cos(a[2])*sin(a[3]));
+  R[2][2] =  cos(a[1])*cos(a[3]) - sin(a[1])*sin(a[2])*sin(a[3]);
+  R[3][2] =  cos(a[3])*sin(a[1]) + cos(a[1])*sin(a[2])*sin(a[3]);
+  R[1][3] =  sin(a[2]);
+  R[2][3] = -(cos(a[2])*sin(a[1]));
+  R[3][3] =  cos(a[1])*cos(a[2]);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatToEuler
+\date  Nov. 2007
+\remarks 
+
+ converts a quaternion to a-b-g Euler angle notation assuming that this
+ quaternion denotes a forward (global->local) transformation.
+
+ Note: we choose a solution for the b-rotation within [-pi/2,pi/2]
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     a    : vector of rotation angles (a,b,g)
+ \param[out]    q    : quaternion
+
+ ******************************************************************************/
+void
+quatToEuler(SL_quat *q, Vector a)
+
+{
+  static int firsttime = TRUE;
+  static Matrix R;
+
+  if (firsttime) {
+    firsttime = FALSE;
+    R = my_matrix(1,N_CART,1,N_CART);
+  }
+
+  quatToRotMat(q, R);
+  rotMatToEuler(R,a);
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  rotMatToEuler
+\date  Nov. 2007
+\remarks 
+
+ converts a rotation matrix to a-b-g Euler angle notation assuming that this
+ matrix denotes a forward (global->local) transformation.
+
+ Note: we choose a solution for the b-rotation within [-pi/2,pi/2]
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     R    : rotation matrix
+ \param[out]    q    : quaternion
+
+ ******************************************************************************/
+void
+rotMatToEuler(Matrix R, Vector a)
+
+{
+  a[1] =   atan2_save(R[3][3],-R[3][2]);
+  a[2] =   atan2_save(sqrt(sqr(R[3][2])+sqr(R[3][3])),R[3][1]);
+  a[3] =   atan2_save(R[1][1],-R[2][1]);
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatToEulerInv
+\date  Nov. 2007
+\remarks 
+
+ converts a quaternion to a-b-g Euler angle notation assuming that this
+ quaternion denotes an inverse (local->globa) transformation.
+
+ Note: we choose a solution for the b-rotation within [-pi/2,pi/2]
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     a    : vector of rotation angles (a,b,g)
+ \param[out]    q    : quaternion
+
+ ******************************************************************************/
+void
+quatToEulerInv(SL_quat *q, Vector a)
+
+{
+  static int firsttime = TRUE;
+  static Matrix R;
+
+  if (firsttime) {
+    firsttime = FALSE;
+    R = my_matrix(1,N_CART,1,N_CART);
+  }
+
+  quatToRotMatInv(q, R);
+  rotMatToEulerInv(R,a);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  rotMatToEulerInv
+\date  Nov. 2007
+\remarks 
+
+ converts a rotation Matrix to a-b-g Euler angle notation assuming that this
+ quaternion denotes an inverse (local->globa) transformation.
+
+ Note: we choose a solution for the b-rotation within [-pi/2,pi/2]
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     R    : rotation matrix
+ \param[out]    q    : quaternion
+
+ ******************************************************************************/
+void
+rotMatToEulerInv(Matrix R, Vector a)
+
+{
+  a[1] =   atan2_save(R[3][3],-R[2][3]);
+  a[2] =   atan2_save(sqrt(sqr(R[2][3])+sqr(R[3][3])),R[1][3]);
+  a[3] =   atan2_save(R[1][1],-R[1][2]);
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_config_files
+\date  May 2000
+\remarks 
+
+  parses the ConfigFiles.cf file an assignes all config file names
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname : file name of file where config files are stored
+
+ ******************************************************************************/
+int
+read_config_files(char *fname) {
+
+
+  int j,i,rc;
+  char   string[100];
+  FILE  *in;
+
+  // open the file for read 
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen(string,"r");
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  // udpate all config file names as needed
+  for (i=1; i<= N_CONFIG_FILES; ++i) {
+    if (find_keyword(in, &(config_file_tags[i][0]))) {
+      rc=fscanf(in,"%s",config_files[i]);
+    } else {
+      sprintf(config_files[i],"%s not found",&(config_file_tags[i][0]));
+    }
+  }
+  
+  fclose(in);
+
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_sensor_calibration
+\date  May 2000
+\remarks 
+
+parses the sensor calibration configuration file into global variables
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname           : name of calibration file
+ \param[in]     joint_lin_rot   : matrix about sensor configuration
+ \param[in]     pos_polar       : sign for positions
+ \param[in]     load_polar      : sign for loads
+
+ ******************************************************************************/
+int
+read_sensor_calibration(char *fname, Matrix joint_lin_rot, 
+			Vector pos_polar, Vector load_polar) 
+
+{
+
+  int j,i,rc;
+  char   string[100];
+  FILE  *in;
+  double dum;
+
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen(string,"r");
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  /* find all joint variables and read them into the appropriate array */
+
+  for (i=1; i<= n_dofs; ++i) {
+    if (!find_keyword(in, &(joint_names[i][0]))) {
+      printf("ERROR: Cannot find calibration for >%s<!\n",joint_names[i]);
+      fclose(in);
+      return FALSE;
+    } else {
+      rc=fscanf(in,"%lf %lf %lf %lf %lf %lf %lf",
+	     &joint_lin_rot[i][SENSOR],
+	     &joint_lin_rot[i][ACTUATOR],
+	     &joint_lin_rot[i][LOADCELL],
+	     &joint_lin_rot[i][MOMENTARM],
+	     &joint_lin_rot[i][MOUNTPOINT],
+	     &pos_polar[i],&load_polar[i]);
+      if (joint_lin_rot[i][MOUNTPOINT] != 0.0) 
+	joint_lin_rot[i][THETA0] = acos(joint_lin_rot[i][MOMENTARM]/
+					joint_lin_rot[i][MOUNTPOINT]);
+      else
+	joint_lin_rot[i][THETA0] = 0.0;
+    }
+  }
+
+  fclose(in);
+  
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatError
+\date  Nov. 2007
+\remarks 
+
+   Computes the norm of the difference between two quaternions, derived
+   from a formulation that is used in quaternion feedback control (and
+   has a unique zero norm only if two quaternions are the same). Note 
+   that is norm is bounded in [0,1]
+
+   Assume each quaternion can be written as [eta eps], where eps is the
+   vector component of the quaternion. Then the error is:
+
+   error eta_1 * eps2 - eta_2*eps2 - eps1 x eps2 (x = cross product)
+
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q1     : quaternion 1
+ \param[in]     q2     : quaternion 2
+
+
+ ******************************************************************************/
+double 
+quatError(double* q1, double* q2) 
+
+{
+  double norm = 0;
+  double aux;
+
+  aux = q1[_Q0_]*q2[_Q1_] - q2[_Q0_]*q1[_Q1_] - (q1[_Q2_]*q2[_Q3_] - q1[_Q3_]*q2[_Q2_]);
+  norm += sqr(aux);
+
+  aux = q1[_Q0_]*q2[_Q2_] - q2[_Q0_]*q1[_Q2_] - (q1[_Q3_]*q2[_Q1_] - q1[_Q1_]*q2[_Q3_]);
+  norm += sqr(aux);
+
+  aux = q1[_Q0_]*q2[_Q3_] - q2[_Q0_]*q1[_Q3_] - (q1[_Q1_]*q2[_Q2_] - q1[_Q2_]*q2[_Q1_]);
+  norm += sqr(aux);
+
+  return sqrt(norm);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatErrorVector
+\date  April. 2008
+\remarks 
+
+   Computes the difference between two quaternions as an angular velocity.
+   This is used in quaternion feedback control.
+
+   Assume each quaternion can be written as [eta eps], where eps is the
+   vector component of the quaternion. Then the error is:
+
+   error = eta_1 * eps2 - eta_2*eps2 - eps1 x eps2 (x = cross product)
+
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q1     : quaternion 1 (the desired state in feedback control)
+ \param[in]     q2     : quaternion 2 (the state in feedback control)
+
+
+ ******************************************************************************/
+void
+quatErrorVector(double* q1, double* q2, double *ad) 
+
+{
+
+  ad[_A_] = q1[_Q0_]*q2[_Q1_] - q2[_Q0_]*q1[_Q1_] - (q1[_Q2_]*q2[_Q3_] - q1[_Q3_]*q2[_Q2_]);
+
+  ad[_B_] = q1[_Q0_]*q2[_Q2_] - q2[_Q0_]*q1[_Q2_] - (q1[_Q3_]*q2[_Q1_] - q1[_Q1_]*q2[_Q3_]);
+
+  ad[_G_] = q1[_Q0_]*q2[_Q3_] - q2[_Q0_]*q1[_Q3_] - (q1[_Q1_]*q2[_Q2_] - q1[_Q2_]*q2[_Q1_]);
+
+}
+
+

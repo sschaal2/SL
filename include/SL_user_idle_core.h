@@ -1,0 +1,74 @@
+//-------------------------------------------------------------------------
+// check for clmcplot_mode or playback_mode
+if (clmcplot_mode || playback_mode || userGraphics_mode) {
+  
+  // check for graphics update
+  if (clmcplot_mode)
+    clmcplotUpdateState();
+  else if (playback_mode)
+    playbackUpdateState();
+  else if (userGraphics_mode) {
+    checkForUserGraphics();
+    userGraphicsUpdateState();
+  }
+  
+  linkInformation(joint_sim_state,&base_state,&base_orient,endeff,
+		  joint_cog_mpos_sim,joint_axis_pos_sim,joint_origin_pos_sim,
+		  link_pos_sim,Alink_sim);
+
+
+  // compute COG
+  for (i=0; i<=N_LINKS; ++i) {
+    joint_cog_mpos[i] = joint_cog_mpos_sim[i];
+    link_pos[i] = link_pos_sim[i];
+  }
+  compute_cog();
+  
+  // update the graphics
+  glutPostRedisplayAll();
+  
+}
+
+//-------------------------------------------------------------------------
+// check for pause and stand-alone mode
+if (pause_flag || stand_alone_flag) {
+  usleep(10000);
+  return;
+}
+
+//-------------------------------------------------------------------------
+// get 60Hz semaphore
+if (semTake(sm_openGL_servo_sem,WAIT_FOREVER) == ERROR) {
+  printf("semTake Time Out -- Servo Terminated\n");
+  exit(-1);
+}
+
+//-------------------------------------------------------------------------
+// advance the time
+++openGL_servo_calls;
+servo_time += 1./(double)openGL_servo_rate;
+openGL_servo_time = servo_time;
+
+//-------------------------------------------------------------------------
+// read from shared memory
+receive_sim_state();
+receive_misc_sensors();
+receive_contacts();
+checkForUserGraphics();
+checkForMessages();
+
+//-------------------------------------------------------------------------
+// compute link info
+linkInformation(joint_sim_state,&base_state,&base_orient,endeff,
+		joint_cog_mpos_sim,joint_axis_pos_sim,joint_origin_pos_sim,
+		link_pos_sim,Alink_sim);
+
+// compute COG
+for (i=0; i<=N_DOFS; ++i)
+  joint_cog_mpos[i] = joint_cog_mpos_sim[i];
+for (i=0; i<=N_LINKS; ++i)
+  link_pos[i] = link_pos_sim[i];
+
+compute_cog();
+
+
