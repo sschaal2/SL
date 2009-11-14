@@ -3,8 +3,8 @@
 
   \file    SL_common.h
 
-  \author 
-  \date   
+  \author  Stefan Schaal
+  \date    2000
 
   ==============================================================================
   \remarks

@@ -64,6 +64,7 @@ INSTALL_HEADERS = ../include/SL.h \
 		  ../include/SL_inv_dynamics_body.h \
 		  ../include/SL_inv_dynamics_art_body.h \
 		  ../include/SL_parm_estimate_body.h \
+		  ../include/SL_oscilloscope.h \
 		  ../include/SL_simulation_servo.h
 
 AllTarget()
