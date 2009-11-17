@@ -1644,7 +1644,7 @@ togglePlaybackMode(void)
 
   if (playback_mode == 0) {
 
-    if ( ( in = fopen( "last_data", "r" ) ) != NULL )   {
+    if ( ( in = fopen( ".last_data", "r" ) ) != NULL )   {
       rc=fscanf( in, "%d\n", &file_number );
       fclose( in );
     }
@@ -1825,7 +1825,7 @@ new_playback(void)
   if (!playback_mode)
     return;
 
-  if ( ( in = fopen( "last_data", "r" ) ) != NULL )   {
+  if ( ( in = fopen( ".last_data", "r" ) ) != NULL )   {
     rc=fscanf( in, "%d\n", &file_number );
     fclose( in );
   }

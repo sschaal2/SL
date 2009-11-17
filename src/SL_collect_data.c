@@ -403,10 +403,14 @@ saveData(void)
 
   printf( "Saving data:\n" );
   
-  /* create a file name */
-
-  if ( ( in = fopen( "last_data", "r" ) ) == NULL )   {
-      printf( "cannot fopen file last_data for read.\n" );
+  // create a file name
+  if ( ( in = fopen( "last_data", "r" ) ) != NULL ) { // migration to .last_data
+    int rc;
+    rc = system("mv last_data .last_data");
+    fclose(in);
+  }
+  if ( ( in = fopen( ".last_data", "r" ) ) == NULL )   {
+      printf( "cannot fopen file .last_data for read.\n" );
   } else {
     rc=fscanf( in, "%d\n", &file_number );
     fclose( in );
@@ -452,8 +456,8 @@ saveData(void)
 
   fclose( fp );
   
-  if ( ( fd = fopen( "last_data", "w" ) ) == NULL )   {
-      printf( "cannot fopen file last_data for write.\n" );
+  if ( ( fd = fopen( ".last_data", "w" ) ) == NULL )   {
+      printf( "cannot fopen file .last_data for write.\n" );
       return;
   }
   fprintf( fd, "%d\n", file_number );
