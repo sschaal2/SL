@@ -28,6 +28,7 @@
 #include "SL_collect_data.h"
 #include "SL_vision_servo.h"
 #include "SL_shared_memory.h"
+#include "SL_oscilloscope.h"
 #include "lwpr.h"
 #include "SL_man.h"
 #include "SL_common.h"
@@ -111,10 +112,9 @@ init_vision_servo()
 #else
   no_hardware_flag = TRUE;
 #endif
-  
-  /* initialize the A/D board */
-  initialize_ad(d2a_hwv);
-  dta(d2a_hwv,d2a_bv,d2a_cv,0);
+
+  /* set oscilloscope to start value */  
+  setOsc(d2a_cv,0.0);
   
   /* initialize shared memories and shared semaphores */
   if (!init_shared_memory())
@@ -219,7 +219,7 @@ run_vision_servo(void)
    * this allows to overwrite the blobs, e.g., by simulated information
    */
   
-  dta(d2a_hwv,d2a_bv,d2a_cv,1500);
+  setOsc(d2a_cv,35.0);
   /* reset the blob status if there is no hardware */
   if (no_hardware_flag) {
     for (i=1; i<=max_blobs; ++i) {
@@ -234,35 +234,35 @@ run_vision_servo(void)
    * process the blobs (filtering, conversion into our coordinates
    */
   
-  dta(d2a_hwv,d2a_bv,d2a_cv,2000);
+  setOsc(d2a_cv,50.0);
   process_blobs(raw_blobs2D);
   
   /*************************************************************************
    * broadcast the the final blob information in shared memory
    */
   
-  dta(d2a_hwv,d2a_bv,d2a_cv,2500);
+  setOsc(d2a_cv,60.0);
   broadcast_blobs();
   
   /*************************************************************************
    * read the robot state
    */
   
-  dta(d2a_hwv,d2a_bv,d2a_cv,3000);
+  setOsc(d2a_cv,70.0);
   receive_cartesian();
   
   /*************************************************************************
    * learn the mapping
    */
   
-  dta(d2a_hwv,d2a_bv,d2a_cv,3500);
+  setOsc(d2a_cv,80.0);
   learn_transformation();
   
   /*************************************************************************
    * collect data
    */
   
-  dta(d2a_hwv,d2a_bv,d2a_cv,4000);
+  setOsc(d2a_cv,100.0);
   writeToBuffer();
   
   /*************************************************************************

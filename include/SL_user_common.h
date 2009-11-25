@@ -29,19 +29,8 @@ extern "C" {
   const int  n_misc_sensors = N_MISC_SENSORS;
   const char vision_default_pp[]=VISION_DEFAULT_PP;
 
-  const int  d2a_hwm = D2A_HWM;
-  const int  d2a_hwv = D2A_HWV;
-  const int  d2a_hwi = D2A_HWI;
-  const int  d2a_hwt = D2A_HWT;
-
-  const int  d2a_bm = D2A_BM;
-  const int  d2a_bv = D2A_BV;
-  const int  d2a_bi = D2A_BI;
-  const int  d2a_bt = D2A_BT;
-
   const int  d2a_cm = D2A_CM;
   const int  d2a_cv = D2A_CV;
-  const int  d2a_ci = D2A_CI;
   const int  d2a_ct = D2A_CT;
 
   /* global variables */

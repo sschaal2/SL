@@ -30,6 +30,7 @@
 #include "SL_man.h"
 #include "SL_common.h"
 #include "SL_filters.h"
+#include "SL_oscilloscope.h"
 
 #define TIME_OUT_NS  1000000000
 
@@ -101,9 +102,8 @@ init_task_servo(void)
   /* the servo name */
   sprintf(servo_name,"task");
 
-  /* initialize the A/D board */
-  initialize_ad(d2a_hwt);
-  dta(d2a_hwt,d2a_bt,d2a_ct,0);
+  /* set oscilloscope to start value */
+  setOsc(d2a_ct,0.0);
   
   /* initialize the tasks */
   initTasks();
@@ -476,7 +476,7 @@ run_task_servo(void)
   int    j,i;
   double dt;
 
-  dta(d2a_hwt,d2a_bt,d2a_ct,0);
+  setOsc(d2a_ct,0.0);
   
   /* adjust the servo time */
   ++task_servo_calls;
@@ -494,7 +494,7 @@ run_task_servo(void)
     return FALSE;
   }
   
-  dta(d2a_hwt,d2a_bt,d2a_ct,500);
+  setOsc(d2a_ct,10.0);
 
   if (task_servo_calls <= 1) { // initialize desired at first servo tick
     for (i=1; i<=n_dofs; ++i) {
@@ -510,7 +510,7 @@ run_task_servo(void)
   
   compute_kinematics();
   
-  dta(d2a_hwt,d2a_bt,d2a_ct,1000);
+  setOsc(d2a_ct,20.0);
   
   /**********************************************************************
    * send out the kinematic variables
@@ -521,7 +521,7 @@ run_task_servo(void)
     return FALSE;
   }
   
-  dta(d2a_hwt,d2a_bt,d2a_ct,1500);
+  setOsc(d2a_ct,30.0);
   
   
   /**********************************************************************
@@ -533,7 +533,7 @@ run_task_servo(void)
     return FALSE;
   }
   
-  dta(d2a_hwt,d2a_bt,d2a_ct,2000);
+  setOsc(d2a_ct,50.0);
   
   
   /*********************************************************************
@@ -551,7 +551,7 @@ run_task_servo(void)
   /* run user tasks */
   runTask();
   
-  dta(d2a_hwt,d2a_bt,d2a_ct,3000);
+  setOsc(d2a_ct,70.0);
   
   /**********************************************************************
    * send out the new commands
@@ -573,7 +573,7 @@ run_task_servo(void)
     }
   }
 
-  dta(d2a_hwt,d2a_bt,d2a_ct,3500);
+  setOsc(d2a_ct,80.0);
   
   
   /*************************************************************************
@@ -582,7 +582,7 @@ run_task_servo(void)
 
   writeToBuffer();
 
-  dta(d2a_hwt,d2a_bt,d2a_ct,4000);
+  setOsc(d2a_ct,100.0);
   
   /*************************************************************************
    * end of program sequence

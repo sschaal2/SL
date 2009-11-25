@@ -3,8 +3,8 @@
 
   \file    SL_xeno_common.c
 
-  \author 
-  \date   
+  \author  Stefan Schaal
+  \date    Nov 2009
 
   ==============================================================================
   \remarks

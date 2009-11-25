@@ -27,6 +27,7 @@
 #include "SL_sensor_proc.h"
 #include "SL_common.h"
 #include "SL_filters.h"
+#include "SL_oscilloscope.h"
 #include "utility.h"
 
 
@@ -116,9 +117,8 @@ init_motor_servo(void)
   printf("done\n");
 #endif
   
-  /* initialize the A/D board */
-  initialize_ad(d2a_hwm);
-  dta(d2a_hwm,d2a_bm,d2a_cm,0);
+  /* set oscilloscope to start value */
+  setOsc(d2a_cm,0.0);
 
   /* initialize the controller */
   printf("Init controller ...");
@@ -213,7 +213,7 @@ run_motor_servo(void)
   double dt;
 
   
-  dta(d2a_hwm,d2a_bm,d2a_cm,4000);
+  setOsc(d2a_cm,100.0);
   
   /* check for missed ISR ticks */
   
@@ -241,7 +241,7 @@ run_motor_servo(void)
     return FALSE;
   }
 
-  dta(d2a_hwm,d2a_bm,d2a_cm,3500);
+  setOsc(d2a_cm,90.0);
   
   /*********************************************************************
    * filtering and differentiation of the data
@@ -252,7 +252,7 @@ run_motor_servo(void)
     return FALSE;
   }
 
-  dta(d2a_hwm,d2a_bm,d2a_cm,3000);
+  setOsc(d2a_cm,80.0);
   
   /*************************************************************************
    * provide sensor readings in shared memory
@@ -264,7 +264,7 @@ run_motor_servo(void)
   }
   
   
-  dta(d2a_hwm,d2a_bm,d2a_cm,2500);
+  setOsc(d2a_cm,70.0);
   
   /*************************************************************************
    *  trigger synchronization processes
@@ -274,7 +274,7 @@ run_motor_servo(void)
     triggerSynchronization();
   }   
   
-  dta(d2a_hwm,d2a_bm,d2a_cm,2000);
+  setOsc(d2a_cm,50.0);
   
   /**********************************************************************
    * get desired values and feedforward commands
@@ -293,7 +293,7 @@ run_motor_servo(void)
     }
   }
 
-  dta(d2a_hwm,d2a_bm,d2a_cm,1500);
+  setOsc(d2a_cm,40.0);
   
   /**********************************************************************
    * the feedforward/feedback controller
@@ -304,7 +304,7 @@ run_motor_servo(void)
     return FALSE;
   }
   
-  dta(d2a_hwm,d2a_bm,d2a_cm,1000);
+  setOsc(d2a_cm,25.0);
   
   /**********************************************************************
    *  send commands to the robot
@@ -315,7 +315,7 @@ run_motor_servo(void)
     return FALSE;
   }
   
-  dta(d2a_hwm,d2a_bm,d2a_cm,500);
+  setOsc(d2a_cm,10.0);
   
   /*************************************************************************
    * collect data
@@ -323,7 +323,7 @@ run_motor_servo(void)
 
   writeToBuffer();
 
-  dta(d2a_hwm,d2a_bm,d2a_cm,0);
+  setOsc(d2a_cm,0.0);
   
   /*************************************************************************
    * end of functions
@@ -439,7 +439,7 @@ receive_commands(void)
 
     no_receive_flag = TRUE;
 
-    dta(d2a_hwm,d2a_bm,d2a_cm,500);
+    setOsc(d2a_cm,10.0);
 
     /* after 0.5 hours, we automatically shut down the pump */
 

@@ -143,10 +143,6 @@ extern "C" {
   extern void       smMemShow (int type);
   
   
-  /* from dt1401.h ---------------------------------------------------------- */
-  void dta(int hardware, int board, int channel, int param);
-  int  initialize_ad(int hardware);
-  
   /* from logLib.h -  ------------------------------------------------------- */
   extern int	logMsg (char *fmt, int arg1, int arg2,
 			int arg3, int arg4, int arg5, int arg6);

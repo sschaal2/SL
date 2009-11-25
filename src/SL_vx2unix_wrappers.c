@@ -61,18 +61,6 @@ smKeyFind (int key);
 /* semaphore linked list */
 SM_PTR   smlist = NULL;
 
-void
-dta(int hardware, int board, int channel, int param)
-{
-  return;
-}
-
-int
-initialize_ad(int hardware)
-{
-  return TRUE;
-}
- 
 int	
 logMsg (char *fmt, int arg1, int arg2,
 	int arg3, int arg4, int arg5, int arg6)

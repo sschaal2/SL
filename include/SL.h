@@ -284,17 +284,8 @@ extern "C" {
   extern const int    invdyn_servo_ratio;  /* divides base freq. to obtain invdyn servo freq.*/
   extern const char   vision_default_pp[]; /* default script for vision processing */
   extern const int    max_blobs;           /* maximal number of blobs in the vision system */
-  extern const int    d2a_hwm;             /* which D/A hardware is used by motor servo */
-  extern const int    d2a_hwt;             /* which D/A hardware is used by the task servo */
-  extern const int    d2a_hwi;             /* which D/A hardware is used by the inv dyn servo */
-  extern const int    d2a_hwv;             /* which D/A hardware is used by the vision servo */
-  extern const int    d2a_bm;              /* which D/A board is used by motor servo */
-  extern const int    d2a_bt;              /* which D/A board is used by the task servo */
-  extern const int    d2a_bi;              /* which D/A board is used by the inv dyn servo */
-  extern const int    d2a_bv;              /* which D/A board is used by the vision servo */
   extern const int    d2a_cm;              /* which D/A channel is used by motor servo */
   extern const int    d2a_ct;              /* which D/A channel is used by the task servo */
-  extern const int    d2a_ci;              /* which D/A channel is used by the inv dyn servo */
   extern const int    d2a_cv;              /* which D/A channel is used by the vision servo */
 
 

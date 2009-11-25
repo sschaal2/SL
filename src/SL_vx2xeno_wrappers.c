@@ -52,18 +52,6 @@ SM_PTR   smlist = NULL;
 static STATUS       
 semFindNameByID (SEM_ID sem_id, char *name);
 
-void
-dta(int hardware, int board, int channel, int param)
-{
-  return;
-}
-
-int
-initialize_ad(int hardware)
-{
-  return TRUE;
-}
- 
 int	
 logMsg (char *fmt, int arg1, int arg2,
 	int arg3, int arg4, int arg5, int arg6)
