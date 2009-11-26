@@ -148,6 +148,7 @@ init_motor_servo(void)
     
   if (!init_user_commands())
     return;
+
   printf("done\n");
 
   /* add variables to data collection */
@@ -182,6 +183,10 @@ init_motor_servo(void)
   printf("done\n");
 
   /* add to man pages */
+
+  /* initialize user specific things */
+  if (!init_user_motor())
+    return;
 
   /* if all worked out, we mark the servo as ready to go */
   motor_servo_initialized = TRUE;

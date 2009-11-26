@@ -57,8 +57,8 @@ extern "C" {
   void status(void);
   int  stop(char *);
   int  setServoMode(int type);
-  int  init_generic_tasks(void);
-  int  run_generic_tasks(void);
+  int  init_user_task(void);
+  int  run_user_task(void);
   int  sendUserGraphics(char *name, void *buf, int n_bytes);
   void reset(void);
   void followBase(void);

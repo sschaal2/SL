@@ -98,7 +98,7 @@ init_openGL_servo(int argc, char** argv)
     return FALSE;
   
   // generic initialization program
-  if (!initSimulationGraphics(argc, argv)) 
+  if (!init_user_openGL(argc, argv)) 
     return FALSE;
 
   // initialize user specific graphics

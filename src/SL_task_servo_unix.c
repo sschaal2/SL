@@ -79,7 +79,7 @@ main(int argc, char**argv)
   read_whichDOFs(config_files[WHICHDOFS],"task_sim_servo");
 
   // generic computations
-  init_generic_tasks();
+  init_user_task();
 
   // add to man pages 
   addToMan("dts","disables the task servo",dts);

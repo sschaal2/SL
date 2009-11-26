@@ -179,6 +179,10 @@ init_vision_servo()
 
   /* add to man pages */
 
+  /* initialize user specific things */
+  if (!init_user_vision())
+    return;
+
   /* if all worked out, we mark the servo as ready to go */
   vision_servo_initialized = TRUE;
 

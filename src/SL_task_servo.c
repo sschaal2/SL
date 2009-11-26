@@ -542,8 +542,8 @@ run_task_servo(void)
   
 #ifndef VX
   /* run general simulation specific task servo computations */
-  if (!run_generic_tasks()) {
-    stop("Problem in run_generic_tasks");
+  if (!run_user_task()) {
+    stop("Problem in run_user_task");
     return FALSE;
   }
 #endif

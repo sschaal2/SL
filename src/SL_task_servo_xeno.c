@@ -101,7 +101,7 @@ main(int argc, char**argv)
 		       &servo_stack_size,&cpuID,&delay_ns);
 
   // generic computations
-  init_generic_tasks();
+  init_user_task();
 
   // add to man pages 
   addToMan("dts","disables the task servo",dts);

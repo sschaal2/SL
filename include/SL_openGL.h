@@ -76,7 +76,7 @@ extern "C" {
 
   /* global functions */
   int        initGraphics(int* argc, char*** argv);
-  int        initSimulationGraphics(int argc, char** argv);
+  int        init_user_openGL(int argc, char** argv);
   int        createWindow(OpenGLWindow *wptr);
   OpenGLWPtr getOpenGLWindow(void);
   void       addMenuItem(char *name, void (*fptr)(void), int mID);

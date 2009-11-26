@@ -35,7 +35,7 @@ extern "C" {
   // shared functions
   int  init_simulation_servo(void);
   int  init_user_simulation(void);
-  int  compute_misc_sensors(void);
+  int  run_user_simulation(void);
   int  receive_des_commands(void);
   int  send_sim_state(void);
   int  send_misc_sensors(void);

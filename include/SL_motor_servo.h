@@ -40,6 +40,7 @@ void dms(void);
 void init_motor_servo(void);
 int  run_motor_servo(void);
 int  init_vxworks( void );
+int  init_user_motor(void);
 
 #ifdef __cplusplus
 }

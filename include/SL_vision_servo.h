@@ -63,6 +63,7 @@ int  init_pp(char *name);
 void init_vision_states(void);
 int  init_vxworks( void );
 int  init_learning( void );
+int  init_user_vision(void);
 
 #ifdef __cplusplus
 }
