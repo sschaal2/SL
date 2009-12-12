@@ -570,7 +570,7 @@ read_gains(char *fname, double *gth, double *gthd, double *gint) {
 
   for (i=1; i<= n_dofs; ++i) {
     if (!find_keyword(in, &(joint_names[i][0]))) {
-      printf("ERROR: Cannot find offset for >%s<!\n",joint_names[i]);
+      printf("ERROR: Cannot find gains for >%s<!\n",joint_names[i]);
       fclose(in);
       return FALSE;
     } else {
