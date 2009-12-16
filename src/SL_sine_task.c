@@ -37,6 +37,7 @@ static int          *n_sine;
 static SL_DJstate   *target;
 static double        task_time;
 static double        speed=1.0;
+static int           invdyn = TRUE;
 
 /* global variables */
 
@@ -118,6 +119,9 @@ init_sine_task(void)
   /* allow or speed adjustment */
   get_double("Frequency Multiplier",speed,&speed);
 
+  /* allow inverse dynamics */
+  get_int("Use Inverse Dynamics",invdyn,&invdyn);
+
   /* read the script for this task */
   if (!read_sine_script())
     return FALSE;
@@ -131,8 +135,13 @@ init_sine_task(void)
     }
   }
 
-  if (!go_target_wait_ID(target))
-    return FALSE;
+  if (invdyn) {
+    if (!go_target_wait_ID(target))
+      return FALSE;
+  } else {
+    if (!go_target_wait(target))
+      return FALSE;
+  }
 
   /* do we really want to do this task? */
   ans = 999;
@@ -177,6 +186,7 @@ run_sine_task(void)
     joint_des_state[i].th  = off[i];
     joint_des_state[i].thd = 0.0;
     joint_des_state[i].thdd = 0.0;
+    joint_des_state[i].uff = 0.0;
     for (j=1; j<=n_sine[i]; ++j) {
       joint_des_state[i].th += 
 	amp[i][j] * sin(2.*PI*speed*freq[i][j]*task_time+phase[i][j]);
@@ -188,7 +198,8 @@ run_sine_task(void)
   }
 
 
-  SL_InverseDynamics(joint_state,joint_des_state,endeff);
+  if (invdyn)
+    SL_InverseDynamics(joint_state,joint_des_state,endeff);
 
   return TRUE;
 
