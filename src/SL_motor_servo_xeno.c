@@ -82,12 +82,6 @@ main(int argc, char**argv)
   int  rc;
   char name[100];
 
-  // initialize xenomai specific variables and real-time environment
-  initXeno();
-
-  // parse command line options
-  parseOptions(argc, argv);
-
   // get the clock option, i.e., the motor servo acts as a real-time clock
   real_time_clock_flag = FALSE;
   for (i=1; i<argc; ++i) {
@@ -96,6 +90,12 @@ main(int argc, char**argv)
       break;
     }
   }
+
+  // initialize xenomai specific variables and real-time environment
+  initXeno();
+
+  // parse command line options
+  parseOptions(argc, argv);
 
   // adjust settings if SL runs for a real robot
   setRealRobotOptions();
@@ -204,7 +204,7 @@ motor_servo(void *dummy)
 
   
   if (real_time_clock_flag) // make this a clocked task
-    rt_task_set_periodic(NULL,TM_NOW,(int)(1000000000./(double)motor_servo_rate));
+    rt_task_set_periodic(NULL,TM_NOW,(RTIME)(1000000000./(double)motor_servo_rate));
       
   // initialize time
   last_real_time   = rt_timer_read();
@@ -228,15 +228,14 @@ motor_servo(void *dummy)
 
       motor_servo_errors += overruns;
 	
-      if (semGive(sm_motor_servo_sem) == ERROR)
+    } else { 
+
+      // wait to take semaphore
+      if (semTake(sm_motor_servo_sem,WAIT_FOREVER) == ERROR) {
+	printf("semTake Time Out -- Servo Terminated");
 	exit(-1);
+      }
 
-    } 
-
-    // wait to take semaphore
-    if (semTake(sm_motor_servo_sem,WAIT_FOREVER) == ERROR) {
-      printf("semTake Time Out -- Servo Terminated");
-      exit(-1);
     }
     
     // increment time
