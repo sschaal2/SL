@@ -242,7 +242,8 @@ main(int argc, char**argv)
     pthread_mutex_unlock( &mutex1 );
 
     // trigger the simulation servo
-    semGive(sm_simulation_servo_sem);
+    if (semGive(sm_simulation_servo_sem) == ERROR)
+      exit(-1);
 
   }  /* end servo while loop */
 
