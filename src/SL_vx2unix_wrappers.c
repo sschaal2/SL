@@ -84,6 +84,8 @@ smObjGlobalToLocal(void *  globalAdrs)
 STATUS
 taskDelay(int num)
 {
+  //printf("vx2unix taskDelay num = %i\n",num);
+
   struct timespec ns;
   long period = getClockResolution();;
   long aux;
@@ -94,9 +96,11 @@ taskDelay(int num)
   
   aux    = num*period;
 
-  ns.tv_sec = aux%1000000000;
+  ns.tv_sec = aux/1000000000;
+  //ns.tv_sec = aux%1000000000;
   ns.tv_nsec = aux-ns.tv_sec*1000000000;
 
+  //printf("vx2unix taskDelay sec = %li nsec =%li period %li\n",ns.tv_sec,ns.tv_nsec,period);
   nanosleep(&ns,NULL);
 
   return TRUE;
@@ -135,7 +139,7 @@ tickGet(void)
  ******************************************************************************/
 static int
 mytok(char *string, int id) {
-  int i;
+  unsigned int i;
   int rc = id;
 
   for (i=0; i<strlen(string); ++i)
