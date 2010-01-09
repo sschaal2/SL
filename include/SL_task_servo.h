@@ -63,7 +63,7 @@ extern "C" {
   void reset(void);
   void followBase(void);
   void changeHideObject(char *name, int hide); 
-  void changePDGains(double *pGain, double *dGain);
+  void changePIDGains(double *pGain, double *dGain, double *iGain);
   void sendUextSim(void);
   void changeRealTime(int flag);
   void hideWindowByName(char *name, int hide);

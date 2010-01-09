@@ -25,6 +25,7 @@
 #include "SL_man.h"
 #include "SL_sensor_proc.h"
 #include "SL_common.h"
+#include "SL_shared_memory.h"
 #include "utility.h"
 
 /* global variables */
@@ -51,6 +52,7 @@ int power_on;
 /* global functions */
 
 /* local functions */
+static void changePIDGains(double *pGain, double *dGain, double *iGain);
 
 /* external variables */
 
@@ -400,7 +402,7 @@ stop(char *msg)
    
 \remarks 
 
-       adjust the gains
+       adjust the gains, with interface for simulation
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -418,6 +420,22 @@ setGainsSim(void)
 
   setGains(jID);
 }
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  setGains
+\date  August 7, 1992 
+   
+\remarks 
+
+       adjust the gains
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+    none
+
+ ******************************************************************************/
 void
 setGains(int id)
 {
@@ -466,8 +484,46 @@ setGains(int id)
     printf("%s %f %f %f %f\n",
 	   joint_names[i],controller_gain_th[i],controller_gain_thd[i],controller_gain_int[i],u_max[i]);
   }
+
+  // communicate the gain change to other servos
+  changePIDGains(controller_gain_th,controller_gain_thd, controller_gain_int);
   
   return;
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  changePIDGains
+\date  Nov. 2005
+   
+\remarks 
+
+        sends the request to change the PID gains to the relevant servos
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     pGain : the proportional gains
+ \param[in]     dGain : the derivative gains
+ \param[in]     iGain : the integral gains
+
+ ******************************************************************************/
+static void 
+changePIDGains(double *pGain, double *dGain, double *iGain) 
+{
+  int i,j;
+  float buf[3*n_dofs+1];
+  unsigned char cbuf[(3*n_dofs)*sizeof(float)];
+
+  for (i=1; i<=n_dofs; ++i) {
+    buf[i] = pGain[i];
+    buf[i+n_dofs] = dGain[i];
+    buf[i+2*n_dofs] = iGain[i];
+  }
+    
+  memcpy(cbuf,(void *)&(buf[1]),(3*n_dofs)*sizeof(float));
+    
+  sendMessageSimulationServo("changePIDGains",(void *)cbuf,(3*n_dofs)*sizeof(float));
+
+}

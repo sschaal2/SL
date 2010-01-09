@@ -1302,36 +1302,38 @@ setServoMode(int type)
 
 /*!*****************************************************************************
  *******************************************************************************
-\note  changePDGains
+\note  changePIDGains
 \date  Nov. 2005
    
 \remarks 
 
-        sends the request to change the PD gains to the relevant servos
+        sends the request to change the PID gains to the relevant servos
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
  \param[in]     pGain : the proportional gains
  \param[in]     dGain : the derivative gains
+ \param[in]     iGain : the integral gains
 
  ******************************************************************************/
 void 
-changePDGains(double *pGain, double *dGain) 
+changePIDGains(double *pGain, double *dGain, double *iGain) 
 {
   int i,j;
-  float buf[2*n_dofs+1];
-  unsigned char cbuf[(2*n_dofs)*sizeof(float)];
+  float buf[3*n_dofs+1];
+  unsigned char cbuf[(3*n_dofs)*sizeof(float)];
 
   for (i=1; i<=n_dofs; ++i) {
     buf[i] = pGain[i];
     buf[i+n_dofs] = dGain[i];
+    buf[i+2*n_dofs] = iGain[i];
   }
     
-  memcpy(cbuf,(void *)&(buf[1]),(2*n_dofs)*sizeof(float));
+  memcpy(cbuf,(void *)&(buf[1]),(3*n_dofs)*sizeof(float));
     
-  sendMessageSimulationServo("changePDGains",(void *)cbuf,(2*n_dofs)*sizeof(float));
-  sendMessageMotorServo("changePDGains",(void *)cbuf,(2*n_dofs)*sizeof(float));
+  sendMessageSimulationServo("changePIDGains",(void *)cbuf,(3*n_dofs)*sizeof(float));
+  sendMessageMotorServo("changePIDGains",(void *)cbuf,(3*n_dofs)*sizeof(float));
 
 }
 

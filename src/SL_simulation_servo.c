@@ -644,15 +644,16 @@ checkForMessages(void)
     }
     
     // change the gains
-    if (strcmp(name,"changePDGains") == 0) {
-      float buf[n_dofs*2+1];
+    if (strcmp(name,"changePIDGains") == 0) {
+      float buf[n_dofs*3+1];
       
       memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
-	     sizeof(float)*(2*n_dofs));
+	     sizeof(float)*(3*n_dofs));
 
       for (i=1; i<=n_dofs; ++i) {
 	controller_gain_th[i]  = (double) buf[i];
 	controller_gain_thd[i] = (double) buf[i+n_dofs];
+	controller_gain_int[i] = (double) buf[i+2*n_dofs];
       }
       
     }

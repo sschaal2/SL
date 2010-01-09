@@ -683,16 +683,18 @@ checkForMessages(void)
     strcpy(name,sm_motor_message->name[k]);
 
     // act according to the message name
-    if (strcmp(name,"changePDGains") == 0) {
-      float buf[n_dofs*2+1];
+    if (strcmp(name,"changePIDGains") == 0) {
+      float buf[n_dofs*3+1];
       extern double *controller_gain_th;
       extern double *controller_gain_thd;
+      extern double *controller_gain_int;
       
-      memcpy(&(buf[1]),sm_motor_message->buf+sm_motor_message->moff[k],sizeof(float)*(2*n_dofs));
+      memcpy(&(buf[1]),sm_motor_message->buf+sm_motor_message->moff[k],sizeof(float)*(3*n_dofs));
 
       for (i=1; i<=n_dofs; ++i) {
 	controller_gain_th[i]  = (double) buf[i];
 	controller_gain_thd[i] = (double) buf[i+n_dofs];
+	controller_gain_int[i] = (double) buf[i+2*n_dofs];
       }
       
     }
