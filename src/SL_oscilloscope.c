@@ -90,7 +90,7 @@ Function Parameters: [in]=input,[out]=output
  
 ******************************************************************************/
 void
-setD2AFunctioni(int (*fptr)(int,double))
+setD2AFunction(int (*fptr)(int,double))
 {
   int rc;
 

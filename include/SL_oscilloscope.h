@@ -25,7 +25,7 @@ extern "C" {
   setOsc(int channel, double pval);
 
   void
-  setD2AFunctioni(int (*fptr)(int,double));
+  setD2AFunction(int (*fptr)(int,double));
 
 
   // external variables
