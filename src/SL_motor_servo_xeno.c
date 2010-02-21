@@ -334,6 +334,7 @@ status(void)
 #ifdef __XENO__
   extern long count_xenomai_mode_switches;
   printf("            Xeonmai Mode Swiches   = %ld\n",count_xenomai_mode_switches);
+  printf("            Delay [ns]             = %d\n",delay_ns);
 #endif
 
   printf("\n");

@@ -242,8 +242,9 @@ run_motor_servo(void)
    */
 
   if (!read_sensors()) {
-    stop("Problem when reading sensors");
+    stop("Problem when reading sensors"); 
     return FALSE;
+    ;
   }
 
   setOsc(d2a_cm,90.0);

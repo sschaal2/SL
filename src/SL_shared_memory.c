@@ -49,6 +49,7 @@ SEM_ID             sm_task_message_ready_sem; /* signals message to task servo *
 SEM_ID             sm_motor_message_ready_sem; /* signals message to motor servo */
 SEM_ID             sm_objects_ready_sem; /* signals that objects are ready for read */
 SEM_ID             sm_init_process_ready_sem; /* for starting up the SL processes */
+SEM_ID             sm_oscilloscope_sem; /* for writing to the oscilloscope */
 
 smVisionBlobs     *sm_vision_blobs;
 SEM_ID             sm_vision_blobs_sem;
@@ -401,6 +402,9 @@ init_shared_memory(void)
     return FALSE;
   
   if (!init_sm_sem("smLearnBlob2BodySem", SEM_EMPTY,(void**)&sm_learn_blob2body_sem))
+    return FALSE;
+  
+  if (!init_sm_sem("smOscilloscopeSem", SEM_FULL,(void**)&sm_oscilloscope_sem))
     return FALSE;
   
   /********************************************************************/

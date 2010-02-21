@@ -24,6 +24,7 @@
 #include "SL.h"
 #include "utility.h"
 #include "SL_oscilloscope.h"
+#include "SL_shared_memory.h"
 
 // global variabes
 
@@ -53,6 +54,7 @@ Function Parameters: [in]=input,[out]=output
 \param[in]   pval    : [0 to 100] percentage value of max range to be displayed.
  
 ******************************************************************************/
+#define TIME_OUT_NS 100000
 int
 setOsc(int channel, double pval)
 {
@@ -60,7 +62,13 @@ setOsc(int channel, double pval)
 
   // if the user provide a special oscilloscope function
   if (d2a_function != NULL) {
-    return (*d2a_function)(channel,pval);
+    if (semTake(sm_oscilloscope_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
+      return FALSE;
+    } else {
+      rc = (*d2a_function)(channel,pval);
+      semGive(sm_oscilloscope_sem);
+      return rc;
+    }
   }
 
   // the graphics oscilloscope is the default -- just add the data
