@@ -24,4 +24,5 @@ learn/*.lwpr
 
 *~
 src/*~
-
+#*
+.DS_Store
