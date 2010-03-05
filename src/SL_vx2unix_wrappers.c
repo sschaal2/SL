@@ -819,35 +819,56 @@ getClockResolution(void)
   static long  long period = 1e10;
   long long new_period, total_time;
   int i,j;
-  int r=100;
+  int r=25;
   struct timespec ns;
   struct timeval ts,te,fn_start_time;
 
     
   if (firsttime) {
     firsttime = FALSE;
+
+#ifdef  i386mac
+#define __mac__
+#endif
+#ifdef x86_64mac
+#define __mac__
+#endif
+
+#ifdef __mac__
+
+    // Macs don't have clock_getres so far -- get the clock empirically
+
     gettimeofday(&fn_start_time,NULL);
 
     // this is an emprical way to determine the system clock approximately
     ns.tv_sec = 0;
     ns.tv_nsec = 1;
 
-    for (j=1; j<=100; ++j) {
+    for (j=1; j<=100; ++j) { // try 100 times to find a smaller average value
       gettimeofday(&ts,NULL);
       
       // terminate if we've already spent more than a second in this function
-      total_time = (long)((ts.tv_sec-fn_start_time.tv_sec)*1e9+(ts.tv_usec-fn_start_time.tv_usec)*1000);
+      total_time = (long)((ts.tv_sec-fn_start_time.tv_sec)*1e9+
+			  (ts.tv_usec-fn_start_time.tv_usec)*1000);
       if (total_time > 1e9 && j>=2)
         break;
 
       for (i=1; i<=r; ++i)
 	nanosleep(&ns,NULL);
+
       gettimeofday(&te,NULL);
       new_period = (long)((te.tv_sec-ts.tv_sec)*1e9+(te.tv_usec-ts.tv_usec)*1000)/r;
-      if (new_period < period)
+      if (new_period < period) // we assume the shortest period is what the computer can do
 	period = new_period;
     }
 
+#else
+
+    // non-Mac OS X systems have clock_getres() functions
+    clock_getres(CLOCK_REALTIME,&ns);
+    period = (long)(ns.tv_sec*1e9+ns.tv_nsec);
+
+#endif
 
   }
 
