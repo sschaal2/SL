@@ -157,6 +157,7 @@ extern "C" {
   extern SEM_ID             sm_motor_message_ready_sem; /* signals message to motor servo */
   extern SEM_ID             sm_objects_ready_sem; /* signals that objects are ready for read */
   extern SEM_ID             sm_init_process_ready_sem; /* for starting up the SL processes */
+  extern SEM_ID             sm_oscilloscope_sem; /* for writing to the oscilloscope */
 
   extern smVisionBlobs     *sm_vision_blobs;
   extern SEM_ID             sm_vision_blobs_sem;

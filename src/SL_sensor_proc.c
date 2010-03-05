@@ -212,7 +212,8 @@ read_sensors(void)
   int i,j;
 
   /* get raw sensor reading from user routine */
-  read_user_sensors(joint_raw_state,misc_raw_sensor);
+  if (!read_user_sensors(joint_raw_state,misc_raw_sensor))
+    return FALSE;
 
   return TRUE;
 

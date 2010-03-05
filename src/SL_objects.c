@@ -869,7 +869,24 @@ checkContacts(void)
 \date  June 2006
 \remarks 
 
-   parses and arbitrary objects file
+Parses an arbitrary objects file. Objects are defined by multiple lines, given 
+as in the following example:
+
+floor 1 		( name and ID of object type )
+1.0 0.0 0.0          	( rgb color specification)
+0.0 0.0 -1.65  		( 3D position of center of object )
+0.0 0.0 0.0  		( x-y-z Euler angle orientation )
+40.0 40.0 1.0  		( scale applied to x, y, z of object)
+2  			( contact model: see computeContactForces() below )
+10         		( object parameters: see SL_openGL.c: drawObjects() )
+1000 30 1000 30 0.5 0.4	( contact parameters: see computeContactForces() below )
+
+The number of object parameters and contact parameters can vary for
+different objects and different contact models. The parsing of these
+parameters is pretty rudimentary, and simply all lines are expected in
+the correct sequence, and the "new-line" character is interpreted as the
+end of line indicator.
+
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output

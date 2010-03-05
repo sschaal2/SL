@@ -82,7 +82,7 @@ taskDelay(int num)
   if (info.period == TM_ONESHOT)
     ;
   else if (info.period == 0) {
-    printf("Erro: Timer period is 0!\n");
+    printf("Error: Timer period is 0!\n");
     return ERROR;
   }
 
