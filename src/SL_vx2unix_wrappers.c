@@ -817,15 +817,16 @@ getClockResolution(void)
 {
   static int firsttime = TRUE;
   static long  long period = 1e10;
-  long long new_period;
+  long long new_period, total_time;
   int i,j;
   int r=100;
   struct timespec ns;
-  struct timeval ts,te;
+  struct timeval ts,te,fn_start_time;
 
     
   if (firsttime) {
     firsttime = FALSE;
+    gettimeofday(&fn_start_time,NULL);
 
     // this is an emprical way to determine the system clock approximately
     ns.tv_sec = 0;
@@ -833,6 +834,12 @@ getClockResolution(void)
 
     for (j=1; j<=100; ++j) {
       gettimeofday(&ts,NULL);
+      
+      // terminate if we've already spent more than a second in this function
+      total_time = (long)((ts.tv_sec-fn_start_time.tv_sec)*1e9+(ts.tv_usec-fn_start_time.tv_usec)*1000);
+      if (total_time > 1e9 && j>=2)
+        break;
+
       for (i=1; i<=r; ++i)
 	nanosleep(&ns,NULL);
       gettimeofday(&te,NULL);
@@ -841,7 +848,6 @@ getClockResolution(void)
 	period = new_period;
     }
 
-    //printf("period=%ld\n",period);
 
   }
 
