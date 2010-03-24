@@ -721,6 +721,21 @@ checkForMessages(void)
       printf("Gravity set to %f\n",gravity);
       
     }
+
+    // change object position by name
+    if (strcmp(name,"changeObjPosByName") == 0) {
+      struct {
+	char   obj_name[100];
+	double pos[N_CART+1];
+	double rot[N_CART+1];
+      } data;
+      unsigned char buf[sizeof(data)];
+      
+      memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
+      changeObjPosByName(data.obj_name,data.pos,data.rot);
+      
+    }
+    
     
   }
 

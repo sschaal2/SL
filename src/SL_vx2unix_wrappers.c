@@ -827,6 +827,9 @@ getClockResolution(void)
   if (firsttime) {
     firsttime = FALSE;
 
+#ifdef  powerpc
+#define __mac__
+#endif
 #ifdef  i386mac
 #define __mac__
 #endif

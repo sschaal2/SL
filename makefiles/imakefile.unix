@@ -42,8 +42,8 @@ OBJS_SL_COMMON = \
 	SL_filters.o \
 	SL_unix_common.o \
 	SL_terrains.o \
-	SL_objects.o \
 	SL_oscilloscope.o \
+	SL_objects.o \
 	SL_man.o 
 
 SRCS_SL_COMMON = \
@@ -54,8 +54,8 @@ SRCS_SL_COMMON = \
 	SL_filters.c \
 	SL_unix_common.c \
 	SL_terrains.c \
-	SL_objects.c \
 	SL_oscilloscope.c \
+	SL_objects.c \
 	SL_man.c 
 
 /* ------------------------------------------------------------------------*/

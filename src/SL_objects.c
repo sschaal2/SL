@@ -15,11 +15,8 @@
 
   ============================================================================*/
 
-/* system includes */
-#include "stdio.h"
-#include "math.h"
-#include "string.h"
-#include "strings.h"
+// SL general includes of system headers
+#include "SL_system_headers.h"
 
 /* private includes */
 #include "SL.h"
@@ -28,6 +25,7 @@
 #include "SL_common.h"
 #include "SL_kinematics.h"
 #include "SL_simulation_servo.h"
+#include "SL_shared_memory.h"
 
 // global variables
 ObjectPtr  objs = NULL;
@@ -278,6 +276,26 @@ changeObjPosByName(char *name, double *pos, double *rot)
 	ptr->trans[i]=pos[i];
 	ptr->rot[i]=rot[i];
       }
+
+      if (strcmp(servo_name,"task")==0) { // communicate info to other servos
+	struct {
+	  char   obj_name[100];
+	  double pos[N_CART+1];
+	  double rot[N_CART+1];
+	} data;
+	unsigned char buf[sizeof(data)];
+	
+	strcpy(data.obj_name,name);
+	for (i=1;i<=N_CART; ++i) {
+	  data.pos[i]=pos[i];
+	  data.rot[i]=rot[i];
+	}
+	
+	memcpy(buf,&data,sizeof(data));
+	sendMessageOpenGLServo("changeObjPosByName",(void *)buf,sizeof(data));
+	sendMessageSimulationServo("changeObjPosByName",(void *)buf,sizeof(data));
+      }
+
       return TRUE;
     }
     ptr = (ObjectPtr) ptr->nptr;
