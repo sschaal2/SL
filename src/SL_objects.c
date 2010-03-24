@@ -259,6 +259,9 @@ addSphere(char *name, double *rgb, double *pos, double *rot,
  \param[in]     rot        : pointer to rotation vector
 
  ******************************************************************************/
+int opengl_update_counter = 0;
+int opengl_update_rate = 60; // 60Hz should be enough for updating the opengl screen
+	
 int
 changeObjPosByName(char *name, double *pos, double *rot)
 {
@@ -292,8 +295,23 @@ changeObjPosByName(char *name, double *pos, double *rot)
 	}
 	
 	memcpy(buf,&data,sizeof(data));
-	sendMessageOpenGLServo("changeObjPosByName",(void *)buf,sizeof(data));
+	
+	// Send the data to the simulation server.
 	sendMessageSimulationServo("changeObjPosByName",(void *)buf,sizeof(data));
+	
+	// Freek:
+	// The opengl server does not need to be updated so often.
+	// So what we do is keep a counter that is reset everytime it reaches the value
+	// (servo_base_rate/opengl_update_rate), i.e. if servo_base_rate=1000Hz and
+	// opengl_update_rate=50Hz, we update the opengl server every 20th time.
+	if ((opengl_update_counter++)>=(servo_base_rate/opengl_update_rate)) {
+	  sendMessageOpenGLServo("changeObjPosByName",(void *)buf,sizeof(data));
+	  opengl_update_counter = 0;
+	}
+	// Some debug info:
+	//printf("Update rates: base=%dHz opengl=%dHz",servo_base_rate,opengl_update_rate);
+	//printf("Count=%d/%d\n",opengl_update_counter,(servo_base_rate/opengl_update_rate));
+	
       }
 
       return TRUE;
