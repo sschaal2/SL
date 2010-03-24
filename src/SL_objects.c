@@ -33,6 +33,8 @@ ContactPtr contacts=NULL;
 SL_uext   *ucontact;
 
 // local variables
+static int opengl_update_rate = 60;   // 60Hz should be enough for updating the openGl screen
+static int opengl_update_counter = 0; // Counter to keep track when openGL screen should be updated
 
 // global functions 
 
@@ -259,68 +261,16 @@ addSphere(char *name, double *rgb, double *pos, double *rot,
  \param[in]     rot        : pointer to rotation vector
 
  ******************************************************************************/
-int opengl_update_counter = 0;
-int opengl_update_rate = 60; // 60Hz should be enough for updating the opengl screen
-	
 int
 changeObjPosByName(char *name, double *pos, double *rot)
 {
-  ObjectPtr ptr;
-  int i;
-
-  if (objs == NULL) 
+  ObjectPtr ptr = getObjPtrByName(name);
+  if (ptr == NULL) 
     return FALSE;
 
-  ptr = objs;
+  changeObjPosByPtr(ptr, pos, rot);
 
-  do {
-    if (strcmp(name,ptr->name)==0) {
-      for (i=1;i<=N_CART; ++i) {
-	ptr->trans[i]=pos[i];
-	ptr->rot[i]=rot[i];
-      }
-
-      if (strcmp(servo_name,"task")==0) { // communicate info to other servos
-	struct {
-	  char   obj_name[100];
-	  double pos[N_CART+1];
-	  double rot[N_CART+1];
-	} data;
-	unsigned char buf[sizeof(data)];
-	
-	strcpy(data.obj_name,name);
-	for (i=1;i<=N_CART; ++i) {
-	  data.pos[i]=pos[i];
-	  data.rot[i]=rot[i];
-	}
-	
-	memcpy(buf,&data,sizeof(data));
-	
-	// Send the data to the simulation server.
-	sendMessageSimulationServo("changeObjPosByName",(void *)buf,sizeof(data));
-	
-	// Freek:
-	// The opengl server does not need to be updated so often.
-	// So what we do is keep a counter that is reset everytime it reaches the value
-	// (servo_base_rate/opengl_update_rate), i.e. if servo_base_rate=1000Hz and
-	// opengl_update_rate=50Hz, we update the opengl server every 20th time.
-	if ((opengl_update_counter++)>=(servo_base_rate/opengl_update_rate)) {
-	  sendMessageOpenGLServo("changeObjPosByName",(void *)buf,sizeof(data));
-	  opengl_update_counter = 0;
-	}
-	// Some debug info:
-	//printf("Update rates: base=%dHz opengl=%dHz",servo_base_rate,opengl_update_rate);
-	//printf("Count=%d/%d\n",opengl_update_counter,(servo_base_rate/opengl_update_rate));
-	
-      }
-
-      return TRUE;
-    }
-    ptr = (ObjectPtr) ptr->nptr;
-  } while (ptr != NULL);
-
-  return FALSE;
-  
+  return TRUE;
 }
 
 /*!*****************************************************************************
@@ -473,6 +423,8 @@ getObjPtrByName(char *name)
   
 }
 
+	
+
 /*!*****************************************************************************
  *******************************************************************************
 \note  changeObjPosByPtr
@@ -501,6 +453,38 @@ changeObjPosByPtr(ObjectPtr ptr, double *pos, double *rot)
     ptr->rot[i]=rot[i];
   }
   
+  if (strcmp(servo_name,"task")==0) { // communicate info to other servos
+    struct {
+      char   obj_name[100];
+      double pos[N_CART+1];
+      double rot[N_CART+1];
+    } data;
+    unsigned char buf[sizeof(data)];
+    
+    strcpy(data.obj_name,ptr->name);
+    for (i=1;i<=N_CART; ++i) {
+      data.pos[i]=pos[i];
+      data.rot[i]=rot[i];
+    }
+    
+    memcpy(buf,&data,sizeof(data));
+    
+    // Send the data to the simulation server.
+    sendMessageSimulationServo("changeObjPosByName",(void *)buf,sizeof(data));
+    
+    // Freek:
+    // The opengl server does not need to be updated so often.
+    // So what we do is keep a counter that is reset everytime it reaches the value
+    // (servo_base_rate/opengl_update_rate), i.e. if servo_base_rate=1000Hz and
+    // opengl_update_rate=50Hz, we update the opengl server every 20th time.
+    if ((opengl_update_counter++)>=(servo_base_rate/opengl_update_rate)) {
+      sendMessageOpenGLServo("changeObjPosByName",(void *)buf,sizeof(data));
+      opengl_update_counter = 0;
+    }
+    // Some debug info:
+    //printf("Update rates: base=%dHz opengl=%dHz",servo_base_rate,opengl_update_rate);
+    //printf("Count=%d/%d\n",opengl_update_counter,(servo_base_rate/opengl_update_rate));
+	}
 }
 
 /*!*****************************************************************************
