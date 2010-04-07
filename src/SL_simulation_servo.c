@@ -204,6 +204,7 @@ run_simulation_servo(void)
   current_time = (double) t.tv_sec + ((double)t.tv_usec)/1.e6;
   if (real_time) {
     while (current_time - last_time < 1./(double)simulation_servo_rate) {
+      taskDelay(ns2ticks((long)(simulation_servo_rate/5)));
       gettimeofday(&t,NULL);
       current_time = (double) t.tv_sec + ((double)t.tv_usec)/1.e6;
     }
