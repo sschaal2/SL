@@ -26,6 +26,7 @@ extern "C" {
 
   // external variables 
   extern pthread_mutex_t mutex1;
+  extern int run_command_line_thread_flag;
   extern int (*window_check_function)(char *);
 
   // global functions 

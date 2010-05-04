@@ -41,12 +41,13 @@ pthread_mutex_t mutex1;
 pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER; //for a safe thread
 #endif
 int (*window_check_function)(char *) = NULL;
+int  run_command_line_thread_flag = FALSE;
 
 // external variables
 
 // local variabes
 static pthread_t       cthread;  // thread for the command interface
-static int             run_thread_flag = FALSE;
+
 
 static char       command[MAX_ITEMS+1][20];
 static int        n_command=0;
@@ -99,7 +100,7 @@ checkKeyboard(void *initial_command)
 #endif  
 
 
-  while (run_thread_flag) {
+  while (run_command_line_thread_flag) {
 
     // run initial command as soon as the task servo has started -- there is 
     // a little trick that allows resetting the servo clock and re-run the
@@ -137,6 +138,8 @@ checkKeyboard(void *initial_command)
     free(string);
 
   } 
+
+  printf("Command line thread terminated\n");
 
   return NULL;
 
@@ -256,7 +259,7 @@ spawnCommandLineThread(char *initial_command)
     pthread_attr_setstacksize(&pth_attr, reqd);
 
   /* initialize a thread for the user command interface */
-  run_thread_flag = TRUE;
+  run_command_line_thread_flag = TRUE;
   initializeReadLine();
   if ((rc=pthread_create( &cthread, &pth_attr, checkKeyboard, initial_command)))
       printf("pthread_create returned with %d\n",rc);

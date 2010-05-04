@@ -29,6 +29,7 @@
 #include "errno.h"
 #include "SL.h"
 #include "SL_shared_memory.h"
+#include "SL_unix_common.h"
 
 // needed for book keeping of share memory
 typedef struct smlist /*!< share memory list */
@@ -432,16 +433,25 @@ semTake (SEM_ID semId, int timeout)
       sembuf.sem_flg =  IPC_NOWAIT; 
       if (semop(semId,&sembuf,1) != -1)
 	return OK;
-      else
+      else {
+	if (errno!=EAGAIN) {
+	  printf("SemTake(IPC_NOWAIT) exited with errno=%d\n",errno);
+	}
 	return ERROR;
+      }
       
     default:
       sembuf.sem_flg =  IPC_NOWAIT; 
       if (semop(semId,&sembuf,1) != -1)
 	return OK;
-      else 
+      else {
+	if (errno!=EAGAIN) {
+	  printf("SemTake(TIME_OUT) exited with errno=%d\n",errno);
+	  exit(-1);
+	}
 	if (tickCount(servo_base_rate)-start_tick > timeout) 
 	  return ERROR;
+      }
       
     }
     
@@ -596,6 +606,10 @@ removeSharedMemory(int dummy)
 
     sptr = (SM_PTR) sptr->nptr;
   }
+
+  // make sure the thread is unlocked
+  pthread_mutex_unlock( &mutex1 );
+  run_command_line_thread_flag = FALSE;
 
   printf("done\n");
 

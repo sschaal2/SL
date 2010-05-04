@@ -245,6 +245,7 @@ main(int argc, char**argv)
     if (semGive(sm_simulation_servo_sem) == ERROR)
       exit(-1);
 
+
   }  /* end servo while loop */
 
   printf("Motor Servo Error Count = %d\n",motor_servo_errors);

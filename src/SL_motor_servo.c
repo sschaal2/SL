@@ -373,6 +373,10 @@ receive_commands(void)
   }
 
   if (semTake(sm_sjoint_des_state_ready_sem,wait_flag) == ERROR) {
+
+    if (wait_flag == WAIT_FOREVER) // an error win WAIT_FOREVER must be terminated
+      exit(-1);
+
     if (++count_no_receive < task_servo_ratio) {
       // if the motor servo run higher rate than the task servo, the desired
       // joint states gets integrated to be more accurate
