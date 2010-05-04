@@ -419,7 +419,6 @@ receive_commands(void)
 
   }
 
-
   /* check status of joints */
   for (i=1; i<=n_dofs; ++i) {
 

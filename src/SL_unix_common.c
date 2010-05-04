@@ -284,6 +284,7 @@ static void
 initializeReadLine()
 {
   rl_attempted_completion_function = sl_completion;
+  rl_catch_signals = 0;
 }
 
 /*!*****************************************************************************
