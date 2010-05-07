@@ -26,3 +26,6 @@ learn/*.lwpr
 src/*~
 #*
 .DS_Store
+
+*.bak
+*/#*
