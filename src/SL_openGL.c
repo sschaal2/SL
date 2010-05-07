@@ -85,6 +85,9 @@ static void  new_playback(void);
 static void  createTerrainDisplayList(ObjectPtr ptr,double *rgb);
 static int   checkWindowHide(char *);
 static void  togglePause(void);
+static int   initCheckerBoard(void);
+static void  toggleCheckerBoard(void);
+static void  displayCheckerBoard(void);
 
 
 // global variables 
@@ -193,6 +196,10 @@ initGraphics(int *argc, char*** argv)
 
   // memory allocation for userGraphics_joint_state:
   userGraphics_joint_state = (SL_Jstate*)malloc((n_dofs+1)*sizeof(SL_Jstate));
+
+  // checker board toggle
+  addToMan("cb","Draws a checker board on the floor",toggleCheckerBoard);
+
 
   return TRUE;
 
@@ -1184,6 +1191,8 @@ drawObjects(void)
 
   } while (ptr != NULL);
 
+  // the checker board for the floor
+  displayCheckerBoard();
 
 }
 
@@ -2279,4 +2288,207 @@ togglePause(void)
     printf("Resuming the simulation\n");
     semFlush(sm_openGL_servo_sem);
   }
+}
+
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  initCheckerBoard
+\date  May 2010
+   
+\remarks 
+
+initializes checkerboard image variables for adding checker board to floor
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+#define checkImageWidth (128)
+#define checkImageHeight (checkImageWidth)
+static int DrawCheckerBoard=TRUE;
+static ObjectPtr floorObjectPtr;
+static GLubyte checkImage[checkImageHeight][checkImageWidth][4];
+static GLuint texName;
+
+static int 
+initCheckerBoard(void)
+{
+  // the checker board is only applied to the floor object
+  floorObjectPtr = getObjPtrByName("floor");
+  if(floorObjectPtr == NULL) {
+    printf("DisplayCheckerBoard>> ERROR: could not find \"floor\" object\n");
+    return FALSE;
+  }
+
+  // create the checkerboard image
+  int i, j, c;
+  for(i=0; i<checkImageHeight; i++) {
+    for(j=0; j<checkImageWidth; j++) {
+      if( (i+j)%2 == 1) {
+	c=255;
+      } else {
+	c=0;
+      }
+      checkImage[i][j][0] = (GLubyte) c;
+      checkImage[i][j][1] = (GLubyte) c;
+      checkImage[i][j][2] = (GLubyte) c;
+      checkImage[i][j][3] = (GLubyte) 255;
+    }
+  }
+  return TRUE;
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  toggleCheckerBoard
+\date  May 2010
+   
+\remarks 
+
+allows switching on/off the checker board drawing
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+static void 
+toggleCheckerBoard(void)
+{
+  if(DrawCheckerBoard==TRUE) {
+    DrawCheckerBoard=FALSE;
+  } else {
+    DrawCheckerBoard=TRUE;
+  }
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  switchCheckerBoard
+\date  May 2010
+   
+\remarks 
+
+allows switching on/off the checker board drawing
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in] flag: TRUE or FALSE for the checker board on/off
+
+******************************************************************************/
+void 
+switchCheckerBoard(int flag)
+{
+  if(flag==TRUE) {
+    DrawCheckerBoard=TRUE;
+  } else {
+    DrawCheckerBoard=FALSE;
+  }
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  displayCheckerBoard
+\date  May 2010
+   
+\remarks 
+
+visualizes the checker board on top of the floor
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+static void 
+displayCheckerBoard(void )
+{
+  static int firsttime = TRUE;
+
+  // check whether checkerboard is turned on
+  if(!DrawCheckerBoard)
+    return;
+
+  glPushAttrib(GL_CURRENT_COLOR);
+
+  // initialization
+  if(firsttime) {
+	  
+    if(initCheckerBoard() == FALSE) {
+      printf("DisplayCheckerBoard>> ERROR: could not initialize checker board.\n");
+      return;
+    }
+	  
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	  
+    glGenTextures(1, &texName);
+    glBindTexture(GL_TEXTURE_2D, texName);
+	  
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	  
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth, checkImageHeight, 
+		 0, GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
+
+    firsttime=FALSE;
+  }
+
+	
+  glPushMatrix();
+  glEnable(GL_BLEND);
+	
+  glColor4f(1.0f,1.0f,1.0f,0.5f);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	
+  glEnable(GL_TEXTURE_2D);
+  glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+  glBindTexture(GL_TEXTURE_2D, texName);
+	
+#define FLOOROFFSET (0.0001)
+  glBegin(GL_QUADS);
+  GLfloat goalColor[] = { floorObjectPtr->rgb[_X_], floorObjectPtr->rgb[_Y_], 
+			  floorObjectPtr->rgb[_Z_], 0.4 };
+  glColor4fv(goalColor);
+  /* glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, goalColor); */
+	
+  glTexCoord2f(0.0, 0.0);
+  glVertex3f(-(GLdouble)floorObjectPtr->scale[_X_] /2.0, 
+	     -(GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
+	     (GLdouble)floorObjectPtr->trans[_Z_]+
+	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + FLOOROFFSET);
+	
+  glTexCoord2f(0.0, 1.0);
+  glVertex3f(-(GLdouble)floorObjectPtr->scale[_X_] /2.0, 
+	     (GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
+	     (GLdouble)floorObjectPtr->trans[_Z_]+
+	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + FLOOROFFSET);
+	
+  glTexCoord2f(1.0, 1.0);
+  glVertex3f((GLdouble)floorObjectPtr->scale[_X_] /2.0, 
+	     (GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
+	     (GLdouble)floorObjectPtr->trans[_Z_]+
+	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + FLOOROFFSET);
+	
+  glTexCoord2f(1.0, 0.0);
+  glVertex3f((GLdouble)floorObjectPtr->scale[_X_] /2.0, 
+	     -(GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
+	     (GLdouble)floorObjectPtr->trans[_Z_]+
+	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + FLOOROFFSET);
+  glEnd();
+	
+  glDisable(GL_TEXTURE_2D);
+  glDisable(GL_BLEND);
+	
+	
+  glPopMatrix();
+  glPopAttrib();
+	
 }

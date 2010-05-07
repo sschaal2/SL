@@ -96,7 +96,7 @@ extern "C" {
   void       followBaseByName(char *name, int follow);
   void       followBaseByPtr(OpenGLWPtr ptr, int follow);
   void       setUserGraphicsUpdateMode(int mode);
-
+  void       switchCheckerBoard(int flag);
 
   
   /* exported variables */
