@@ -371,7 +371,7 @@ checkForMessages(void)
     strcpy(name,sm_openGL_message->name[k]);
     
     // act according to the message name
-    if (strcmp(name,"followBase") == 0) {
+    if (strcmp(name,"followBase") == 0) { //--------------------------------------
       
       followBaseByName("1", TRUE);
       
@@ -384,7 +384,7 @@ checkForMessages(void)
       memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
       changeHideObjByName(data.obj_name, data.hide);
       
-    } else if (strcmp(name,"changeObjPosByName") == 0) {
+    } else if (strcmp(name,"changeObjPosByName") == 0) { //----------------------
       struct {
 	char   obj_name[100];
 	double pos[N_CART+1];
@@ -395,12 +395,50 @@ checkForMessages(void)
       memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
       changeObjPosByName(data.obj_name,data.pos,data.rot);
       
-    } else if (strcmp(name,"hideWindowByName") == 0) {
+    } else if (strcmp(name,"hideWindowByName") == 0) { //------------------------
       char cbuf[101];
       
       memcpy(&cbuf,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(cbuf));
       printf("%s %d\n",cbuf,cbuf[100]);
       hideWindowByName(cbuf, (int)(cbuf[sizeof(cbuf)-1]));
+      
+    } else if (strcmp(name,"switchCometDisplay") == 0) { //----------------------
+      struct {
+	int status;
+	int n_steps;
+      } data;
+      
+      memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
+      if (data.status == TRUE)
+	switchCometDisplay(data.status,data.n_steps);
+      
+    } else if (strcmp(name,"resetCometDisplay") == 0) { //----------------------
+
+      resetCometDisplay();
+
+    } else if (strcmp(name,"resetCometVars") == 0) { //-------------------------
+
+      for (i=1; i<=n_endeffs; ++i)
+	switchEndeffectorCometDisplay(i,FALSE);
+
+      for (i=1; i<=n_links; ++i)
+	switchLinkCometDisplay(i,FALSE);
+
+    } else if (strcmp(name,"switchCometVars") == 0) { //------------------------
+      struct {
+	int endeffID;
+	int endeffStatus;
+	int linkID;
+	int linkStatus;
+      } data;
+      
+      memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
+
+      if (data.endeffID != 0)
+	switchEndeffectorCometDisplay(data.endeffID,data.endeffStatus);
+
+      if (data.linkID != 0)
+	switchLinkCometDisplay(data.linkID,data.linkStatus);
       
     }
 

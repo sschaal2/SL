@@ -70,7 +70,10 @@ extern "C" {
   void freezeBase(int flag);
   void setGravity(double grav);
   void setG(void);
-
+  void switchCometDisplay(int status, int n_steps);
+  void resetCometDisplay(void);
+  void switchCometDisplayVars(int endeffID, int endeffStatus, int linkID, int linkStatus);
+  void resetCometDisplayVars(void);
 
   
 #ifdef __cplusplus

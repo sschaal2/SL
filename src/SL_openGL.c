@@ -90,7 +90,6 @@ static int   initCheckerBoard(void);
 static void  toggleCheckerBoard(void);
 static void  displayCheckerBoard(void);
 static void  initCometDisplay(int n_steps);
-static void  resetCometDisplay(void);
 static void  toggleComet(void);
 
 
@@ -108,6 +107,8 @@ int        mouseY        = 0;
 SL_Jstate* userGraphics_joint_state;
 SL_Cstate  userGraphics_base_state;
 SL_quat    userGraphics_base_orient;
+int        cometDisplay = FALSE;
+
 
 /* local variables */
 static OpenGLWPtr first_window_ptr = NULL;
@@ -2526,15 +2527,18 @@ static int      n_elements_comet_buffer = 0;
 static int      current_index_comet_buffer = 1;
 static int     *comet_display_list=NULL;
 static int      comet_display_initialized = FALSE;
-static int      cometDisplay = FALSE;
 
 static void
 initCometDisplay(int n_steps)
 {
   int i,j;
+  int store;
 
   if (comet_buffer != NULL && n_steps == n_steps_comet)
     return;
+
+  store = cometDisplay;
+  cometDisplay = FALSE;
 
   // free old memory if needed
   if (comet_buffer != NULL) 
@@ -2561,6 +2565,8 @@ initCometDisplay(int n_steps)
 
   resetCometDisplay();
 
+  cometDisplay = store;
+
 }
 
 /*!*****************************************************************************
@@ -2578,7 +2584,7 @@ Function Parameters: [in]=input,[out]=output
 none
 
 ******************************************************************************/
-static void
+void
 resetCometDisplay(void)
 {
   int i,j;
@@ -2618,6 +2624,8 @@ switchEndeffectorCometDisplay(int id, int s)
 
   comet_display_list[id] = s;
 
+  resetCometDisplay();
+
 }
 
 /*!*****************************************************************************
@@ -2649,6 +2657,8 @@ switchLinkCometDisplay(int id, int s)
     initCometDisplay(n_steps_comet);
 
   comet_display_list[n_endeffs+id] = s;
+
+  resetCometDisplay();
 
 }
 
@@ -2771,7 +2781,7 @@ toggleComet(void)
 
 /*!*****************************************************************************
 *******************************************************************************
-\note  switchComet
+\note  switchCometDisplay
 \date  May 2010
    
 \remarks 
@@ -2781,13 +2791,15 @@ allows switching on/off the comet display
 *******************************************************************************
 Function Parameters: [in]=input,[out]=output
 
-\param[in] flag: TRUE/FALSE for turining the comet display on/off
+\param[in] flag   : TRUE/FALSE for turining the comet display on/off
+\param[in[ n_steps: how many steps in comet buffer (only for flag = TRUE)
 
 ******************************************************************************/
 void 
-switchComet(int flag)
+switchCometDisplay(int flag, int n_steps)
 {
   if(flag==TRUE) {
+    initCometDisplay(n_steps);
     cometDisplay=TRUE;
   } else {
     cometDisplay=FALSE;

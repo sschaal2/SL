@@ -1338,3 +1338,124 @@ changePIDGains(double *pGain, double *dGain, double *iGain)
 }
 
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  switchCometDisplay
+\date  May 2010
+   
+\remarks 
+
+switches on/off the comet display for openGL
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     status  : TRUE/FALSE for turning comet on/off
+ \param[in]     n_steps : if turned off, the history of the comet is set to n_steps
+
+ ******************************************************************************/
+void 
+switchCometDisplay(int status, int n_steps)
+{
+  int i,j;
+  int ibuf[3];
+  unsigned char cbuf[2*sizeof(int)];
+
+  ibuf[1] = status;
+  ibuf[2] = n_steps;
+
+  memcpy(cbuf,(void *)&(ibuf[1]),2*sizeof(float));
+    
+  sendMessageOpenGLServo("switchCometDisplay",(void *)cbuf,2*sizeof(int));
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  resetCometDisplay
+\date  May 2010
+   
+\remarks 
+
+resets the history of the comet display
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+
+ ******************************************************************************/
+void 
+resetCometDisplay(void)
+{
+  int i,j;
+  unsigned char cbuf[1];
+
+  sendMessageOpenGLServo("resetCometDisplay",(void *)cbuf,0);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  resetCometDisplayVars
+\date  May 2010
+   
+\remarks 
+
+resets the variables for comet display
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+
+ ******************************************************************************/
+void 
+resetCometDisplayVars(void)
+{
+  int i,j;
+  unsigned char cbuf[1];
+
+  sendMessageOpenGLServo("resetCometVars",(void *)cbuf,0);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  switchCometDisplayVars
+\date  May 2010
+   
+\remarks 
+
+Switches comet display variables on and off. Two kinds of variables are possible,
+endeffector variables and links. This function communicates the ID number of
+both one endeffector and one link, and the associated status for display. Pass
+a zero ID if either the link or the endeffector are not be used.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]  endeffID    : endeffector ID to switch
+ \param[in]  endeffStatus: TRUE/FALSE for displaying this endeffector
+ \param[in]  linkID      : endeffector ID to switch
+ \param[in]  linkStatus  : TRUE/FALSE for displaying this link
+
+
+ ******************************************************************************/
+void 
+switchCometDisplayVars(int endeffID, int endeffStatus, int linkID, int linkStatus)
+{
+  int i,j;
+  int ibuf[5];
+  unsigned char cbuf[4*sizeof(int)];
+
+  ibuf[1] = endeffID;
+  ibuf[2] = endeffStatus;
+  ibuf[3] = linkID;
+  ibuf[4] = linkStatus;
+
+  memcpy(cbuf,(void *)&(ibuf[1]),4*sizeof(float));
+    
+  sendMessageOpenGLServo("switchCometVars",(void *)cbuf,4*sizeof(int));
+
+}
+
+

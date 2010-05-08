@@ -100,7 +100,9 @@ extern "C" {
   void       displayComet(void);
   void       switchEndeffectorCometDisplay(int id, int s);
   void       switchLinkCometDisplay(int id, int s);
-  void       switchComet(int flag);
+  void       switchCometDisplay(int flag, int n_steps);
+  void       resetCometDisplay(void);
+
 
 
 
@@ -120,6 +122,7 @@ extern "C" {
   extern SL_Jstate* userGraphics_joint_state;
   extern SL_Cstate userGraphics_base_state;
   extern SL_quat userGraphics_base_orient;
+  extern int cometDisplay;
   
 #ifdef __cplusplus
 }
