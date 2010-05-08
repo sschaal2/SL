@@ -102,7 +102,7 @@ extern "C" {
   void       switchLinkCometDisplay(int id, int s);
   void       switchCometDisplay(int flag, int n_steps);
   void       resetCometDisplay(void);
-
+  void       displayCoord(void);
 
 
 

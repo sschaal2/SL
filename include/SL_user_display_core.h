@@ -3,4 +3,5 @@
   drawObjects();
   drawContacts(fscale);
   displayComet();
+  displayCoord();
   runUserGraphics();

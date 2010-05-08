@@ -90,7 +90,8 @@ static int   initCheckerBoard(void);
 static void  toggleCheckerBoard(void);
 static void  displayCheckerBoard(void);
 static void  initCometDisplay(int n_steps);
-static void  toggleComet(void);
+static void  toggleCometDisplay(void);
+static void  toggleCoordDisplay(void);
 
 
 
@@ -204,14 +205,17 @@ initGraphics(int *argc, char*** argv)
   userGraphics_joint_state = (SL_Jstate*)malloc((n_dofs+1)*sizeof(SL_Jstate));
 
   // checkerboard toggle
-  addToMan("cb","draws a checker board on the floor",toggleCheckerBoard);
+  addToMan("checkerBoardMode","draws a checker board on the floor",toggleCheckerBoard);
 
   // comet toggle
-  addToMan("comet","draws a comet-like line for select robot vertices",toggleComet);
+  addToMan("cometDisplay","draws a comet-like line for select robot vertices",toggleCometDisplay);
 
   // initialize comet display for all endeffectors
   for (i=1; i<=n_endeffs; ++i)
     switchEndeffectorCometDisplay(i,TRUE);
+
+  // comet toggle
+  addToMan("coordDisplay","draws local coordinate systems",toggleCoordDisplay);
 
 
   return TRUE;
@@ -2748,7 +2752,7 @@ displayComet(void)
 
 /*!*****************************************************************************
 *******************************************************************************
-\note  toggleComet
+\note  toggleCometDisplay
 \date  May 2010
    
 \remarks 
@@ -2762,7 +2766,7 @@ none
 
 ******************************************************************************/
 static void 
-toggleComet(void)
+toggleCometDisplay(void)
 {
   int n;
 
@@ -2805,5 +2809,120 @@ switchCometDisplay(int flag, int n_steps)
     cometDisplay=FALSE;
   }
   resetCometDisplay();
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  toggleCoordDisplay
+\date  May 2010
+   
+\remarks 
+
+allows switching on/off the comet dispaly
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+static int coordDisplay = FALSE;
+static void 
+toggleCoordDisplay(void)
+{
+  int n;
+  
+  if(coordDisplay==TRUE) {
+    coordDisplay=FALSE;
+  } else {
+    coordDisplay=TRUE;
+  }
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  displayCoord
+\date  May 2010
+   
+\remarks 
+
+draws the local coordinate systems for each link
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+void
+displayCoord(void)
+{
+
+  int    i,j;
+  double v[N_CART+1+1];
+  double r[N_CART+1+1];
+  
+  if (!coordDisplay)
+    return;
+  
+  // draw the coordinate systems
+  glPushMatrix();
+  glDisable(GL_LIGHTING); /*to have constant colors */
+  glLineWidth(2.0);
+
+  for (i=0; i<=n_links; ++i)  {
+
+
+    v[_X_] = 0.1;
+    v[_Y_] = v[_Z_] = 0.0;
+    v[_Z_+1] = 1.0;
+    mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
+    glColor4f (0.0,1.0,0.0,0.0);
+    glBegin(GL_LINES);     
+    glVertex3d(link_pos_sim[i][_X_],link_pos_sim[i][_Y_],link_pos_sim[i][_Z_]);
+    glVertex3d(r[_X_],r[_Y_],r[_Z_]);
+    glEnd();
+
+    v[_X_] = 0.11;
+    mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
+    glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'X');
+
+    v[_Y_] = 0.1;
+    v[_X_] = v[_Z_] = 0.0;
+    v[_Z_+1] = 1.0;
+    mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
+    glColor4f (1.0,0.0,0.0,0.0);
+    glBegin(GL_LINES);     
+    glVertex3d(link_pos_sim[i][_X_],link_pos_sim[i][_Y_],link_pos_sim[i][_Z_]);
+    glVertex3d(r[_X_],r[_Y_],r[_Z_]);
+    glEnd();
+
+    v[_Y_] = 0.11;
+    mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
+    glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'Y');
+
+    v[_Z_] = 0.1;
+    v[_Y_] = v[_X_] = 0.0;
+    v[_Z_+1] = 1.0;
+    mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
+    glColor4f (0.0,0.0,1.0,0.0);
+    glBegin(GL_LINES);     
+    glVertex3d(link_pos_sim[i][_X_],link_pos_sim[i][_Y_],link_pos_sim[i][_Z_]);
+    glVertex3d(r[_X_],r[_Y_],r[_Z_]);
+    glEnd();
+
+    v[_Z_] = 0.11;
+    mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
+    glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
+    glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'Z');
+
+  }
+
+  glEnable(GL_LIGHTING);   
+  glLineWidth(1.0);
+  glPopMatrix();
+
 }
 
