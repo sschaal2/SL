@@ -100,6 +100,7 @@ extern "C" {
   void       displayComet(void);
   void       switchEndeffectorCometDisplay(int id, int s);
   void       switchLinkCometDisplay(int id, int s);
+  void       switchComet(int flag);
 
 
 

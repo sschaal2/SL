@@ -41,6 +41,7 @@
 // user specific headers
 #include "SL.h"
 #include "SL_openGL.h"
+#include "SL_openGL_servo.h"
 #include "SL_terrains.h"
 #include "SL_common.h"
 #include "SL_objects.h"
@@ -206,6 +207,10 @@ initGraphics(int *argc, char*** argv)
 
   // comet toggle
   addToMan("comet","draws a comet-like line for select robot vertices",toggleComet);
+
+  // initialize comet display for all endeffectors
+  for (i=1; i<=n_endeffs; ++i)
+    switchEndeffectorCometDisplay(i,TRUE);
 
 
   return TRUE;
@@ -2515,7 +2520,7 @@ Function Parameters: [in]=input,[out]=output
 \param[in]  n_steps: length of comet buffer
 
 ******************************************************************************/
-static int      n_steps_comet = 100;
+static int      n_steps_comet = 500;
 static Vector **comet_buffer;
 static int      n_elements_comet_buffer = 0;
 static int      current_index_comet_buffer = 1;
@@ -2669,14 +2674,14 @@ displayComet(void)
   int i,j,c,cc;
   double shade;
 
-  if (!comet_display_initialized || !cometDisplay)
+  if (!comet_display_initialized || !cometDisplay || openGL_servo_calls < 1)
     return;
 
   // first add the lastest information to the comet_display_list
 
   for (i=1; i<=n_endeffs; ++i) 
     if (comet_display_list[i]) 
-      for (j=1; j<=N_CART; ++j) 
+      for (j=1; j<=N_CART; ++j)
 	comet_buffer[i][j][current_index_comet_buffer] = link_pos_sim[link2endeffmap[i]][j];
 	
   for (i=1; i<=n_links; ++i) 
@@ -2689,21 +2694,23 @@ displayComet(void)
 
 
   // draw the comets
-  for (i=1; i<=n_endeffs+n_links; ++i)  {
+  for (i=1; i<=n_endeffs+n_links && n_elements_comet_buffer > 1; ++i)  {
 
     if (!comet_display_list[i]) 
       continue;
     
     glPushMatrix();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glDisable(GL_LIGHTING); /*to have constant colors */
-    glLineWidth(5.0);
+    glLineWidth(2.0);
     glBegin(GL_LINES);     
     c = current_index_comet_buffer;
 
     for (j=1; j<=n_elements_comet_buffer-1; ++j) {
 
-      shade = (double)(j)/(double)n_elements_comet_buffer;
-      glColor4f (shade,shade,shade,0.0);
+      shade = (double)(n_steps_comet-j+1)/(double)n_steps_comet;
+      glColor4f (shade,shade,shade,1.0);
       glVertex3d(comet_buffer[i][_X_][c],comet_buffer[i][_Y_][c],comet_buffer[i][_Z_][c]);
       cc = c-1;
       if (cc < 1)
@@ -2717,6 +2724,7 @@ displayComet(void)
 
     glEnd();
     glEnable(GL_LIGHTING);   
+    glDisable(GL_BLEND);
     glLineWidth(1.0);
     glPopMatrix();
 
@@ -2746,10 +2754,43 @@ none
 static void 
 toggleComet(void)
 {
+  int n;
+
   if(cometDisplay==TRUE) {
     cometDisplay=FALSE;
   } else {
+    get_int("How many point in comet?",n_steps_comet,&n);
+
+    if (n > 1 && n != n_steps_comet)
+      initCometDisplay(n);
+
     cometDisplay=TRUE;
+  }
+  resetCometDisplay();
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  switchComet
+\date  May 2010
+   
+\remarks 
+
+allows switching on/off the comet display
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in] flag: TRUE/FALSE for turining the comet display on/off
+
+******************************************************************************/
+void 
+switchComet(int flag)
+{
+  if(flag==TRUE) {
+    cometDisplay=TRUE;
+  } else {
+    cometDisplay=FALSE;
   }
   resetCometDisplay();
 }

@@ -57,6 +57,7 @@ INSTALL_HEADERS = ../include/SL.h \
 		  ../include/SL_xeno_headers.h \
 		  ../include/SL_openGL_servo.h \
 		  ../include/SL_user_idle_core.h \
+		  ../include/SL_user_display_core.h \
 		  ../include/SL_user_main_core.h \
 		  ../include/SL_userGraphics.h \
 		  ../include/SL_kinematics_body.h \
