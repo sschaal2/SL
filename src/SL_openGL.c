@@ -88,6 +88,10 @@ static void  togglePause(void);
 static int   initCheckerBoard(void);
 static void  toggleCheckerBoard(void);
 static void  displayCheckerBoard(void);
+static void  initCometDisplay(int n_steps);
+static void  resetCometDisplay(void);
+static void  toggleComet(void);
+
 
 
 // global variables 
@@ -197,8 +201,11 @@ initGraphics(int *argc, char*** argv)
   // memory allocation for userGraphics_joint_state:
   userGraphics_joint_state = (SL_Jstate*)malloc((n_dofs+1)*sizeof(SL_Jstate));
 
-  // checker board toggle
-  addToMan("cb","Draws a checker board on the floor",toggleCheckerBoard);
+  // checkerboard toggle
+  addToMan("cb","draws a checker board on the floor",toggleCheckerBoard);
+
+  // comet toggle
+  addToMan("comet","draws a comet-like line for select robot vertices",toggleComet);
 
 
   return TRUE;
@@ -2492,3 +2499,258 @@ displayCheckerBoard(void )
   glPopAttrib();
 	
 }
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  initCometDisplay
+\date  May 2010
+   
+\remarks 
+
+initializes the comet display feature
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in]  n_steps: length of comet buffer
+
+******************************************************************************/
+static int      n_steps_comet = 100;
+static Vector **comet_buffer;
+static int      n_elements_comet_buffer = 0;
+static int      current_index_comet_buffer = 1;
+static int     *comet_display_list=NULL;
+static int      comet_display_initialized = FALSE;
+static int      cometDisplay = FALSE;
+
+static void
+initCometDisplay(int n_steps)
+{
+  int i,j;
+
+  if (comet_buffer != NULL && n_steps == n_steps_comet)
+    return;
+
+  // free old memory if needed
+  if (comet_buffer != NULL) 
+    for (i=1; i<=n_endeffs+n_links; ++i)
+      for (j=1; j<=N_CART; ++j)
+	my_free_vector(comet_buffer[i][j],1,n_steps_comet);
+
+  // now get new memory
+  if (comet_buffer == NULL) {
+    comet_buffer = (Vector **)my_calloc(n_endeffs+n_links+1,sizeof(Vector *),MY_STOP);
+    for (i=1; i<=n_endeffs+n_links; ++i)
+      comet_buffer[i] = (Vector *)my_calloc(N_CART+1,sizeof(Vector),MY_STOP);
+  }
+
+  if (comet_display_list == NULL)
+    comet_display_list = (int *) my_calloc(n_endeffs+n_links+1,sizeof(int), MY_STOP);
+
+  n_steps_comet = n_steps;
+  for (i=1; i<=n_endeffs+n_links; ++i)
+    for (j=1; j<=N_CART; ++j)
+      comet_buffer[i][j] = my_vector(1,n_steps_comet);
+
+  comet_display_initialized = TRUE;
+
+  resetCometDisplay();
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  resetCometDisplay
+\date  May 2010
+   
+\remarks 
+
+resets to comet display buffer to being empty
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+static void
+resetCometDisplay(void)
+{
+  int i,j;
+
+  n_elements_comet_buffer = 0;
+  current_index_comet_buffer = 1;
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  switchEndeffectorCometDisplay
+\date  May 2010
+   
+\remarks 
+
+turns on/off  an endeffector for the comet dispaly
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in]  id   : id number of endeffector
+\param[in]  s    : status TRUE or FALSE for turing the display on/off
+
+******************************************************************************/
+void
+switchEndeffectorCometDisplay(int id, int s)
+{
+  if (id < 1 || id > n_endeffs) {
+    printf("Error: ID=%d is an invalid endeffector ID\n",id);
+    return;
+  }
+
+  // make sure we are initialized
+  if (!comet_display_initialized)
+    initCometDisplay(n_steps_comet);
+
+  comet_display_list[id] = s;
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  switchLinkCometDisplay
+\date  May 2010
+   
+\remarks 
+
+turns on/off  a link  for the comet dispaly
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in]  id   : id number of link
+\param[in]  s    : status TRUE or FALSE for turing the display on/off
+
+******************************************************************************/
+void
+switchLinkCometDisplay(int id, int s)
+{
+  if (id < 1 || id > n_links) {
+    printf("Error: ID=%d is an invalid link ID\n",id);
+    return;
+  }
+
+  // make sure we are initialized
+  if (!comet_display_initialized)
+    initCometDisplay(n_steps_comet);
+
+  comet_display_list[n_endeffs+id] = s;
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  displayComet
+\date  May 2010
+   
+\remarks 
+
+visualizes link vertices and endeffectors as a 3D trajectories when turned on
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+void
+displayComet(void)
+{
+
+  int i,j,c,cc;
+  double shade;
+
+  if (!comet_display_initialized || !cometDisplay)
+    return;
+
+  // first add the lastest information to the comet_display_list
+
+  for (i=1; i<=n_endeffs; ++i) 
+    if (comet_display_list[i]) 
+      for (j=1; j<=N_CART; ++j) 
+	comet_buffer[i][j][current_index_comet_buffer] = link_pos_sim[link2endeffmap[i]][j];
+	
+  for (i=1; i<=n_links; ++i) 
+    if (comet_display_list[n_endeffs+i]) 
+      for (j=1; j<=N_CART; ++j) 
+	comet_buffer[n_endeffs+i][j][current_index_comet_buffer] = link_pos_sim[i][j];
+	
+  if (++n_elements_comet_buffer > n_steps_comet)
+    n_elements_comet_buffer = n_steps_comet;
+
+
+  // draw the comets
+  for (i=1; i<=n_endeffs+n_links; ++i)  {
+
+    if (!comet_display_list[i]) 
+      continue;
+    
+    glPushMatrix();
+    glDisable(GL_LIGHTING); /*to have constant colors */
+    glLineWidth(5.0);
+    glBegin(GL_LINES);     
+    c = current_index_comet_buffer;
+
+    for (j=1; j<=n_elements_comet_buffer-1; ++j) {
+
+      shade = (double)(j)/(double)n_elements_comet_buffer;
+      glColor4f (shade,shade,shade,0.0);
+      glVertex3d(comet_buffer[i][_X_][c],comet_buffer[i][_Y_][c],comet_buffer[i][_Z_][c]);
+      cc = c-1;
+      if (cc < 1)
+	cc = n_steps_comet;
+      glVertex3d(comet_buffer[i][_X_][cc],comet_buffer[i][_Y_][cc],comet_buffer[i][_Z_][cc]);
+
+      if (--c < 1)
+	c = n_steps_comet;
+
+    }
+
+    glEnd();
+    glEnable(GL_LIGHTING);   
+    glLineWidth(1.0);
+    glPopMatrix();
+
+  }
+
+  // advance the index
+  if (++current_index_comet_buffer > n_steps_comet)
+    current_index_comet_buffer = 1;
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  toggleComet
+\date  May 2010
+   
+\remarks 
+
+allows switching on/off the comet dispaly
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+static void 
+toggleComet(void)
+{
+  if(cometDisplay==TRUE) {
+    cometDisplay=FALSE;
+  } else {
+    cometDisplay=TRUE;
+  }
+  resetCometDisplay();
+}
+

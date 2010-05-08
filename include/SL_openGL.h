@@ -97,6 +97,11 @@ extern "C" {
   void       followBaseByPtr(OpenGLWPtr ptr, int follow);
   void       setUserGraphicsUpdateMode(int mode);
   void       switchCheckerBoard(int flag);
+  void       displayComet(void);
+  void       switchEndeffectorCometDisplay(int id, int s);
+  void       switchLinkCometDisplay(int id, int s);
+
+
 
   
   /* exported variables */
