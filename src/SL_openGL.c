@@ -2827,14 +2827,19 @@ none
 
 ******************************************************************************/
 static int coordDisplay = FALSE;
+static double coordAxisLength = 0.1;
 static void 
 toggleCoordDisplay(void)
 {
   int n;
+  double aux;
   
   if(coordDisplay==TRUE) {
     coordDisplay=FALSE;
   } else {
+    get_double("Length of coordinate axes?",coordAxisLength,&aux);
+    if (aux > 0)
+      coordAxisLength = aux;
     coordDisplay=TRUE;
   }
 }
@@ -2873,7 +2878,7 @@ displayCoord(void)
   for (i=0; i<=n_links; ++i)  {
 
 
-    v[_X_] = 0.1;
+    v[_X_] = coordAxisLength;
     v[_Y_] = v[_Z_] = 0.0;
     v[_Z_+1] = 1.0;
     mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
@@ -2883,12 +2888,12 @@ displayCoord(void)
     glVertex3d(r[_X_],r[_Y_],r[_Z_]);
     glEnd();
 
-    v[_X_] = 0.11;
+    v[_X_] = coordAxisLength+0.1;
     mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
     glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'X');
 
-    v[_Y_] = 0.1;
+    v[_Y_] = coordAxisLength;
     v[_X_] = v[_Z_] = 0.0;
     v[_Z_+1] = 1.0;
     mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
@@ -2898,12 +2903,12 @@ displayCoord(void)
     glVertex3d(r[_X_],r[_Y_],r[_Z_]);
     glEnd();
 
-    v[_Y_] = 0.11;
+    v[_Y_] = coordAxisLength+0.1;
     mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
     glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'Y');
 
-    v[_Z_] = 0.1;
+    v[_Z_] = coordAxisLength;
     v[_Y_] = v[_X_] = 0.0;
     v[_Z_+1] = 1.0;
     mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
@@ -2913,7 +2918,7 @@ displayCoord(void)
     glVertex3d(r[_X_],r[_Y_],r[_Z_]);
     glEnd();
 
-    v[_Z_] = 0.11;
+    v[_Z_] = coordAxisLength+0.1;
     mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
     glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'Z');
