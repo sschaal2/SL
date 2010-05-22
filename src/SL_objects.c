@@ -246,6 +246,44 @@ addSphere(char *name, double *rgb, double *pos, double *rot,
 
 /*!*****************************************************************************
  *******************************************************************************
+\note  addCylinder
+\date  Nov 2000
+   
+\remarks 
+
+       Add a cylinder to the object list. The axis of the cylinder is aligned
+       with the local z axis
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name       : name of the object 
+ \param[in]     rgb        : rgb values for color
+ \param[in]     pos        : pointer to position vector 
+ \param[in]     rot        : pointer to rotation vector
+ \param[in]     scale      : pointer to scale vector
+ \param[in]     contact    : ID of contact model  
+ \param[in]     parms      : array of contact parameters
+ \param[in]     n_faces    : number of faces
+
+
+ ******************************************************************************/
+ObjectPtr
+addCylinder(char *name, double *rgb, double *pos, double *rot, 
+	  double *scale, int contact,
+	  Vector parms, int n_faces)
+{
+  double ospecs[1+1];
+
+  ospecs[0]=1;
+  ospecs[1]=n_faces;
+
+  return (addObject(name,CYLINDER,contact,rgb,pos,rot,scale,parms,ospecs));
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
 \note  changeObjPosByName
 \date  Nov 2000
    

@@ -20,6 +20,7 @@
 #define CUBE         1
 #define SPHERE       2
 #define TERRAIN      3
+#define CYLINDER     4
 
 /*! possible contact models */
 #define NO_CONTACT                       0
@@ -86,6 +87,9 @@ extern "C" {
   ObjectPtr  addCube(char *name, double *rgb, double *pos, double *rot, 
 		     double *scale, int contact,
 		     double *parms);
+  ObjectPtr  addCylinder(char *name, double *rgb, double *pos, double *rot, 
+			 double *scale, int contact,
+			 Vector parms, int n_faces);
   void       checkContacts(void);
   int        changeObjPosByName(char *name, double *pos, double *rot);
   void       changeObjPosByPtr(ObjectPtr ptr, double *pos, double *rot);

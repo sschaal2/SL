@@ -32,7 +32,9 @@
 #ifdef powerpc
 #include <GLUT/glut.h>
 #else
-#include "GL/glut.h"
+#include "GL/freeglut_std.h"
+#include "GL/freeglut_ext.h"
+#include "GL/glu.h"
 #endif
 
 // mathematica headers
@@ -1173,6 +1175,30 @@ drawObjects(void)
 	  glutSolidSphere(1.0,ptr->object_parms[1],ptr->object_parms[1]);
 	else
 	  glutWireSphere(1.0,ptr->object_parms[1],ptr->object_parms[1]);
+	glPopMatrix();
+	
+	break;
+	
+      case CYLINDER:
+	glPushMatrix();
+	glTranslated((GLdouble)ptr->trans[1],
+		     (GLdouble)ptr->trans[2],
+		     (GLdouble)ptr->trans[3]);
+	if (ptr->rot[1] != 0.0)
+	  glRotated((GLdouble)(180./PI)*ptr->rot[1],(GLdouble)1.,
+		    (GLdouble)0.,(GLdouble)0.);      
+	if (ptr->rot[2] != 0.0)
+	  glRotated((GLdouble)(180./PI)*ptr->rot[2],(GLdouble)0.,
+		    (GLdouble)1,(GLdouble)0.);      
+	if (ptr->rot[3] != 0.0)
+	  glRotated((GLdouble)(180./PI)*ptr->rot[3],(GLdouble)0.0,
+		    (GLdouble)0.,(GLdouble)1.);      
+	glScaled(ptr->scale[1]/2.,ptr->scale[2]/2.,ptr->scale[3]);
+	glTranslated((GLdouble)0.0,(GLdouble)0.0,(GLdouble)-0.5);
+	if (solid)
+	  glutSolidCylinder(1.0,1.0,ptr->object_parms[1],1);
+	else
+	  glutWireCylinder(1.0,1.0,ptr->object_parms[1],1);
 	glPopMatrix();
 	
 	break;
