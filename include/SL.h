@@ -84,6 +84,12 @@ enum ConfigFile {
 #define DOUBLE2FLOAT 1
 #define FLOAT2DOUBLE 2
 
+#define STRING20    20   //!< used to allocate 20 character string
+#define STRING40    40   //!< used to allocate 40 character string
+#define STRING60    60   //!< used to allocate 60 character string
+#define STRING90    80   //!< used to allocate 80 character string
+#define STRING100  100   //!< used to allocate 100 character string
+
 #ifdef VX
 #define MAX_BYTES_USER_GRAPHICS 5000
 #else

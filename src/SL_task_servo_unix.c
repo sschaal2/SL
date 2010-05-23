@@ -28,6 +28,7 @@
 #include "SL_unix_common.h"
 #include "SL_man.h"
 #include "SL_dynamics.h"
+#include "SL_objects_defines.h"
 
 #define TIME_OUT_NS  1000000
 
@@ -348,6 +349,39 @@ changeHideObject(char *name, int hide)
 
   memcpy(buf,&data,sizeof(data));
   sendMessageOpenGLServo("hideObject",(void *)buf,sizeof(data));
+  sendMessageSimulationServo("hideObject",(void *)buf,sizeof(data));
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  deleteObject
+\date  May 2010
+   
+\remarks 
+
+delete and object on all servos
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name : name object
+
+ ******************************************************************************/
+void 
+deleteObject(char *name) 
+{
+  int i,j;
+  struct {
+    char obj_name[100];
+  } data;
+  unsigned char buf[sizeof(data)];
+
+  strcpy(data.obj_name,name);
+
+  memcpy(buf,&data,sizeof(data));
+  sendMessageOpenGLServo("deleteObject",(void *)buf,sizeof(data));
+  sendMessageSimulationServo("deleteObject",(void *)buf,sizeof(data));
 }
 
 
@@ -608,4 +642,112 @@ freezeBase(int flag)
 
 }
 
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  addObject
+\date  May 2010
+   
+\remarks 
+
+add an object through shared memory communication
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name       : name of the object 
+ \param[in]     type       : type of object
+ \param[in]     rgb        : rgb values for color
+ \param[in]     pos        : pointer to position vector 
+ \param[in]     rot        : pointer to rotation vector
+ \param[in]     scale      : pointer to rotation vector
+ \param[in]     oparms     : array of object parameters
+ \param[in]     contact    : ID of contact model  
+ \param[in]     cparms     : array of contact parameters
+
+ ******************************************************************************/
+void
+addObject(char *name, int type,double *rgb, double *pos, double *rot, 
+	  double *scale, double *oparms, int contact, double *cparms)
+{
+  int i,j;
+  int n_objs_parm;
+  int n_c_parm;
+  struct {
+    char    name[STRING100];                  /*!< object name */
+    int     type;                             /*!< object type */
+    double  trans[N_CART+1];                  /*!< translatory offset of object */
+    double  rot[N_CART+1];                    /*!< rotational offset of object */
+    double  scale[N_CART+1];                  /*!< scaling in x,y,z */
+    double  rgb[N_CART+1];                    /*!< color information */
+    double  object_parms[MAX_OBJ_PARMS];      /*!< object parameters */
+    int     contact_model;                    /*!< which contact model to be used */
+    double  contact_parms[MAX_CONTACT_PARMS]; /*!< contact parameters */
+  } data;
+  unsigned char cbuf[sizeof(data)];
+
+  strcpy(data.name,name);
+  data.type = type;
+  for (i=1; i<=N_CART; ++i) {
+    data.trans[i] = pos[i];
+    data.rot[i] = rot[i];
+    data.scale[i] = scale[i];
+    data.rgb[i] = scale[i];
+  }
+
+  switch (type) {
+  case CUBE:
+    n_objs_parm = N_CUBE_PARMS;
+    break;
+
+  case SPHERE:
+    n_objs_parm = N_SPHERE_PARMS;
+    break;
+
+  case TERRAIN:
+    n_objs_parm = N_TERRAIN_PARMS;
+    break;
+
+  case CYLINDER:
+    n_objs_parm = N_CYLINDER_PARMS;
+    break;
+
+  default:
+    n_objs_parm = 0;
+  }
+
+  for (i=1; i<=n_objs_parm; ++i)
+    data.object_parms[i] = oparms[i];
+
+
+  switch (contact) {
+  case NO_CONTACT:
+    n_c_parm = N_NO_CONTACT_PARMS;
+    break;
+
+  case DAMPED_SPRING_STATIC_FRICTION:
+    n_c_parm = N_DAMPED_SPRING_STATIC_FRICTION_PARMS;
+    break;
+
+  case DAMPED_SPRING_VISCOUS_FRICTION:
+    n_c_parm = N_DAMPED_SPRING_VISCOUS_FRICTION_PARMS;
+    break;
+
+  case DAMPED_SPRING_LIMITED_REBOUND:
+    n_c_parm = N_DAMPED_SPRING_LIMITED_REBOUND_PARMS;
+    break;
+
+  default:
+    n_c_parm = 0;
+  }
+
+  for (i=1; i<=n_c_parm; ++i)
+    data.contact_parms[i] = cparms[i];
+
+  memcpy(cbuf,(void *)&data,sizeof(data));
+    
+  sendMessageSimulationServo("addObject",(void *)cbuf,sizeof(data));
+  sendMessageOpenGLServo("addObject",(void *)cbuf,sizeof(data));
+
+}
 

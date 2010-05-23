@@ -16,21 +16,13 @@
 #ifndef _SL_objects_
 #define _SL_objects_
 
-/*! possible object types */
-#define CUBE         1
-#define SPHERE       2
-#define TERRAIN      3
-#define CYLINDER     4
 
-/*! possible contact models */
-#define NO_CONTACT                       0
-#define DAMPED_SPRING_STATIC_FRICTION    1
-#define DAMPED_SPRING_VISCOUS_FRICTION   2
-#define DAMPED_SPRING_LIMITED_REBOUND    3
+#include "SL_objects_defines.h"
+
 
 /*! structure to create objects in the environment */
 typedef struct Object {
-  char    name[100];                     /*!< object name */
+  char    name[STRING100];               /*!< object name */
   int     type;                          /*!< object type */
   int     contact_model;                 /*!< which contact model to be used */
   double  trans[N_CART+1];               /*!< translatory offset of object */

@@ -633,7 +633,7 @@ checkContacts(void)
     do {   /* check all objects */
       
       /* check whether this is a contact */
-      if (optr->contact_model == NO_CONTACT) {
+      if (optr->contact_model == NO_CONTACT || optr->hide) {
 	optr = (ObjectPtr) optr->nptr;
 	continue;
       }
@@ -1097,13 +1097,13 @@ readObjects(char *cfname)
   char   name[100];
   char   fname[100];
   char   name2[100];
-  double oparms[30+1];
-  double cparms[30+1];
+  double oparms[MAX_OBJ_PARMS+1];
+  double cparms[MAX_CONTACT_PARMS+1];
   double display_grid_delta;
   ObjectPtr optr;
   double x,y,z;
   double n[N_CART+1];
-  char   string[100];
+  char   string[STRING100];
 
   
   sprintf(string,"%s%s",CONFIG,cfname);

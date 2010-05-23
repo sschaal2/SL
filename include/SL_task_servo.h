@@ -62,7 +62,6 @@ extern "C" {
   int  sendUserGraphics(char *name, void *buf, int n_bytes);
   void reset(void);
   void followBase(void);
-  void changeHideObject(char *name, int hide); 
   void changePIDGains(double *pGain, double *dGain, double *iGain);
   void sendUextSim(void);
   void changeRealTime(int flag);
@@ -74,6 +73,11 @@ extern "C" {
   void resetCometDisplay(void);
   void switchCometDisplayVars(int endeffID, int endeffStatus, int linkID, int linkStatus);
   void resetCometDisplayVars(void);
+  void addObject(char *name, int type,double *rgb, double *pos, double *rot, 
+		 double *scale, double *oparms, int contact, double *cparms);
+  void changeHideObject(char *name, int hide); 
+  void deleteObject(char *name); 
+
 
   
 #ifdef __cplusplus
