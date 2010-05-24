@@ -77,7 +77,7 @@ initObjects(void)
    
 \remarks 
 
-       add an object to the environment
+add an object to the environment
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -89,10 +89,8 @@ initObjects(void)
  \param[in]     trans      : translatory offset
  \param[in]     rot        : rotary offset
  \param[in]     scale      : scaling of object
- \param[in]     cspecs     : contact specifications
- \param[in]     ospecs     : object specifications
- \param[in]     n_ops      : number of object parameters
- \param[in]     n_cps      : number of contact pararmeters
+ \param[in]     cspecs     : contact specifications (0-th element has #parm)
+ \param[in]     ospecs     : object specifications  (0-th element has #parm)
 
  ******************************************************************************/
 ObjectPtr

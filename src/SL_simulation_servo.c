@@ -718,15 +718,15 @@ checkForMessages(void)
     // ---------------------------------------------------------------------------
     } else if (strcmp(name,"addObject") == 0) {
       struct {
-	char    name[STRING100];                  /*!< object name */
-	int     type;                             /*!< object type */
-	double  trans[N_CART+1];                  /*!< translatory offset of object */
-	double  rot[N_CART+1];                    /*!< rotational offset of object */
-	double  scale[N_CART+1];                  /*!< scaling in x,y,z */
-	double  rgb[N_CART+1];                    /*!< color information */
-	double  object_parms[MAX_OBJ_PARMS];      /*!< object parameters */
-	int     contact_model;                    /*!< which contact model to be used */
-	double  contact_parms[MAX_CONTACT_PARMS]; /*!< contact parameters */
+	char    name[STRING100];                    /*!< object name */
+	int     type;                               /*!< object type */
+	double  trans[N_CART+1];                    /*!< translatory offset of object */
+	double  rot[N_CART+1];                      /*!< rotational offset of object */
+	double  scale[N_CART+1];                    /*!< scaling in x,y,z */
+	double  rgb[N_CART+1];                      /*!< color information */
+	double  object_parms[MAX_OBJ_PARMS+1];      /*!< object parameters */
+	int     contact_model;                      /*!< which contact model to be used */
+	double  contact_parms[MAX_CONTACT_PARMS+1]; /*!< contact parameters */
       } data;
       
       memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
