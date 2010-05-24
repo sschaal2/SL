@@ -350,13 +350,14 @@ changeHideObjByName(char *name, int hide)
   do {
     if (strcmp(name,ptr->name)==0) {
       ptr->hide = hide;
+
+      if (strcmp(servo_name,"task")==0)  // communicate info to other servos
+	changeHideObjByNameSync(name, hide);
+
       return TRUE;
     }
     ptr = (ObjectPtr) ptr->nptr;
   } while (ptr != NULL);
-
-  if (strcmp(servo_name,"task")==0)  // communicate info to other servos
-    changeHideObjByNameSync(name, hide);
 
   return FALSE;
   

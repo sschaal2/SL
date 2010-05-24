@@ -106,10 +106,6 @@ init_task_servo(void)
   /* set oscilloscope to start value */
   setOsc(d2a_ct,0.0);
 
-  /* object handling */
-  if (!initObjects())
-    return;
-  
   /* initialize the tasks */
   initTasks();
   add_goto_task();
@@ -147,6 +143,10 @@ init_task_servo(void)
   if (!init_filters())
     return;
 
+  /* object handling */
+  if (!initObjects())
+    return;
+  
   /* add variables to data collection */
   task_servo_rate=servo_base_rate/task_servo_ratio;
   initCollectData(task_servo_rate);
