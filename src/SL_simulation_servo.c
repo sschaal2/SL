@@ -744,6 +744,17 @@ checkForMessages(void)
       changeHideObjByName(data.obj_name, data.hide);
       
     // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"changeObjectPos") == 0) {
+      struct {
+	char   obj_name[100];
+	double pos[N_CART+1];
+	double rot[N_CART+1];
+      } data;
+
+      memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
+      changeObjPosByName(data.obj_name, data.pos, data.rot);
+      
+    // ---------------------------------------------------------------------------
     } else if (strcmp(name,"deleteObject") == 0) {
       struct {
 	char obj_name[100];
@@ -751,18 +762,6 @@ checkForMessages(void)
       
       memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
       deleteObjByName(data.obj_name);
-      
-    // -------------------------------------------------------------------------
-    } else if (strcmp(name,"changeObjPosByName") == 0) { // change object position by name
-      struct {
-	char   obj_name[100];
-	double pos[N_CART+1];
-	double rot[N_CART+1];
-      } data;
-      unsigned char buf[sizeof(data)];
-      
-      memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
-      changeObjPosByName(data.obj_name,data.pos,data.rot);
       
     }
     

@@ -33,8 +33,6 @@ ContactPtr contacts=NULL;
 SL_uext   *ucontact;
 
 // local variables
-static int opengl_update_rate = R60HZ;// 60Hz should be enough for updating the openGl screen
-static int opengl_update_counter = 0; // Counter to keep track when openGL screen should be updated
 
 // global functions 
 
@@ -486,34 +484,6 @@ changeObjPosByPtr(ObjectPtr ptr, double *pos, double *rot)
     ptr->rot[i]=rot[i];
   }
   
-  if (strcmp(servo_name,"task")==0) { // communicate info to other servos
-    struct {
-      char   obj_name[100];
-      double pos[N_CART+1];
-      double rot[N_CART+1];
-    } data;
-    unsigned char buf[sizeof(data)];
-    
-    strcpy(data.obj_name,ptr->name);
-    for (i=1;i<=N_CART; ++i) {
-      data.pos[i]=pos[i];
-      data.rot[i]=rot[i];
-    }
-    
-    memcpy(buf,&data,sizeof(data));
-    
-    // Send the data to the simulation server.
-    sendMessageSimulationServo("changeObjPosByName",(void *)buf,sizeof(data));
-    
-    // The opengl server does not need to be updated so often.So what
-    // we do is keep a counter that is reset everytime it reaches the value
-    // (servo_base_rate/task_servo_ratio/opengl_update_rate)
-
-    if ((opengl_update_counter++)>=(servo_base_rate/task_servo_ratio/opengl_update_rate)) {
-      sendMessageOpenGLServo("changeObjPosByName",(void *)buf,sizeof(data));
-      opengl_update_counter = 0;
-    }
-  }
 }
 
 /*!*****************************************************************************

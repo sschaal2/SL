@@ -755,3 +755,49 @@ addObject(char *name, int type,double *rgb, double *pos, double *rot,
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  changeObjectPos
+\date  May 2010
+   
+\remarks 
+
+changes the object position by name on all relevant processes
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name       : name of the object 
+ \param[in]     pos        : pointer to position vector 
+ \param[in]     rot        : pointer to rotation vector
+
+ ******************************************************************************/
+void
+changeObjectPos(char *name, double *pos, double *rot)
+{
+  int i,j;
+  struct {
+    char   obj_name[100];
+    double pos[N_CART+1];
+    double rot[N_CART+1];
+  } data;
+  unsigned char buf[sizeof(data)];
+  static double last_update_pos_time = 0;
+
+
+  strcpy(data.obj_name,name);
+  for (i=1; i<=N_CART; ++i) {
+    data.pos[i] = pos[i];
+    data.rot[i] = rot[i];
+  }
+
+  memcpy(buf,&data,sizeof(data));
+  
+  if (task_servo_time - last_update_pos_time > 1./60.) { // 60Hz update is sufficient
+    sendMessageOpenGLServo("changeObjectPos",(void *)buf,sizeof(data));
+    last_update_pos_time = task_servo_time;
+  }
+  sendMessageSimulationServo("changeObjectPos",(void *)buf,sizeof(data));
+
+}
+

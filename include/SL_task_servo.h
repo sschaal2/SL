@@ -77,6 +77,7 @@ extern "C" {
 		 double *scale, double *oparms, int contact, double *cparms);
   void changeHideObject(char *name, int hide); 
   void deleteObject(char *name); 
+  void changeObjectPos(char *name, double *pos, double *rot);
 
 
   
