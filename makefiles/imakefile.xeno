@@ -84,6 +84,7 @@ OBJS_TASK_SERVO = \
 	SL_goto_task.o \
 	SL_sine_task.o \
 	SL_go_cart_task.o \
+	SL_objects.o \
 	SL_traj_task.o 
 
 SRCS_TASK_SERVO = \
@@ -93,6 +94,7 @@ SRCS_TASK_SERVO = \
 	SL_goto_task.c \
 	SL_sine_task.c \
 	SL_go_cart_task.c \
+	SL_objects.c \
 	SL_traj_task.c
 
 /* ------------------------------------------------------------------------*/
