@@ -39,6 +39,12 @@ SL_uext   *ucontact;
 // local functions
 static void  computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind);
 static void  contactVelocity(int cID, ObjectPtr optr, double *v);
+static void  addObjectSync(char *name, int type, int contact, double *rgb, double *pos, 
+			   double *rot, double *scale, double *cparms, double *oparms);
+static void  deleteObjByNameSync(char *name);
+static void  changeHideObjByNameSync(char *name, int hide);
+static void  changeObjPosByNameSync(char *name, double *pos, double *rot);
+
 
 // external functions
 
@@ -63,6 +69,9 @@ initObjects(void)
   // contacts
   contacts = my_calloc(n_links+1,sizeof(Contact),MY_STOP);
   ucontact = my_calloc(n_dofs+1,sizeof(SL_uext),MY_STOP);
+
+  // initalize objects in the environment
+  readObjects(config_files[OBJECTS]);
 
   return TRUE;
 
@@ -165,6 +174,9 @@ addObject(char *name, int type, int contact, double *rgb, double *trans, double 
       last_ptr->nptr = (char *) ptr;
     }
   }
+
+  if (strcmp(servo_name,"task")==0)  // communicate info to other servos
+    addObjectSync(name, type, contact, rgb, trans, rot, scale, cspecs, ospecs);
 
   return ptr;
 
@@ -301,6 +313,10 @@ changeObjPosByName(char *name, double *pos, double *rot)
 
   changeObjPosByPtr(ptr, pos, rot);
 
+  if (strcmp(servo_name,"task")==0)  // communicate info to other servos
+    changeObjPosByNameSync(name, pos, rot);
+
+
   return TRUE;
 }
 
@@ -338,6 +354,9 @@ changeHideObjByName(char *name, int hide)
     }
     ptr = (ObjectPtr) ptr->nptr;
   } while (ptr != NULL);
+
+  if (strcmp(servo_name,"task")==0)  // communicate info to other servos
+    changeHideObjByNameSync(name, hide);
 
   return FALSE;
   
@@ -484,6 +503,9 @@ changeObjPosByPtr(ObjectPtr ptr, double *pos, double *rot)
     ptr->rot[i]=rot[i];
   }
   
+  if (strcmp(servo_name,"task")==0)  // communicate info to other servos
+    changeObjPosByNameSync(ptr->name, pos, rot);
+
 }
 
 /*!*****************************************************************************
@@ -532,6 +554,9 @@ deleteObjByName(char *name)
     }
     ptr = (ObjectPtr) ptr->nptr;
   } while (ptr != NULL);
+
+  if (strcmp(servo_name,"task")==0)  // communicate info to other servos
+    deleteObjByName(name);
 
   return FALSE;
   
@@ -1444,4 +1469,231 @@ contactVelocity(int cID, ObjectPtr optr, double *v)
   }
 
 }
+
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  addObjectSync
+\date  May 2010
+   
+\remarks 
+
+synchronizes adding of an object through shared memory communication
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name       : name of the object 
+ \param[in]     type       : type of object
+ \param[in]     contact    : ID of contact model  
+ \param[in]     rgb        : rgb values for color
+ \param[in]     pos        : pointer to position vector 
+ \param[in]     rot        : pointer to rotation vector
+ \param[in]     scale      : pointer to rotation vector
+ \param[in]     cparms     : array of contact parameters
+ \param[in]     oparms     : array of object parameters
+
+ ******************************************************************************/
+static void
+addObjectSync(char *name, int type, int contact, double *rgb, double *pos, double *rot, 
+	      double *scale, double *cparms, double *oparms)
+{
+  int i,j;
+  int n_objs_parm;
+  int n_c_parm;
+  struct {
+    char    name[STRING100];                   /*!< object name */
+    int     type;                              /*!< object type */
+    double  trans[N_CART+1];                   /*!< translatory offset of object */
+    double  rot[N_CART+1];                     /*!< rotational offset of object */
+    double  scale[N_CART+1];                   /*!< scaling in x,y,z */
+    double  rgb[N_CART+1];                     /*!< color information */
+    double  object_parms[MAX_OBJ_PARMS+1];     /*!< object parameters */
+    int     contact_model;                     /*!< which contact model to be used */
+    double  contact_parms[MAX_CONTACT_PARMS+1];/*!< contact parameters */
+  } data;
+  unsigned char cbuf[sizeof(data)];
+
+  strcpy(data.name,name);
+  data.type = type;
+  for (i=1; i<=N_CART; ++i) {
+    data.trans[i] = pos[i];
+    data.rot[i] = rot[i];
+    data.scale[i] = scale[i];
+    data.rgb[i] = rgb[i];
+  }
+
+  switch (type) {
+  case CUBE:
+    n_objs_parm = N_CUBE_PARMS;
+    break;
+
+  case SPHERE:
+    n_objs_parm = N_SPHERE_PARMS;
+    break;
+
+  case TERRAIN:
+    n_objs_parm = N_TERRAIN_PARMS;
+    break;
+
+  case CYLINDER:
+    n_objs_parm = N_CYLINDER_PARMS;
+    break;
+
+  default:
+    n_objs_parm = 0;
+  }
+
+  for (i=1; i<=n_objs_parm; ++i)
+    data.object_parms[i] = oparms[i];
+  data.object_parms[0] = n_objs_parm;
+  
+
+  switch (contact) {
+  case NO_CONTACT:
+    n_c_parm = N_NO_CONTACT_PARMS;
+    break;
+
+  case DAMPED_SPRING_STATIC_FRICTION:
+    n_c_parm = N_DAMPED_SPRING_STATIC_FRICTION_PARMS;
+    break;
+
+  case DAMPED_SPRING_VISCOUS_FRICTION:
+    n_c_parm = N_DAMPED_SPRING_VISCOUS_FRICTION_PARMS;
+    break;
+
+  case DAMPED_SPRING_LIMITED_REBOUND:
+    n_c_parm = N_DAMPED_SPRING_LIMITED_REBOUND_PARMS;
+    break;
+
+  default:
+    n_c_parm = 0;
+  }
+
+  for (i=1; i<=n_c_parm; ++i)
+    data.contact_parms[i] = cparms[i];
+  data.contact_parms[0] = n_c_parm;
+
+  data.contact_model = contact;
+
+  memcpy(cbuf,(void *)&data,sizeof(data));
+    
+  sendMessageSimulationServo("addObject",(void *)cbuf,sizeof(data));
+  sendMessageOpenGLServo("addObject",(void *)cbuf,sizeof(data));
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  changeObjPosByNameSync
+\date  May 2010
+   
+\remarks 
+
+synchronizes change of object position by name on all relevant processes
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name       : name of the object 
+ \param[in]     pos        : pointer to position vector 
+ \param[in]     rot        : pointer to rotation vector
+
+ ******************************************************************************/
+static void
+changeObjPosByNameSync(char *name, double *pos, double *rot)
+{
+  int i,j;
+  struct {
+    char   obj_name[100];
+    double pos[N_CART+1];
+    double rot[N_CART+1];
+  } data;
+  unsigned char buf[sizeof(data)];
+  static double last_update_pos_time = 0;
+
+
+  strcpy(data.obj_name,name);
+  for (i=1; i<=N_CART; ++i) {
+    data.pos[i] = pos[i];
+    data.rot[i] = rot[i];
+  }
+
+  memcpy(buf,&data,sizeof(data));
+  
+  if (servo_time - last_update_pos_time > 1./60.) { // 60Hz update is sufficient
+    sendMessageOpenGLServo("changeObjectPos",(void *)buf,sizeof(data));
+    last_update_pos_time = servo_time;
+  }
+  sendMessageSimulationServo("changeObjectPos",(void *)buf,sizeof(data));
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  changeHideObjByNameSync
+\date  Nov. 2005
+   
+\remarks 
+
+synchronizes hiding of objects across processes
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name : name object
+ \param[in]     hide : TRUE/FALSE
+
+ ******************************************************************************/
+static void 
+changeHideObjByNameSync(char *name, int hide) 
+{
+  int i,j;
+  struct {
+    int  hide;
+    char obj_name[100];
+  } data;
+  unsigned char buf[sizeof(data)];
+
+  data.hide = hide;
+  strcpy(data.obj_name,name);
+
+  memcpy(buf,&data,sizeof(data));
+  sendMessageOpenGLServo("hideObject",(void *)buf,sizeof(data));
+  sendMessageSimulationServo("hideObject",(void *)buf,sizeof(data));
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  deleteObjByNameSync
+\date  May 2010
+   
+\remarks 
+
+synchronizes delete of an object on all servos
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name : name object
+
+ ******************************************************************************/
+static void 
+deleteObjByNameSync(char *name) 
+{
+  int i,j;
+  struct {
+    char obj_name[100];
+  } data;
+  unsigned char buf[sizeof(data)];
+
+  strcpy(data.obj_name,name);
+
+  memcpy(buf,&data,sizeof(data));
+  sendMessageOpenGLServo("deleteObject",(void *)buf,sizeof(data));
+  sendMessageSimulationServo("deleteObject",(void *)buf,sizeof(data));
+}
+
 

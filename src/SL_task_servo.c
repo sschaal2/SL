@@ -31,6 +31,7 @@
 #include "SL_common.h"
 #include "SL_filters.h"
 #include "SL_oscilloscope.h"
+#include "SL_objects.h"
 
 #define TIME_OUT_NS  1000000000
 
@@ -104,6 +105,10 @@ init_task_servo(void)
 
   /* set oscilloscope to start value */
   setOsc(d2a_ct,0.0);
+
+  /* object handling */
+  if (!initObjects())
+    return;
   
   /* initialize the tasks */
   initTasks();

@@ -83,17 +83,20 @@ extern "C" {
 			 double *scale, int contact,
 			 Vector parms, int n_faces);
   ObjectPtr  addObject(char *name, int type, int contact, 
-			   double *rgb, double *trans, double *rot, 
-			   double *scale, Vector cspecs, Vector ospecs);
+		       double *rgb, double *trans, double *rot, 
+		       double *scale, Vector cspecs, Vector ospecs);
+
   void       checkContacts(void);
-  int        changeObjPosByName(char *name, double *pos, double *rot);
-  void       changeObjPosByPtr(ObjectPtr ptr, double *pos, double *rot);
-  int        deleteObjByName(char *name);
   void       readObjects(char *fname);
-  ObjectPtr  getObjPtrByName(char *name);
-  int        getObjForcesByName(char *name, double *f, double *t);
-  int        getObjForcesByPtr(ObjectPtr ptr, double *f, double *t);
+
+  int        changeObjPosByName(char *name, double *pos, double *rot);
+  int        deleteObjByName(char *name);
   int        changeHideObjByName(char *name, int hide);
+  int        getObjForcesByName(char *name, double *f, double *t);
+
+  void       changeObjPosByPtr(ObjectPtr ptr, double *pos, double *rot);
+  int        getObjForcesByPtr(ObjectPtr ptr, double *f, double *t);
+  ObjectPtr  getObjPtrByName(char *name);
 
 
   // external variables
