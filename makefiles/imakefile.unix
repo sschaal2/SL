@@ -43,7 +43,6 @@ OBJS_SL_COMMON = \
 	SL_unix_common.o \
 	SL_terrains.o \
 	SL_oscilloscope.o \
-	SL_objects.o \
 	SL_man.o 
 
 SRCS_SL_COMMON = \
@@ -55,7 +54,6 @@ SRCS_SL_COMMON = \
 	SL_unix_common.c \
 	SL_terrains.c \
 	SL_oscilloscope.c \
-	SL_objects.c \
 	SL_man.c 
 
 /* ------------------------------------------------------------------------*/
@@ -98,11 +96,13 @@ SRCS_TASK_SERVO = \
 OBJS_SIM_SERVO = \
 	SL_simulation_servo.o \
 	SL_simulation_servo_unix.o \
+	SL_objects.o \
 	SL_integrate.o 
 
 SRCS_SIM_SERVO = \
 	SL_simulation_servo.c \
 	SL_simulation_servo_unix.c \
+	SL_objects.c \
         SL_integrate.c 
 
 /* ------------------------------------------------------------------------*/
@@ -111,12 +111,14 @@ OBJS_GL_SERVO = \
 	SL_openGL_servo.o \
 	SL_openGL_servo_unix.o \
 	SL_openGL.o \
+	SL_objects.o \
 	SL_userGraphics.o 
 
 SRCS_GL_SERVO = \
 	SL_openGL_servo.c \
 	SL_openGL_servo_unix.c \
 	SL_openGL.c \
+	SL_objects.c \
 	SL_userGraphics.c 
 
 /* ------------------------------------------------------------------------*/
