@@ -93,9 +93,9 @@ enum ConfigFile {
 #ifdef VX
 #define MAX_BYTES_USER_GRAPHICS 5000
 #else
-#define MAX_BYTES_USER_GRAPHICS 50000
+#define MAX_BYTES_USER_GRAPHICS 100000
 #endif
-#define MAX_BYTES_MESSAGES      1000
+#define MAX_BYTES_MESSAGES      10000
 #define MAX_N_MESSAGES          100
 
 /* The data structures */
