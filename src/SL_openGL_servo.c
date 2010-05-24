@@ -371,10 +371,30 @@ checkForMessages(void)
     strcpy(name,sm_openGL_message->name[k]);
     
     // act according to the message name
-    if (strcmp(name,"followBase") == 0) { //--------------------------------------
+    // ---------------------------------------------------------------------------
+    if (strcmp(name,"followBase") == 0) { 
       
       followBaseByName("1", TRUE);
       
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"addObject") == 0) {
+      struct {
+	char    name[STRING100];                  /*!< object name */
+	int     type;                             /*!< object type */
+	double  trans[N_CART+1];                  /*!< translatory offset of object */
+	double  rot[N_CART+1];                    /*!< rotational offset of object */
+	double  scale[N_CART+1];                  /*!< scaling in x,y,z */
+	double  rgb[N_CART+1];                    /*!< color information */
+	double  object_parms[MAX_OBJ_PARMS];      /*!< object parameters */
+	int     contact_model;                    /*!< which contact model to be used */
+	double  contact_parms[MAX_CONTACT_PARMS]; /*!< contact parameters */
+      } data;
+      
+      memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
+      addObject(data.name, data.type, data.contact_model, data.rgb, data.trans, data.rot, 
+		data.scale, data.contact_parms,data.object_parms);
+      
+    // ---------------------------------------------------------------------------
     } else if (strcmp(name,"hideObject") == 0) {
       struct {
 	int  hide;
@@ -384,7 +404,17 @@ checkForMessages(void)
       memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
       changeHideObjByName(data.obj_name, data.hide);
       
-    } else if (strcmp(name,"changeObjPosByName") == 0) { //----------------------
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"deleteObject") == 0) {
+      struct {
+	char obj_name[100];
+      } data;
+      
+      memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
+      deleteObjByName(data.obj_name);
+      
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"changeObjPosByName") == 0) { 
       struct {
 	char   obj_name[100];
 	double pos[N_CART+1];
@@ -395,14 +425,16 @@ checkForMessages(void)
       memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
       changeObjPosByName(data.obj_name,data.pos,data.rot);
       
-    } else if (strcmp(name,"hideWindowByName") == 0) { //------------------------
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"hideWindowByName") == 0) { 
       char cbuf[101];
       
       memcpy(&cbuf,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(cbuf));
       printf("%s %d\n",cbuf,cbuf[100]);
       hideWindowByName(cbuf, (int)(cbuf[sizeof(cbuf)-1]));
       
-    } else if (strcmp(name,"switchCometDisplay") == 0) { //----------------------
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"switchCometDisplay") == 0) { 
       struct {
 	int status;
 	int n_steps;
@@ -412,11 +444,13 @@ checkForMessages(void)
       if (data.status == TRUE)
 	switchCometDisplay(data.status,data.n_steps);
       
-    } else if (strcmp(name,"resetCometDisplay") == 0) { //----------------------
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"resetCometDisplay") == 0) { 
 
       resetCometDisplay();
 
-    } else if (strcmp(name,"resetCometVars") == 0) { //-------------------------
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"resetCometVars") == 0) { 
 
       for (i=1; i<=n_endeffs; ++i)
 	switchEndeffectorCometDisplay(i,FALSE);
@@ -424,7 +458,8 @@ checkForMessages(void)
       for (i=1; i<=n_links; ++i)
 	switchLinkCometDisplay(i,FALSE);
 
-    } else if (strcmp(name,"switchCometVars") == 0) { //------------------------
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"switchCometVars") == 0) { 
       struct {
 	int endeffID;
 	int endeffStatus;

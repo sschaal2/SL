@@ -82,6 +82,9 @@ extern "C" {
   ObjectPtr  addCylinder(char *name, double *rgb, double *pos, double *rot, 
 			 double *scale, int contact,
 			 Vector parms, int n_faces);
+  ObjectPtr  addObject(char *name, int type, int contact, 
+			   double *rgb, double *trans, double *rot, 
+			   double *scale, Vector cspecs, Vector ospecs);
   void       checkContacts(void);
   int        changeObjPosByName(char *name, double *pos, double *rot);
   void       changeObjPosByPtr(ObjectPtr ptr, double *pos, double *rot);

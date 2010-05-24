@@ -39,9 +39,6 @@ static int opengl_update_counter = 0; // Counter to keep track when openGL scree
 // global functions 
 
 // local functions
-static ObjectPtr addObject(char *name, int type, int contact, 
-			   double *rgb, double *trans, double *rot, 
-			   double *scale, Vector cspecs, Vector ospecs);
 static void  computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind);
 static void  contactVelocity(int cID, ObjectPtr optr, double *v);
 
@@ -98,7 +95,7 @@ initObjects(void)
  \param[in]     n_cps      : number of contact pararmeters
 
  ******************************************************************************/
-static ObjectPtr
+ObjectPtr
 addObject(char *name, int type, int contact, double *rgb, double *trans, double *rot, 
 	  double *scale, Vector cspecs, Vector ospecs)
 

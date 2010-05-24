@@ -628,7 +628,9 @@ checkForMessages(void)
     strcpy(name,sm_simulation_message->name[k]);
 
     // act according to the message name
-    if (strcmp(name,"reset") == 0) {
+
+    // -------------------------------------------------------------------------
+    if (strcmp(name,"reset") == 0) { // reset simulation -----------------------
       float buf[N_CART+N_QUAT+1];
       
       memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
@@ -642,10 +644,10 @@ checkForMessages(void)
 	freeze_base_quat[i] = buf[++j];
       }
       reset();
-    }
-    
-    // change the gains
-    if (strcmp(name,"changePIDGains") == 0) {
+      
+
+    // -------------------------------------------------------------------------
+    } else if (strcmp(name,"changePIDGains") == 0) { // change the gains -------
       float buf[n_dofs*3+1];
       
       memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
@@ -657,10 +659,8 @@ checkForMessages(void)
 	controller_gain_int[i] = (double) buf[i+2*n_dofs];
       }
       
-    }
-    
-    // receive external simulated forces
-    if (strcmp(name,"setUextSim") == 0) {
+    // -------------------------------------------------------------------------
+    } else if (strcmp(name,"setUextSim") == 0) { // receive external simulated forces
       int   count = 0;
       float buf[n_dofs*N_CART*2+1];
       
@@ -673,11 +673,9 @@ checkForMessages(void)
 	  uext_sim[i].t[j] = buf[++count];
 	}
       }
-      
-    }
-    
-    // real time simualtion on/off
-    if (strcmp(name,"changeRealTime") == 0) {
+
+    // -------------------------------------------------------------------------
+    } else if (strcmp(name,"changeRealTime") == 0) { // real time simualtion on/off
       float buf[1+1];
       
       memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
@@ -691,11 +689,8 @@ checkForMessages(void)
 	printf("Real-time processing switched on\n");
       }
       
-    }
-    
-    
-    // freeze base in simualtion on/off
-    if (strcmp(name,"freezeBase") == 0) {
+    // -------------------------------------------------------------------------
+    } else if (strcmp(name,"freezeBase") == 0) {    // freeze base in simualtion on/off
       float buf[1+1];
       
       memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
@@ -709,10 +704,8 @@ checkForMessages(void)
 	printf("Freeze base switched on\n");
       }
       
-    }
-    
-    // change the gravity constant 
-    if (strcmp(name,"setG") == 0) {
+    // -------------------------------------------------------------------------
+    } else if (strcmp(name,"setG") == 0) {     // change the gravity constant 
       float buf[1+1];
       
       memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
@@ -721,10 +714,46 @@ checkForMessages(void)
       gravity = buf[1];
       printf("Gravity set to %f\n",gravity);
       
-    }
 
-    // change object position by name
-    if (strcmp(name,"changeObjPosByName") == 0) {
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"addObject") == 0) {
+      struct {
+	char    name[STRING100];                  /*!< object name */
+	int     type;                             /*!< object type */
+	double  trans[N_CART+1];                  /*!< translatory offset of object */
+	double  rot[N_CART+1];                    /*!< rotational offset of object */
+	double  scale[N_CART+1];                  /*!< scaling in x,y,z */
+	double  rgb[N_CART+1];                    /*!< color information */
+	double  object_parms[MAX_OBJ_PARMS];      /*!< object parameters */
+	int     contact_model;                    /*!< which contact model to be used */
+	double  contact_parms[MAX_CONTACT_PARMS]; /*!< contact parameters */
+      } data;
+      
+      memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
+      addObject(data.name, data.type, data.contact_model, data.rgb, data.trans, data.rot, 
+		data.scale, data.contact_parms,data.object_parms);
+      
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"hideObject") == 0) {
+      struct {
+	int  hide;
+	char obj_name[100];
+      } data;
+      
+      memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
+      changeHideObjByName(data.obj_name, data.hide);
+      
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"deleteObject") == 0) {
+      struct {
+	char obj_name[100];
+      } data;
+      
+      memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
+      deleteObjByName(data.obj_name);
+      
+    // -------------------------------------------------------------------------
+    } else if (strcmp(name,"changeObjPosByName") == 0) { // change object position by name
       struct {
 	char   obj_name[100];
 	double pos[N_CART+1];
@@ -732,7 +761,7 @@ checkForMessages(void)
       } data;
       unsigned char buf[sizeof(data)];
       
-      memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
+      memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
       changeObjPosByName(data.obj_name,data.pos,data.rot);
       
     }
