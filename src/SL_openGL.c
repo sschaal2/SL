@@ -29,13 +29,9 @@
 #endif
 
 // openGL headers
-#ifdef powerpc
-#include <GLUT/glut.h>
-#else
 #include "GL/freeglut_std.h"
 #include "GL/freeglut_ext.h"
 #include "GL/glu.h"
-#endif
 
 // mathematica headers
 #include "mdefs.h"
