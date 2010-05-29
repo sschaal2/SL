@@ -1095,6 +1095,10 @@ readObjects(char *cfname)
   double x,y,z;
   double n[N_CART+1];
   char   string[STRING100];
+  static int objects_read = FALSE;
+
+  if (objects_read)
+    printf("Re-initializing objects from file >%s%s<\n",CONFIG,cfname);
 
   
   sprintf(string,"%s%s",CONFIG,cfname);
@@ -1167,6 +1171,8 @@ readObjects(char *cfname)
   
   fclose(in);
   remove_temp_file();
+
+  objects_read = TRUE;
 
 }
 
