@@ -2495,7 +2495,7 @@ displayCheckerBoard(void )
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
   glBindTexture(GL_TEXTURE_2D, texName);
 	
-#define FLOOROFFSET (0.0001)
+#define FLOOROFFSET (0.001)
   glBegin(GL_QUADS);
   GLfloat goalColor[] = { floorObjectPtr->rgb[_X_], floorObjectPtr->rgb[_Y_], 
 			  floorObjectPtr->rgb[_Z_], 0.4 };
