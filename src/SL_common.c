@@ -35,7 +35,8 @@ char config_files[][100] = {
   {"WhichDOFs.cf"},
   {"Objects.cf"},
   {"ServoParameters.cf"},
-  {"StereoParameters.cf"}
+  {"StereoParameters.cf"},
+  {"ParameterPool.cf"}
 };
 
 // local variables
@@ -49,7 +50,8 @@ static char config_file_tags[][40]= {
   {"WhichDOFs"},
   {"Objects"},
   {"ServoParameters"},
-  {"StereoParameters"}
+  {"StereoParameters"},
+  {"ParameterPool"}
 };
 
 /* external variables */
@@ -2146,4 +2148,268 @@ quatErrorVector(double* q1, double* q2, double *ad)
 
 }
 
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_parameter_pool_double
+\date  July 2010
+\remarks 
+
+reads a double value from the paramter pool configuration file
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname           : name of parameter pool file
+ \param[in]     keyword         : keyword that starts the line
+ \param[out]    value           : the value to be read
+
+ returns TRUE on success
+
+ ******************************************************************************/
+int
+read_parameter_pool_double(char *fname, char *keyword, double *value)
+{
+
+  int    j,i,rc;
+  char   string[100];
+  FILE  *in;
+
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen_strip(string);
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  // find keyword
+  if (!find_keyword(in, keyword)) {
+    fclose(in);
+    return FALSE;
+  } else {
+    rc=fscanf(in,"%lf",value);
+    if (rc != 1)
+      return FALSE;
+  }
+
+  fclose(in);
+  
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_parameter_pool_double_array
+\date  July 2010
+\remarks 
+
+reads a double array from the paramter pool configuration file
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname           : name of parameter pool file
+ \param[in]     keyword         : keyword that starts the line
+ \param[in]     n_values        : number of values to be read
+ \param[out]    values          : the values to be read
+
+ returns TRUE on success
+
+ ******************************************************************************/
+int
+read_parameter_pool_double_array(char *fname, char *keyword, int n_values, double *values)
+{
+
+  int    j,i,rc;
+  char   string[100];
+  FILE  *in;
+
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen_strip(string);
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  // find keyword
+  if (!find_keyword(in, keyword)) {
+    fclose(in);
+    return FALSE;
+  } else {
+    for (i=1; i<=n_values; ++i) {
+      rc=fscanf(in,"%lf",&(values[i]));
+      if (rc != 1)
+	return FALSE;
+    }
+  }
+
+  fclose(in);
+  
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_parameter_pool_int
+\date  July 2010
+\remarks 
+
+reads a int value from the paramter pool configuration file
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname           : name of parameter pool file
+ \param[in]     keyword         : keyword that starts the line
+ \param[out]    value           : the value to be read
+
+ returns TRUE on success
+
+ ******************************************************************************/
+int
+read_parameter_pool_int(char *fname, char *keyword, int *ivalue)
+{
+
+  int    j,i,rc;
+  char   string[100];
+  FILE  *in;
+
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen_strip(string);
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  // find keyword
+  if (!find_keyword(in, keyword)) {
+    fclose(in);
+    return FALSE;
+  } else {
+    rc=fscanf(in,"%d",ivalue);
+    if (rc != 1)
+      return FALSE;
+  }
+
+  fclose(in);
+  
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_parameter_pool_int_array
+\date  July 2010
+\remarks 
+
+reads a int array from the paramter pool configuration file
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname           : name of parameter pool file
+ \param[in]     keyword         : keyword that starts the line
+ \param[in]     n_values        : number of values to be read
+ \param[out]    values          : the values to be read
+
+ returns TRUE on success
+
+ ******************************************************************************/
+int
+read_parameter_pool_int_array(char *fname, char *keyword, int n_values, int *ivalues)
+{
+
+  int    j,i,rc;
+  char   string[100];
+  FILE  *in;
+
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen_strip(string);
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  // find keyword
+  if (!find_keyword(in, keyword)) {
+    fclose(in);
+    return FALSE;
+  } else {
+    for (i=1; i<=n_values; ++i) {
+      rc=fscanf(in,"%d",&(ivalues[i]));
+      if (rc != 1)
+	return FALSE;
+    }
+  }
+
+  fclose(in);
+  
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_parameter_pool_string
+\date  July 2010
+\remarks 
+
+reads a string from the paramter pool configuration file
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname           : name of parameter pool file
+ \param[in]     keyword         : keyword that starts the line
+ \param[out]    svalue          : the string to be read
+
+ returns TRUE on success
+
+ ******************************************************************************/
+int
+read_parameter_pool_string(char *fname, char *keyword, char *svalue)
+{
+
+  int    j,i,rc;
+  char   string[100];
+  FILE  *in;
+  char   c;
+
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen_strip(string);
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  // find keyword
+  if (!find_keyword(in, keyword)) {
+    fclose(in);
+    return FALSE;
+  } else {
+    j = strlen(svalue); // the max length we can read
+    while ((c=fgetc(in)) == ' ') // skip initial blank characters
+      ;
+    ungetc(c,in);                // reset the file pointer by one
+
+    i = 0;
+    while ( i < j) {
+      c = fgetc(in);
+      if ( c == EOF || c == '\n') {
+	svalue[i] = '\0';
+	break;
+      } else {
+	svalue[i++] = c;
+      }
+    }
+  }
+
+  fclose(in);
+  
+  return TRUE;
+
+}
 

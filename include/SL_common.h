@@ -61,6 +61,16 @@ extern "C" {
   int  read_servoParameters(char *fname, char *keyword, int *priority, 
 			    int *stacksize, int *cpuID, int *dns);
 
+  int
+  read_parameter_pool_double(char *fname, char *keyword, double *value);
+  int
+  read_parameter_pool_double_array(char *fname, char *keyword, int n_values, double *values);
+  int
+  read_parameter_pool_int(char *fname, char *keyword, int *ivalue);
+  int
+  read_parameter_pool_int_array(char *fname, char *keyword, int n_values, int *ivalues);
+  int
+  read_parameter_pool_string(char *fname, char *keyword, char *svalue);
 
 
   void rbwhere(void);
