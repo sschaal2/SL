@@ -3,10 +3,6 @@ char argv_array[100][50];
 char *argv_ptr[100];
 int  graphics_flag = TRUE;
 int  hold_flag = FALSE;
-Display *display;
-int  screen_num;
-int  display_width;
-int  display_height;
 char string[100];
 int  delta_width = 600;
 int  geometry_argv;
@@ -17,18 +13,6 @@ int  nice_argv;
 int  stat_loc;
 int  options = 0;
 int  rc;
-
-
-// connect to X server using the DISPLAY environment variable
-if ( (display=XOpenDisplay(NULL)) == NULL ) {
-  printf("Cannot connect to X servo %s\n",XDisplayName(NULL));
-  exit(-1);
- }
-  
-// get screen size from display structure macro 
-screen_num = DefaultScreen(display);
-display_width = DisplayWidth(display, screen_num);
-display_height = DisplayHeight(display, screen_num);
 
 // assign the servo_name variable with the calling program as default
 sprintf(servo_name,"%s",argv[0]);

@@ -23,6 +23,7 @@
 #include "SL_common.h"
 #include "utility.h"
 #include "SL_man.h"
+#include <X11/Xlib.h>
 
 // global variables and their default assignments
 char config_files[][100] = {
@@ -2413,3 +2414,143 @@ read_parameter_pool_string(char *fname, char *keyword, char *svalue)
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  parseWindowSpecs
+\date  July 2010
+\remarks 
+
+ From the given string, a window position, and size is determined. The syntax is
+ copied from the xterm syntax, e.g.,
+
+ 80x12+100+100
+
+ creates a 80 character wide by 12 lines high window at location x=100 y=100
+ (using the screen coordinates, i.e., 0,0 is top left)
+
+ For xterm windows, the first two argumets always have the "charcters" and
+ "lines" units.
+
+ For graphics windows, this will be interpreted as pixels.
+
+ We allow an additional feature to specify pixel based values in terms of
+ percentage of the display. E.g.,
+
+ 80x12+10%+20%
+
+ will be translated into 10% of the width and 20% of the height of the display
+
+ It is also possible to use negative values, to indicate starting from the
+ max value of each dimension. E.g.,
+
+  
+ 80x12-100-100
+
+ will create the window 100 pixels of the lower right corner of the display
+ 
+ Percentage values can be used with negative values, too.
+
+ The percentage values can be real numbers for higher precision
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     string          : string to be parsed
+ \param[out]    xstring         : string in xterm notation
+ \param[out]    x               : x position of window
+ \param[out]    y               : y position of windwo
+ \param[out]    w               : width of window
+ \param[out]    h               : height of window
+
+ returns TRUE on success
+
+ ******************************************************************************/
+int
+parseWindowSpecs(char *string, char *xstring, int *x, int *y, int *w, int *h)
+{
+  int    i,j[4],t,rc;
+  int    sl = strlen(string);
+  char   tstring[4][100];
+  double rx,ry,rw,rh;
+
+  Display *display;
+  int  screen_num;
+  int  display_width;
+  int  display_height;
+
+
+  // connect to X server using the DISPLAY environment variable
+  if ( (display=XOpenDisplay(NULL)) == NULL ) {
+    printf("Cannot connect to X servo %s\n",XDisplayName(NULL));
+    exit(-1);
+  }
+
+  // get screen size from display structure macro 
+  screen_num = DefaultScreen(display);
+  display_width = DisplayWidth(display, screen_num);
+  display_height = DisplayHeight(display, screen_num);
+
+  // remove all blanks and insert one blank before 'x', '+', '%', and '-' signs
+  j[0] = j[1] = j[2] = j[3]  = 0;
+  t = 0;
+  for (i=0; i<sl; ++i)
+    if (string[i] != ' ') {
+      if (string[i] == 'x' || string[i] == '+' || string[i] == '-') { // start new string
+	tstring[t][j[t]] = '\0';
+	++t;
+      }
+      if (string[i] != 'x') { // don't need the 'x' anymore
+	if (string[i] == '%') // insert a blank
+	  tstring[t][j[t]++] = ' ';
+	tstring[t][j[t]++] = string[i];
+      }
+    }
+
+  // now we can read the four values
+  if ((rc = sscanf(tstring[0],"%lf",&rw)) != 1) {
+    printf("Error when parsing window spec string >%s<\n",string);
+    return FALSE;
+  }
+  if ((rc = sscanf(tstring[1],"%lf",&rh)) != 1) {
+    printf("Error when parsing window spec string >%s<\n",string);
+    return FALSE;
+  }
+  if ((rc = sscanf(tstring[2],"%lf",&rx)) != 1) {
+    printf("Error when parsing window spec string >%s<\n",string);
+    return FALSE;
+  }
+  if ((rc = sscanf(tstring[3],"%lf",&ry)) != 1) {
+    printf("Error when parsing window spec string >%s<\n",string);
+    return FALSE;
+  }
+
+  // check for percentage values and replace them
+  if (tstring[0][j[0]-1] == '%')
+    rw = rw/100.*display_width;
+
+  if (tstring[1][j[1]-1] == '%')
+    rh = rh/100.*display_height;
+
+  if (tstring[2][j[2]-1] == '%')
+    rx = rx/100.*display_width;
+
+  if (tstring[3][j[3]-1] == '%')
+    ry = ry/100.*display_height;
+
+  // check for negative signs
+  if (rx < 0)
+    rx = display_width - rx;
+
+  if (ry < 0)
+    rx = display_height - ry;
+
+  // finally assign the return values
+  *x = rx;
+  *y = ry;
+  *w = rw;
+  *h = rh;
+
+  sprintf(xstring,"%dx%d+%d+%d",*w,*h,*x,*y);
+
+  return TRUE;
+}
