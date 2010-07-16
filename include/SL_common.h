@@ -71,6 +71,8 @@ extern "C" {
   read_parameter_pool_int_array(char *fname, char *keyword, int n_values, int *ivalues);
   int
   read_parameter_pool_string(char *fname, char *keyword, char *svalue);
+  int
+  parseWindowSpecs(char *string, int dw, int dh, char *xstring, int *x, int *y, int *w, int *h);
 
 
   void rbwhere(void);

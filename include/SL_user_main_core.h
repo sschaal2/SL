@@ -4,6 +4,8 @@ char *argv_ptr[100];
 int  graphics_flag = TRUE;
 int  hold_flag = FALSE;
 char string[100];
+char xstring[100];
+char gstring[100];
 int  delta_width = 600;
 int  geometry_argv;
 int  servo_argv;
@@ -13,6 +15,7 @@ int  nice_argv;
 int  stat_loc;
 int  options = 0;
 int  rc;
+int  x,y,h,w;
 
 Display *display;
 int  screen_num;

@@ -2364,7 +2364,7 @@ reads a string from the paramter pool configuration file
 
  \param[in]     fname           : name of parameter pool file
  \param[in]     keyword         : keyword that starts the line
- \param[out]    svalue          : the string to be read
+ \param[out]    svalue          : the string to be read (provide enough length)
 
  returns TRUE on success
 
@@ -2390,13 +2390,12 @@ read_parameter_pool_string(char *fname, char *keyword, char *svalue)
     fclose(in);
     return FALSE;
   } else {
-    j = strlen(svalue); // the max length we can read
     while ((c=fgetc(in)) == ' ') // skip initial blank characters
       ;
     ungetc(c,in);                // reset the file pointer by one
 
     i = 0;
-    while ( i < j) {
+    while ( TRUE ) {
       c = fgetc(in);
       if ( c == EOF || c == '\n') {
 	svalue[i] = '\0';
@@ -2523,10 +2522,10 @@ parseWindowSpecs(char *string, int dw, int dh, char *xstring, int *x, int *y, in
 
   // check for negative signs
   if (rx < 0)
-    rx = dw - rx;
+    rx = dw + rx;
 
   if (ry < 0)
-    rx = dh - ry;
+    rx = dh + ry;
 
   // finally assign the return values
   *x = rx;
