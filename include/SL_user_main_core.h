@@ -14,6 +14,23 @@ int  stat_loc;
 int  options = 0;
 int  rc;
 
+Display *display;
+int  screen_num;
+int  display_width;
+int  display_height;
+
+
+// connect to X server using the DISPLAY environment variable
+if ( (display=XOpenDisplay(NULL)) == NULL ) {
+  printf("Cannot connect to X servo %s\n",XDisplayName(NULL));
+  exit(-1);
+ }
+
+// get screen size from display structure macro 
+screen_num = DefaultScreen(display);
+display_width = DisplayWidth(display, screen_num);
+display_height = DisplayHeight(display, screen_num);
+
 // assign the servo_name variable with the calling program as default
 sprintf(servo_name,"%s",argv[0]);
 
@@ -31,6 +48,9 @@ for (i=1; i<argc; ++i)
 
 // get the current process ID
 parent_process_id = getpid();
+
+// need the config file names initialized
+setRealRobotOptions() ;
 
 // build the command array
 sprintf(argv_array[c++],"xterm");

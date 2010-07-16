@@ -23,7 +23,6 @@
 #include "SL_common.h"
 #include "utility.h"
 #include "SL_man.h"
-#include <X11/Xlib.h>
 
 // global variables and their default assignments
 char config_files[][100] = {
@@ -2456,6 +2455,8 @@ read_parameter_pool_string(char *fname, char *keyword, char *svalue)
  Function Parameters: [in]=input,[out]=output
 
  \param[in]     string          : string to be parsed
+ \param[in]     dw              : display width in pixels
+ \param[in]     dh              : display height in pixels
  \param[out]    xstring         : string in xterm notation
  \param[out]    x               : x position of window
  \param[out]    y               : y position of windwo
@@ -2466,29 +2467,12 @@ read_parameter_pool_string(char *fname, char *keyword, char *svalue)
 
  ******************************************************************************/
 int
-parseWindowSpecs(char *string, char *xstring, int *x, int *y, int *w, int *h)
+parseWindowSpecs(char *string, int dw, int dh, char *xstring, int *x, int *y, int *w, int *h)
 {
   int    i,j[4],t,rc;
   int    sl = strlen(string);
   char   tstring[4][100];
   double rx,ry,rw,rh;
-
-  Display *display;
-  int  screen_num;
-  int  display_width;
-  int  display_height;
-
-
-  // connect to X server using the DISPLAY environment variable
-  if ( (display=XOpenDisplay(NULL)) == NULL ) {
-    printf("Cannot connect to X servo %s\n",XDisplayName(NULL));
-    exit(-1);
-  }
-
-  // get screen size from display structure macro 
-  screen_num = DefaultScreen(display);
-  display_width = DisplayWidth(display, screen_num);
-  display_height = DisplayHeight(display, screen_num);
 
   // remove all blanks and insert one blank before 'x', '+', '%', and '-' signs
   j[0] = j[1] = j[2] = j[3]  = 0;
@@ -2526,23 +2510,23 @@ parseWindowSpecs(char *string, char *xstring, int *x, int *y, int *w, int *h)
 
   // check for percentage values and replace them
   if (tstring[0][j[0]-1] == '%')
-    rw = rw/100.*display_width;
+    rw = rw/100.*dw;
 
   if (tstring[1][j[1]-1] == '%')
-    rh = rh/100.*display_height;
+    rh = rh/100.*dh;
 
   if (tstring[2][j[2]-1] == '%')
-    rx = rx/100.*display_width;
+    rx = rx/100.*dw;
 
   if (tstring[3][j[3]-1] == '%')
-    ry = ry/100.*display_height;
+    ry = ry/100.*dh;
 
   // check for negative signs
   if (rx < 0)
-    rx = display_width - rx;
+    rx = dw - rx;
 
   if (ry < 0)
-    rx = display_height - ry;
+    rx = dh - ry;
 
   // finally assign the return values
   *x = rx;
