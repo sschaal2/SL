@@ -2345,16 +2345,21 @@ Function Parameters: [in]=input,[out]=output
 none
 
 ******************************************************************************/
-#define checkImageWidth (128)
-#define checkImageHeight (checkImageWidth)
-static int DrawCheckerBoard=TRUE;
-static ObjectPtr floorObjectPtr;
-static GLubyte checkImage[checkImageHeight][checkImageWidth][4];
-static GLuint texName;
+static int        checkImageWidth=128;
+static int        checkImageHeight=128;
+static int        DrawCheckerBoard=TRUE;
+static double     flooroffset = 0.001;
+static ObjectPtr  floorObjectPtr;
+static GLubyte   *checkImage;
+static GLubyte ***checkImagePtrs;
+static GLuint     texName;
 
 static int 
 initCheckerBoard(void)
 {
+  int i, j, c;
+  double w,h,o;
+
   // the checker board is only applied to the floor object
   floorObjectPtr = getObjPtrByName("floor");
   if(floorObjectPtr == NULL) {
@@ -2362,8 +2367,29 @@ initCheckerBoard(void)
     return FALSE;
   }
 
+  // look for use parameters
+  if (read_parameter_pool_double(config_files[PARAMETERPOOL],"checkerboard_width", &w))
+    checkImageWidth = round(floorObjectPtr->scale[_X_]/w);
+  
+  if (read_parameter_pool_double(config_files[PARAMETERPOOL],"checkerboard_height", &h))
+    checkImageHeight = round(floorObjectPtr->scale[_Y_]/h);
+  
+  if (read_parameter_pool_double(config_files[PARAMETERPOOL],"checkerboard_offset", &o))
+    flooroffset = o;
+
+  // allocate all memory for checker board image
+  checkImage = 
+    (GLubyte *) my_calloc(checkImageHeight*checkImageWidth*4, sizeof(GLubyte), MY_STOP);
+
+  // allocate memory for the pointers to this memory
+  checkImagePtrs = (GLubyte ***) my_calloc(checkImageHeight, sizeof(GLubyte **), MY_STOP);
+  for (i=0; i<checkImageHeight; ++i) {
+    checkImagePtrs[i] = (GLubyte **) my_calloc(checkImageWidth, sizeof(GLubyte *), MY_STOP);
+    for (j=0; j<checkImageWidth; ++j)
+      checkImagePtrs[i][j] = &(checkImage[i*checkImageWidth*4+j*4]);
+  }
+
   // create the checkerboard image
-  int i, j, c;
   for(i=0; i<checkImageHeight; i++) {
     for(j=0; j<checkImageWidth; j++) {
       if( (i+j)%2 == 1) {
@@ -2371,12 +2397,13 @@ initCheckerBoard(void)
       } else {
 	c=0;
       }
-      checkImage[i][j][0] = (GLubyte) c;
-      checkImage[i][j][1] = (GLubyte) c;
-      checkImage[i][j][2] = (GLubyte) c;
-      checkImage[i][j][3] = (GLubyte) 255;
+      checkImagePtrs[i][j][0] = (GLubyte) c;
+      checkImagePtrs[i][j][1] = (GLubyte) c;
+      checkImagePtrs[i][j][2] = (GLubyte) c;
+      checkImagePtrs[i][j][3] = (GLubyte) 255;
     }
   }
+
   return TRUE;
 }
 
@@ -2491,7 +2518,6 @@ displayCheckerBoard(void )
   glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
   glBindTexture(GL_TEXTURE_2D, texName);
 	
-#define FLOOROFFSET (0.001)
   glBegin(GL_QUADS);
   GLfloat goalColor[] = { floorObjectPtr->rgb[_X_], floorObjectPtr->rgb[_Y_], 
 			  floorObjectPtr->rgb[_Z_], 0.4 };
@@ -2502,25 +2528,25 @@ displayCheckerBoard(void )
   glVertex3f(-(GLdouble)floorObjectPtr->scale[_X_] /2.0, 
 	     -(GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
 	     (GLdouble)floorObjectPtr->trans[_Z_]+
-	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + FLOOROFFSET);
+	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + flooroffset);
 	
   glTexCoord2f(0.0, 1.0);
   glVertex3f(-(GLdouble)floorObjectPtr->scale[_X_] /2.0, 
 	     (GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
 	     (GLdouble)floorObjectPtr->trans[_Z_]+
-	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + FLOOROFFSET);
+	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + flooroffset);
 	
   glTexCoord2f(1.0, 1.0);
   glVertex3f((GLdouble)floorObjectPtr->scale[_X_] /2.0, 
 	     (GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
 	     (GLdouble)floorObjectPtr->trans[_Z_]+
-	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + FLOOROFFSET);
+	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + flooroffset);
 	
   glTexCoord2f(1.0, 0.0);
   glVertex3f((GLdouble)floorObjectPtr->scale[_X_] /2.0, 
 	     -(GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
 	     (GLdouble)floorObjectPtr->trans[_Z_]+
-	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + FLOOROFFSET);
+	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + flooroffset);
   glEnd();
 	
   glDisable(GL_TEXTURE_2D);
