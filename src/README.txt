@@ -50,3 +50,8 @@
     include a header file (with suffix *body.h), which has the actually
     programming and which includes the robot spedific header files.
 */
+/*! 
+    \defgroup SLros
+    
+    The library that generates ROS specific functionality
+*/

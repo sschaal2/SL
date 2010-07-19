@@ -77,7 +77,7 @@ main(int argc, char**argv)
 
   // initializes the servo
   init_task_servo();
-  read_whichDOFs(config_files[WHICHDOFS],"task_sim_servo");
+  read_whichDOFs(config_files[WHICHDOFS],"task_servo");
 
   // generic computations
   init_user_task();

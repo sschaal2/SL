@@ -40,6 +40,7 @@
 #include "SL_man.h"
 #include "SL_kinematics.h"
 #include "SL_dynamics.h"
+#include "SL_man.h"
 
 #define TIME_OUT_NS  1000000000
 
@@ -58,6 +59,8 @@ static int     delay_ns = FALSE;
 
 // local functions
 static  void simulation_servo(void *dummy);
+static  void dss(void);
+static  void disable_simulation_servo(void);
 
 // external functions
 
@@ -98,6 +101,9 @@ main(int argc, char**argv)
   // initalize the servo
   if (!init_simulation_servo())
     return FALSE;
+
+  // add to man pages 
+  addToMan("dss","disables the simulation servo",dss);
 
   // get the servo parameters
   sprintf(name,"%s_servo",servo_name);
@@ -431,4 +437,43 @@ send_contacts(void)
 
   return TRUE;
 }
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  dss & disable_simulation_servo
+\date  July 2010
+   
+\remarks 
+
+disables the simulation servo
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+     
+ ******************************************************************************/
+void 
+dss(void)
+{
+  disable_simulation_servo();
+}
+
+void 
+disable_simulation_servo(void)
+{
+  int j;
+
+  if ( servo_enabled == 1 )   {
+
+    servo_enabled = 0;
+    printf("Simulation Servo Terminated\n");
+
+    exit(-1);
+    
+  } else
+    fprintf( stderr, "Simulation Servo is not on!\n" );
+  
+}
+
 

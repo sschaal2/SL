@@ -27,6 +27,7 @@ extern "C" {
   extern int     openGL_servo_rate;
   extern int     openGL_servo_errors;
   extern int     stand_alone_flag;
+  extern int     servo_enabled;
   
   // shared functions
   int receive_sim_state(void);
