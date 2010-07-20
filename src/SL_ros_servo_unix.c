@@ -69,8 +69,7 @@ main(int argc, char**argv)
   installSignalHandlers();
 
   // initializes the servo
-  if (!init_ros_servo())
-    return FALSE;
+  init_ros_servo();
 
   // add to man pages 
   addToMan("drs","disables the ros servo",drs);
@@ -80,10 +79,9 @@ main(int argc, char**argv)
   ros_servo_calls        = 0;
   ros_servo_time         = 0;
   ros_servo_errors       = 0;
-  ros_servo_rate         = servo_base_rate/(double) ros_servo_ratio;
+  ros_servo_rate         = servo_base_rate/(double) task_servo_ratio;
 
-  // the user ROS as defined in initUserROS.c 
-  initUserROS();
+  changeCollectFreq(ros_servo_rate);
 
   // spawn command line interface thread
   spawnCommandLineThread(NULL);
@@ -95,41 +93,9 @@ main(int argc, char**argv)
   while (servo_enabled) {
 
     // wait to take semaphore 
-    switch (task_servo_ratio) {
-    case R1TO1:
-      if (semTake(sm_1to1_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R1TO2:
-      if (semTake(sm_1to2_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R1TO3:
-      if (semTake(sm_1to3_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R1TO4:
-      if (semTake(sm_1to4_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R1TO5:
-      if (semTake(sm_1to5_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R60HZ:
-      if (semTake(sm_60Hz_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    default:
-      if (semTake(sm_1to2_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-
+    if (semTake(sm_ros_servo_sem,WAIT_FOREVER) == ERROR) {
+      printf("semTake Time Out -- Servo Terminated\n");
+      return FALSE;
     }
 
     // check for messages

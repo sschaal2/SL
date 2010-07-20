@@ -32,6 +32,7 @@ extern "C" {
   const int  d2a_cm = D2A_CM;
   const int  d2a_cv = D2A_CV;
   const int  d2a_ct = D2A_CT;
+  const int  d2a_cr = D2A_CR;
 
   /* global variables */
   char         *robot_name = ROBOT_NAME;

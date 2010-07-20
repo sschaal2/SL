@@ -41,11 +41,13 @@ SEM_ID             sm_60Hz_sem;  /* 60Hz sync */
 SEM_ID             sm_openGL_servo_sem;  /* synchronization for openGL servo */
 SEM_ID             sm_motor_servo_sem;  /* synchronization for motor servo */
 SEM_ID             sm_simulation_servo_sem;  /* synchronization for simulation servo */
+SEM_ID             sm_ros_servo_sem;  /* synchronization for ros servo */
 SEM_ID             sm_pause_sem; /* signals pause to simulation servo */
 SEM_ID             sm_user_graphics_ready_sem; /* signals user graphics available */
 SEM_ID             sm_openGL_message_ready_sem; /* signals message to openGl servo */
 SEM_ID             sm_simulation_message_ready_sem; /* signals message to sim servo */
 SEM_ID             sm_task_message_ready_sem; /* signals message to task servo */
+SEM_ID             sm_ros_message_ready_sem; /* signals message to ros servo */
 SEM_ID             sm_motor_message_ready_sem; /* signals message to motor servo */
 SEM_ID             sm_objects_ready_sem; /* signals that objects are ready for read */
 SEM_ID             sm_init_process_ready_sem; /* for starting up the SL processes */
@@ -116,6 +118,8 @@ smMessage         *sm_openGL_message;
 SEM_ID             sm_openGL_message_sem;
 smMessage         *sm_task_message;
 SEM_ID             sm_task_message_sem;
+smMessage         *sm_ros_message;
+SEM_ID             sm_ros_message_sem;
 smMessage         *sm_motor_message;
 SEM_ID             sm_motor_message_sem;
 
@@ -366,6 +370,16 @@ init_shared_memory(void)
     return FALSE;
   }
   /********************************************************************/
+  if (init_sm_object("smROSMessage", 
+		     sizeof(smMessage),
+		     0,
+		     &sm_ros_message_sem,
+		     (void **)&sm_ros_message)) {
+    ;
+  } else {
+    return FALSE;
+  }
+  /********************************************************************/
   if (init_sm_object("smMotorMessage", 
 		     sizeof(smMessage),
 		     0,
@@ -438,6 +452,9 @@ init_shared_memory(void)
   if (!init_sm_sem("smSimServoSem", SEM_EMPTY,(void**)&sm_simulation_servo_sem))
     return FALSE;
 
+  if (!init_sm_sem("smROSServoSem", SEM_EMPTY,(void**)&sm_ros_servo_sem))
+    return FALSE;
+
   if (!init_sm_sem("smPauseSem", SEM_EMPTY,(void**)&sm_pause_sem))
     return FALSE;
 
@@ -451,6 +468,9 @@ init_shared_memory(void)
     return FALSE;
 
   if (!init_sm_sem("smTaskMsgReadySem", SEM_EMPTY,(void**)&sm_task_message_ready_sem))
+    return FALSE;
+
+  if (!init_sm_sem("smROSMsgReadySem", SEM_EMPTY,(void**)&sm_ros_message_ready_sem))
     return FALSE;
 
   if (!init_sm_sem("smMotorMsgReadySem", SEM_EMPTY,(void**)&sm_motor_message_ready_sem))

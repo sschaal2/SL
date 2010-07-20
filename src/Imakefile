@@ -29,45 +29,47 @@ else
 SUBDIRS                = ../$(MACHTYPE)
 endif
 
-INSTALL_HEADERS = ../include/SL.h \
-		  ../include/SL_integrate.h \
-		  ../include/SL_openGL.h \
-		  ../include/SL_common.h \
-		  ../include/SL_terrains.h \
-		  ../include/SL_user_common.h \
-		  ../include/SL_unix_common.h \
-		  ../include/SL_xeno_common.h \
-		  ../include/SL_objects.h \
-		  ../include/SL_objects_defines.h \
+INSTALL_HEADERS = \
+		  ../include/SL.h \
 		  ../include/SL_collect_data.h \
+		  ../include/SL_common.h \
 		  ../include/SL_controller.h \
 		  ../include/SL_dynamics.h \
+		  ../include/SL_filters.h \
+		  ../include/SL_for_dynamics_body.h \
+		  ../include/SL_integrate.h \
+		  ../include/SL_inv_dynamics_art_body.h \
+		  ../include/SL_inv_dynamics_body.h \
+		  ../include/SL_invdyn_servo.h \
 		  ../include/SL_kinematics.h \
+		  ../include/SL_kinematics_body.h \
 		  ../include/SL_man.h \
 		  ../include/SL_motor_servo.h \
-		  ../include/SL_invdyn_servo.h \
+		  ../include/SL_objects.h \
+		  ../include/SL_objects_defines.h \
+		  ../include/SL_openGL.h \
+		  ../include/SL_openGL_servo.h \
+		  ../include/SL_oscilloscope.h \
+		  ../include/SL_parm_estimate_body.h \
+		  ../include/SL_ros_servo.h \
 		  ../include/SL_sensor_proc.h \
 		  ../include/SL_shared_memory.h \
+		  ../include/SL_simulation_servo.h \
+		  ../include/SL_system_headers.h \
 		  ../include/SL_task_servo.h \
 		  ../include/SL_tasks.h \
-		  ../include/SL_vision_servo.h \
-		  ../include/SL_vx_wrappers.h \
-		  ../include/SL_filters.h \
-		  ../include/SL_vx_serial.h \
-		  ../include/SL_system_headers.h \
-		  ../include/SL_xeno_headers.h \
-		  ../include/SL_openGL_servo.h \
-		  ../include/SL_user_idle_core.h \
-		  ../include/SL_user_display_core.h \
-		  ../include/SL_user_main_core.h \
+		  ../include/SL_terrains.h \
+		  ../include/SL_unix_common.h \
 		  ../include/SL_userGraphics.h \
-		  ../include/SL_kinematics_body.h \
-		  ../include/SL_for_dynamics_body.h \
-		  ../include/SL_inv_dynamics_body.h \
-		  ../include/SL_inv_dynamics_art_body.h \
-		  ../include/SL_parm_estimate_body.h \
-		  ../include/SL_oscilloscope.h \
-		  ../include/SL_simulation_servo.h
+		  ../include/SL_user_common.h \
+		  ../include/SL_user_display_core.h \
+		  ../include/SL_user_idle_core.h \
+		  ../include/SL_user_main_core.h \
+		  ../include/SL_vision_servo.h \
+		  ../include/SL_vx_serial.h \
+		  ../include/SL_vx_wrappers.h \
+		  ../include/SL_xeno_common.h \
+		  ../include/SL_xeno_headers.h 
 
 AllTarget()
 

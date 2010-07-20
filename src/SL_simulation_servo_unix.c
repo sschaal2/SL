@@ -29,7 +29,6 @@
 #include "SL_collect_data.h"
 #include "SL_shared_memory.h"
 #include "SL_unix_common.h"
-#include "SL_man.h"
 #include "SL_kinematics.h"
 #include "SL_dynamics.h"
 #include "SL_man.h"

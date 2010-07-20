@@ -149,11 +149,13 @@ extern "C" {
   extern SEM_ID             sm_openGL_servo_sem;  /* openGL servo synchronization */
   extern SEM_ID             sm_motor_servo_sem;  /* motor servo synchronization */
   extern SEM_ID             sm_simulation_servo_sem;  /* simulation servo synchronization */
+  extern SEM_ID             sm_ros_servo_sem;  /* ros servo synchronization */
   extern SEM_ID             sm_pause_sem;  /* needed to signal pause to simulation servo */
   extern SEM_ID             sm_user_graphics_ready_sem; /* signals user graphics available */
   extern SEM_ID             sm_openGL_message_ready_sem; /* signals message to openGl servo */
   extern SEM_ID             sm_simulation_message_ready_sem; /* signals message to sim servo */
-  extern SEM_ID             sm_task_message_ready_sem; /* signals message to sim servo */
+  extern SEM_ID             sm_task_message_ready_sem; /* signals message to task servo */
+  extern SEM_ID             sm_ros_message_ready_sem; /* signals message to ros servo */
   extern SEM_ID             sm_motor_message_ready_sem; /* signals message to motor servo */
   extern SEM_ID             sm_objects_ready_sem; /* signals that objects are ready for read */
   extern SEM_ID             sm_init_process_ready_sem; /* for starting up the SL processes */
@@ -224,6 +226,8 @@ extern "C" {
   extern SEM_ID             sm_openGL_message_sem;
   extern smMessage         *sm_task_message;
   extern SEM_ID             sm_task_message_sem;
+  extern smMessage         *sm_ros_message;
+  extern SEM_ID             sm_ros_message_sem;
   extern smMessage         *sm_motor_message;
   extern SEM_ID             sm_motor_message_sem;
 

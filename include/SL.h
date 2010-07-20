@@ -294,6 +294,7 @@ extern "C" {
   extern const int    d2a_cm;              /* which D/A channel is used by motor servo */
   extern const int    d2a_ct;              /* which D/A channel is used by the task servo */
   extern const int    d2a_cv;              /* which D/A channel is used by the vision servo */
+  extern const int    d2a_cr;              /* which D/A channel is used by the ros servo */
 
 
   /* generic external variables */

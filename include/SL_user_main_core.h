@@ -3,6 +3,7 @@ char argv_array[100][50];
 char *argv_ptr[100];
 int  graphics_flag = TRUE;
 int  hold_flag = FALSE;
+int  ros_flag = FALSE;
 char string[100];
 char xstring[100];
 char gstring[100];
@@ -37,17 +38,24 @@ display_height = DisplayHeight(display, screen_num);
 // assign the servo_name variable with the calling program as default
 sprintf(servo_name,"%s",argv[0]);
 
-// NOTE: the sequence of initialization of the servos and the sleep
-//       are important for the initial semaphore synchronization
+// NOTE: the sequence of initialization of the servos
+//       is important for the initial semaphore synchronization
 
 // check for no-graphics flag
 for (i=1; i<argc; ++i)
   if (strcmp(argv[i],"-ng")==0 ||  strcmp(argv[i],"-no-graphics")==0)
     graphics_flag = FALSE;
 
+// check for hold flag
 for (i=1; i<argc; ++i)
   if (strcmp(argv[i],"-hold")==0)
     hold_flag = TRUE;
+
+// check for ros flag, but only if ROS_ROOT is defined
+if (getenv("ROS_ROOT") != NULL)
+  for (i=1; i<argc; ++i)
+    if (strcmp(argv[i],"-ros")==0)
+      ros_flag = TRUE;
 
 // get the current process ID
 parent_process_id = getpid();
