@@ -32,12 +32,8 @@ SEM_ID             sm_sjoint_des_state_ready_sem;
 SEM_ID             sm_raw_blobs_ready_sem;
 SEM_ID             sm_learn_invdyn_sem;
 SEM_ID             sm_learn_blob2body_sem;
-SEM_ID             sm_1to1_sem;  /* one to one synchronization */
-SEM_ID             sm_1to2_sem;  /* one to two sync */
-SEM_ID             sm_1to3_sem;  /* one to three sync */
-SEM_ID             sm_1to4_sem;  /* one to four  sync */
-SEM_ID             sm_1to5_sem;  /* one to five  sync */
-SEM_ID             sm_60Hz_sem;  /* 60Hz sync */
+SEM_ID             sm_task_servo_sem;  /* synchronization for task servo */
+SEM_ID             sm_vision_servo_sem;  /* synchronization for vision servo */
 SEM_ID             sm_openGL_servo_sem;  /* synchronization for openGL servo */
 SEM_ID             sm_motor_servo_sem;  /* synchronization for motor servo */
 SEM_ID             sm_simulation_servo_sem;  /* synchronization for simulation servo */
@@ -49,6 +45,7 @@ SEM_ID             sm_simulation_message_ready_sem; /* signals message to sim se
 SEM_ID             sm_task_message_ready_sem; /* signals message to task servo */
 SEM_ID             sm_ros_message_ready_sem; /* signals message to ros servo */
 SEM_ID             sm_motor_message_ready_sem; /* signals message to motor servo */
+SEM_ID             sm_vision_message_ready_sem; /* signals message to vision servo */
 SEM_ID             sm_objects_ready_sem; /* signals that objects are ready for read */
 SEM_ID             sm_init_process_ready_sem; /* for starting up the SL processes */
 SEM_ID             sm_oscilloscope_sem; /* for writing to the oscilloscope */
@@ -122,6 +119,8 @@ smMessage         *sm_ros_message;
 SEM_ID             sm_ros_message_sem;
 smMessage         *sm_motor_message;
 SEM_ID             sm_motor_message_sem;
+smMessage         *sm_vision_message;
+SEM_ID             sm_vision_message_sem;
 
 smDCommands       *sm_des_commands;
 SEM_ID             sm_des_commands_sem;
@@ -350,6 +349,16 @@ init_shared_memory(void)
     return FALSE;
   }
   /********************************************************************/
+  if (init_sm_object("smVisionMessage", 
+		     sizeof(smMessage),
+		     0,
+		     &sm_vision_message_sem,
+		     (void **)&sm_vision_message)) {
+    ;
+  } else {
+    return FALSE;
+  }
+  /********************************************************************/
   if (init_sm_object("smSimMessage", 
 		     sizeof(smMessage),
 		     0,
@@ -425,25 +434,13 @@ init_shared_memory(void)
   /********************************************************************/
   /* process synchronization semaphores */
 
-  if (!init_sm_sem("sm1to1Sem", SEM_EMPTY,(void**)&sm_1to1_sem))
+  if (!init_sm_sem("smTaskServoSem", SEM_EMPTY,(void**)&sm_task_servo_sem))
     return FALSE;
 
-  if (!init_sm_sem("sm1to2Sem", SEM_EMPTY,(void**)&sm_1to2_sem))
+  if (!init_sm_sem("smVisionServoSem", SEM_EMPTY,(void**)&sm_vision_servo_sem))
     return FALSE;
 
-  if (!init_sm_sem("sm1to3Sem", SEM_EMPTY,(void**)&sm_1to3_sem))
-    return FALSE;
-
-  if (!init_sm_sem("sm1to4Sem", SEM_EMPTY,(void**)&sm_1to4_sem))
-    return FALSE;
-
-  if (!init_sm_sem("sm1to5Sem", SEM_EMPTY,(void**)&sm_1to5_sem))
-    return FALSE;
-
-  if (!init_sm_sem("sm60HzSem", SEM_EMPTY,(void**)&sm_60Hz_sem))
-    return FALSE;
-
-  if (!init_sm_sem("smOpenGLSem", SEM_EMPTY,(void**)&sm_openGL_servo_sem))
+  if (!init_sm_sem("smOpenGLServoSem", SEM_EMPTY,(void**)&sm_openGL_servo_sem))
     return FALSE;
 
   if (!init_sm_sem("smMotorServoSem", SEM_EMPTY,(void**)&sm_motor_servo_sem))
@@ -462,6 +459,9 @@ init_shared_memory(void)
     return FALSE;
 
   if (!init_sm_sem("smOpenGLMsgReadySem", SEM_EMPTY,(void**)&sm_openGL_message_ready_sem))
+    return FALSE;
+
+  if (!init_sm_sem("smVisionMsgReadySem", SEM_EMPTY,(void**)&sm_vision_message_ready_sem))
     return FALSE;
 
   if (!init_sm_sem("smSimMsgReadySem", SEM_EMPTY,(void**)&sm_simulation_message_ready_sem))
@@ -752,6 +752,22 @@ sendMessageToServo(smMessage *sm_message, SEM_ID sm_message_sem,
  {
    sendMessageToServo(sm_openGL_message, sm_openGL_message_sem, 
 		      sm_openGL_message_ready_sem, 
+		      message, buf, n_bytes);
+ }
+
+ void 
+   sendMessageROSServo(char *message, void *buf, int n_bytes)
+ {
+   sendMessageToServo(sm_ros_message, sm_ros_message_sem, 
+		      sm_ros_message_ready_sem, 
+		      message, buf, n_bytes);
+ }
+
+ void 
+   sendMessageVisionServo(char *message, void *buf, int n_bytes)
+ {
+   sendMessageToServo(sm_vision_message, sm_vision_message_sem, 
+		      sm_vision_message_ready_sem, 
 		      message, buf, n_bytes);
  }
 

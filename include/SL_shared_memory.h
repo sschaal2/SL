@@ -140,12 +140,8 @@ extern "C" {
   extern SEM_ID             sm_raw_blobs_ready_sem;
   extern SEM_ID             sm_learn_invdyn_sem;
   extern SEM_ID             sm_learn_blob2body_sem;
-  extern SEM_ID             sm_1to1_sem;  /* one to one synchronization */
-  extern SEM_ID             sm_1to2_sem;  /* one to two sync */
-  extern SEM_ID             sm_1to3_sem;  /* one to three sync */
-  extern SEM_ID             sm_1to4_sem;  /* one to four  sync */
-  extern SEM_ID             sm_1to5_sem;  /* one to five  sync */
-  extern SEM_ID             sm_60Hz_sem;  /* 60Hz sync */
+  extern SEM_ID             sm_task_servo_sem;  /* task servo synchronization */
+  extern SEM_ID             sm_vision_servo_sem;  /* vision servo synchronization */
   extern SEM_ID             sm_openGL_servo_sem;  /* openGL servo synchronization */
   extern SEM_ID             sm_motor_servo_sem;  /* motor servo synchronization */
   extern SEM_ID             sm_simulation_servo_sem;  /* simulation servo synchronization */
@@ -153,6 +149,7 @@ extern "C" {
   extern SEM_ID             sm_pause_sem;  /* needed to signal pause to simulation servo */
   extern SEM_ID             sm_user_graphics_ready_sem; /* signals user graphics available */
   extern SEM_ID             sm_openGL_message_ready_sem; /* signals message to openGl servo */
+  extern SEM_ID             sm_vision_message_ready_sem; /* signals message to openGl servo */
   extern SEM_ID             sm_simulation_message_ready_sem; /* signals message to sim servo */
   extern SEM_ID             sm_task_message_ready_sem; /* signals message to task servo */
   extern SEM_ID             sm_ros_message_ready_sem; /* signals message to ros servo */
@@ -230,6 +227,8 @@ extern "C" {
   extern SEM_ID             sm_ros_message_sem;
   extern smMessage         *sm_motor_message;
   extern SEM_ID             sm_motor_message_sem;
+  extern smMessage         *sm_vision_message;
+  extern SEM_ID             sm_vision_message_sem;
 
   extern smDCommands       *sm_des_commands;
   extern SEM_ID             sm_des_commands_sem;
@@ -243,6 +242,8 @@ extern "C" {
   void  sendMessageTaskServo(char *message, void *buf, int n_bytes);
   void  sendMessageMotorServo(char *message, void *buf, int n_bytes);
   void  sendMessageOpenGLServo(char *message, void *buf, int n_bytes);
+  void  sendMessageROSServo(char *message, void *buf, int n_bytes);
+  void  sendMessageVisionServo(char *message, void *buf, int n_bytes);
 
   
 #ifdef __cplusplus

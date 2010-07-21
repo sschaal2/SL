@@ -51,8 +51,8 @@ for (i=1; i<argc; ++i)
   if (strcmp(argv[i],"-hold")==0)
     hold_flag = TRUE;
 
-// check for ros flag, but only if ROS_ROOT is defined
-if (getenv("ROS_ROOT") != NULL)
+// check for ros flag, but only if ROS_MASTER_URI is defined
+if (getenv("ROS_MASTER_URI") != NULL)
   for (i=1; i<argc; ++i)
     if (strcmp(argv[i],"-ros")==0)
       ros_flag = TRUE;

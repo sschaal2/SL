@@ -46,6 +46,7 @@ int  stop(char *msg);
 
 /* local functions */
 static void vision_servo(void *dummy);
+static int  checkForMessages(void);
 
 
 /*!*****************************************************************************
@@ -181,9 +182,12 @@ vision_servo(void *dummy)
       taskDelay(ns2ticks(delay_ns));
 
     // wait to take semaphore 
-    if (semTake(sm_60Hz_sem,WAIT_FOREVER) == ERROR)
+    if (semTake(sm_vision_servo_sem,WAIT_FOREVER) == ERROR)
       stop("semTake Time Out -- Servo Terminated");
    
+    // check for messages
+    checkForMessages();
+
     // lock out the keyboard interaction 
     pthread_mutex_lock( &mutex1 );
 
@@ -310,3 +314,64 @@ stop(char *msg)
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  checkForMessages
+\date  Nov. 2007
+   
+\remarks 
+
+Messages can be given to the servo for hard-coded tasks.This allows
+some information passing between the different processes on variables
+of common interest, e.g., the endeffector specs, object information,
+etc.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static int
+checkForMessages(void)
+{
+  int i,j;
+  char name[20];
+
+  // check whether a message is available
+  if (semTake(sm_vision_message_ready_sem,NO_WAIT) == ERROR)
+    return FALSE;
+
+
+  // receive the message
+  if (semTake(sm_vision_message_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
+    ++vision_servo_errors;
+    printf("Couldn't take task message semaphore\n");
+    return FALSE;
+  }
+
+  for (i=1; i<=sm_vision_message->n_msgs; ++i) {
+
+    // get the name of this message
+    strcpy(name,sm_vision_message->name[i]);
+
+    // act according to the message name
+
+    // ---------------------------------------------------------------------------
+    if (strcmp(name,"status") == 0) { 
+
+      status();
+
+    }
+
+
+  }
+
+  // give back semaphore
+  sm_vision_message->n_msgs = 0;
+  sm_vision_message->n_bytes_used = 0;
+  semGive(sm_vision_message_sem);
+
+
+  return TRUE;
+}

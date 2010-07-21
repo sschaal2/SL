@@ -763,7 +763,13 @@ checkForMessages(void)
       memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
       deleteObjByName(data.obj_name);
       
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"status") == 0) { 
+
+      status();
+
     }
+    // ---------------------------------------------------------------------------
     
     
   }

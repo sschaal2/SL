@@ -79,7 +79,7 @@ main(int argc, char**argv)
   ros_servo_calls        = 0;
   ros_servo_time         = 0;
   ros_servo_errors       = 0;
-  ros_servo_rate         = servo_base_rate/(double) task_servo_ratio;
+  ros_servo_rate         = servo_base_rate/(double)task_servo_ratio;
 
   changeCollectFreq(ros_servo_rate);
 
@@ -188,6 +188,7 @@ checkForMessages(void)
 
   // receive the message
   if (semTake(sm_ros_message_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
+    ++ros_servo_errors;
     printf("Couldn't take task message semaphore\n");
     return FALSE;
   }
@@ -198,6 +199,14 @@ checkForMessages(void)
     strcpy(name,sm_ros_message->name[i]);
 
     // act according to the message name
+
+    // ---------------------------------------------------------------------------
+    if (strcmp(name,"status") == 0) { 
+
+      status();
+
+    }
+
 
   }
 

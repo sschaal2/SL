@@ -53,9 +53,9 @@ extern int           no_receive_flag;
 // global functions 
 void disable_motor_servo(void);
 void motor_servo(void);
+void status(void);
 
 // local functions
-static void status(void);
 static void sim_stop(void);
 static void reset(void);
 
@@ -307,7 +307,7 @@ Function Parameters: [in]=input,[out]=output
 none
 
 ******************************************************************************/
-static void
+void
 status(void)
 {
 

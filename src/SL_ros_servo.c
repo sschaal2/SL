@@ -29,7 +29,7 @@
 #include "SL_oscilloscope.h"
 #include "SL_kinematics.h"
 
-#define TIME_OUT_NS  1000000000
+#define TIME_OUT_NS  100000
 
 /* variables for the task servo */
 int    ros_servo_errors;
@@ -321,6 +321,8 @@ run_ros_servo(void)
   // adjust the servo time
   ++ros_servo_calls;
   ros_servo_time = servo_time = ros_servo_calls/(double)ros_servo_rate;
+
+  return TRUE;
 
   /*********************************************************************
    * receive sensory data

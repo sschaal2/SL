@@ -576,47 +576,31 @@ triggerSynchronization(void)
   int iaux;
   static double last_openGL_time = 0.0;
   double current_time;
-  
-#ifdef VX
-  semFlush(sm_1to1_sem);
-#else
-  semGive(sm_1to1_sem);
-#endif
 
   // note: synchronizing on the remainder=1 allows starting all servos
   // immediately in the first run of the motor servo
 
-  if (motor_servo_calls%2==1)
+  if (task_servo_ratio > 1) {
+    if (motor_servo_calls%task_servo_ratio==1) {
 #ifdef VX
-    semFlush(sm_1to2_sem);
+      semFlush(sm_task_servo_sem);
 #else
-    semGive(sm_1to2_sem);
+      semGive(sm_task_servo_sem);
+      semGive(sm_ros_servo_sem);
 #endif
-
-  if (motor_servo_calls%3==1)
+    }
+  } else {
 #ifdef VX
-    semFlush(sm_1to3_sem);
+    semFlush(sm_task_servo_sem);
 #else
-    semGive(sm_1to3_sem);
+    semGive(sm_task_servo_sem);
+    semGive(sm_ros_servo_sem);
 #endif
-  
-  if (motor_servo_calls%4==1)
-#ifdef VX
-    semFlush(sm_1to4_sem);
-#else
-    semGive(sm_1to4_sem);
-#endif
-
-  if (motor_servo_calls%5==1)
-#ifdef VX
-    semFlush(sm_1to5_sem);
-#else
-    semGive(sm_1to5_sem);
-#endif
+  }
 
   iaux = (int)(((double)motor_servo_rate)/60.0+0.5);
   if (motor_servo_calls%iaux==1)
-    semFlush(sm_60Hz_sem);
+    semFlush(sm_vision_servo_sem);
 
 #ifdef VX
   if (motor_servo_calls%iaux==1)
@@ -701,6 +685,11 @@ checkForMessages(void)
 	controller_gain_int[i] = (double) buf[i+2*n_dofs];
       }
       
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"status") == 0) { 
+      extern void status(void);
+      status();
+
     }
 
     // see whether the user programmed a message interception

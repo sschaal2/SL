@@ -461,6 +461,11 @@ checkForMessages(void)
       resetCometDisplay();
 
     // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"status") == 0) { 
+
+      status();
+
+    // ---------------------------------------------------------------------------
     } else if (strcmp(name,"resetCometVars") == 0) { 
 
       for (i=1; i<=n_endeffs; ++i)

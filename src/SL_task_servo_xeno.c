@@ -50,7 +50,7 @@ void disable_task_servo(void);
 static  int  checkForMessages(void);
 static  void freezeBaseToggle(void);
 static  void task_servo(void *dummy);
-
+static  void statusAll(void);
 
 
 // external functions
@@ -105,6 +105,7 @@ main(int argc, char**argv)
 
   // add to man pages 
   addToMan("dts","disables the task servo",dts);
+  addToMan("statusAll","prints status on all processes",statusAll);
   if (!real_robot_flag) {
     addToMan("reset","reset state of simulation",reset);
     addToMan("setG","set gravity constant",setG);
@@ -200,42 +201,8 @@ task_servo(void *dummy)
       taskDelay(ns2ticks(delay_ns));
 
     // wait to take semaphore 
-    switch (task_servo_ratio) {
-    case R1TO1:
-      if (semTake(sm_1to1_sem,WAIT_FOREVER) == ERROR)
+    if (semTake(sm_task_servo_sem,WAIT_FOREVER) == ERROR)
 	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R1TO2:
-      if (semTake(sm_1to2_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R1TO3:
-      if (semTake(sm_1to3_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R1TO4:
-      if (semTake(sm_1to4_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R1TO5:
-      if (semTake(sm_1to5_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    case R60HZ:
-      if (semTake(sm_60Hz_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-      break;
-      
-    default:
-      if (semTake(sm_1to2_sem,WAIT_FOREVER) == ERROR)
-	stop("semTake Time Out -- Servo Terminated");
-
-    }
 
     // check for messages
     checkForMessages();
@@ -689,4 +656,34 @@ freezeBase(int flag)
 
 }
 
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  statusAll
+\date  July 2010
+   
+\remarks 
+
+triggers a status diplay on all processes
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static void
+statusAll(void)
+{
+  int i;
+  unsigned char cbuf[1];
+
+  sendMessageOpenGLServo("status",(void *)cbuf,0);
+  sendMessageMotorServo("status",(void *)cbuf,0);
+  sendMessageROSServo("status",(void *)cbuf,0);
+  sendMessageSimulationServo("status",(void *)cbuf,0);
+  sendMessageVisionServo("status",(void *)cbuf,0);
+  status();
+
+}
 
