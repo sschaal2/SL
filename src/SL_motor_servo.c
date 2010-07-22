@@ -40,6 +40,7 @@
 /* variables for the motor servo */
 int           motor_servo_errors;
 long          motor_servo_calls=0;
+long          last_motor_servo_calls = 0;
 int           motor_servo_initialized = FALSE;
 int           motor_servo_rate;
 double        servo_time=0;
@@ -222,22 +223,14 @@ run_motor_servo(void)
 
 {
   int    j,i;
-  static int    last_tick=0;
-  double dt;
+  int     dt;
 
-  
   setOsc(d2a_cm,100.0);
   
-  /* check for missed ISR ticks */
-  
-  dt = (double)(motor_servo_calls - last_tick)/(double)motor_servo_rate;
-  if (dt == 0) /* this can only happen if weirdly disturbed */
-    return FALSE;
-  
-  if (motor_servo_calls - last_tick > 1) {
-    motor_servo_errors += motor_servo_calls - last_tick + 1;
-  }
-  last_tick = motor_servo_calls;
+  // check for missed calls to the servo
+  dt = motor_servo_calls - last_motor_servo_calls;
+  if (dt != 1 && motor_servo_calls > 2) // need transient ticks to sync servos
+    motor_servo_errors += abs(dt-1);
   
   /*********************************************************************
    * check for messages
@@ -342,6 +335,8 @@ run_motor_servo(void)
   /*************************************************************************
    * end of functions
    */
+
+  last_motor_servo_calls = motor_servo_calls;
 
   return TRUE;
 

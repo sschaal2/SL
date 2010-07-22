@@ -38,6 +38,7 @@
 int     servo_enabled;
 double  servo_time=0;
 long    simulation_servo_calls=0;
+long    last_simulation_servo_calls=0;
 int     simulation_servo_rate;
 int     simulation_servo_errors=0;
 double  simulation_servo_time=0;
@@ -160,8 +161,16 @@ run_simulation_servo(void)
   double k,kd;
   double delta;
   double dt;
+  int    dtick;
+
   static double last_time = 0;
   static double current_time = 0;
+
+  // check for missed ticks
+  // check for missed calls to the servo
+  dtick = simulation_servo_calls - last_simulation_servo_calls;
+  if (dtick != 1 && simulation_servo_calls > 2) // need transient ticks to sync servos
+    simulation_servo_errors += abs(dtick-1);
 
   // first, send out all the current state variables
   // to shared memory
@@ -271,6 +280,8 @@ run_simulation_servo(void)
 
   // data collection
   writeToBuffer();
+
+  last_simulation_servo_calls = simulation_servo_calls;
 
   return TRUE;
 
@@ -949,9 +960,6 @@ send_misc_sensors(void)
 {
   
   int i;
-
-  if (n_misc_sensors <= 0)
-    return TRUE;
 
   if (semTake(sm_misc_sim_sensor_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
     

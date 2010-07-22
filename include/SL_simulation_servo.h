@@ -24,6 +24,7 @@ extern "C" {
   extern int     servo_enabled;
   extern double  servo_time;
   extern long    simulation_servo_calls;
+  extern long    last_simulation_servo_calls;
   extern int     simulation_servo_rate;
   extern int     simulation_servo_errors;
   extern double  simulation_servo_time;

@@ -204,9 +204,6 @@ receive_misc_sensors(void)
   
   int i;
 
-  if (n_misc_sensors <= 0)
-    return TRUE;
-
   if (semTake(sm_misc_sim_sensor_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
     
     ++openGL_servo_errors;
