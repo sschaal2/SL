@@ -223,14 +223,14 @@ run_motor_servo(void)
 
 {
   int    j,i;
-  int     dt;
+  int    dticks;
 
   setOsc(d2a_cm,100.0);
   
   // check for missed calls to the servo
-  dt = motor_servo_calls - last_motor_servo_calls;
-  if (dt != 1 && motor_servo_calls > 2) // need transient ticks to sync servos
-    motor_servo_errors += abs(dt-1);
+  dticks = motor_servo_calls - last_motor_servo_calls;
+  if (dticks != 1 && motor_servo_calls > 2) // need transient ticks to sync servos
+    motor_servo_errors += abs(dticks-1);
   
   /*********************************************************************
    * check for messages
@@ -541,6 +541,8 @@ broadcast_sensors(void)
       memcpy((void *)(&sm_misc_sensor->value[1]),
 	     (const void*)(&sm_misc_sensor_data[1]),
 	     sizeof(float)*n_misc_sensors);
+
+      sm_misc_sensor->ts = motor_servo_time;
       
       semGive(sm_misc_sensor_sem);
       

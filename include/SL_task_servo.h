@@ -30,6 +30,7 @@ extern "C" {
 
   extern int    task_servo_errors;
   extern long   task_servo_calls;
+  extern long   last_task_servo_calls;
   extern int    task_servo_initialized;
   extern double task_servo_time;
   extern double servo_time;
@@ -40,6 +41,7 @@ extern "C" {
   extern char   initial_user_command[];
   
   void dts(void);
+  void disable_task_servo(void);
   int  go(int jID);
   void go0(void);
   int  go0_wait(void);
