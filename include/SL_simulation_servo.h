@@ -43,6 +43,8 @@ extern "C" {
   int  run_simulation_servo(void);
   int  checkForMessages(void);
   void reset(void);
+  void dss(void);
+  void disable_simulation_servo(void);
 
 
 #ifdef __cplusplus
