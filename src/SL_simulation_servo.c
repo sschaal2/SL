@@ -902,6 +902,8 @@ send_sim_state(void)
   cSL_Cstate((&base_state)-1, sm_base_state_data, 1, DOUBLE2FLOAT);
 
   sm_base_state->state[1] = sm_base_state_data[1];
+
+  sm_base_state->ts = ((double)simulation_servo_calls)/(double)simulation_servo_rate;
   
   semGive(sm_base_state_sem);
 
@@ -917,6 +919,8 @@ send_sim_state(void)
   cSL_quat(&base_orient-1, sm_base_orient_data, 1, DOUBLE2FLOAT);
 
   sm_base_orient->orient[1] = sm_base_orient_data[1];
+
+  sm_base_orient->ts = ((double)simulation_servo_calls)/(double)simulation_servo_rate;
   
   semGive(sm_base_orient_sem);
 
@@ -958,6 +962,8 @@ send_misc_sensors(void)
 
   for (i=1; i<=n_misc_sensors; ++i)
     sm_misc_sim_sensor->value[i] = misc_sim_sensor[i];
+
+  sm_misc_sim_sensor->ts = ((double)simulation_servo_calls)/(double)simulation_servo_rate;
   
   semGive(sm_misc_sim_sensor_sem);
 
