@@ -664,7 +664,8 @@ receive_sensors(void)
 {
   
   int i;
-
+  double ts;
+  int dticks;
 
   // the joint state
   if (semTake(sm_joint_state_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
@@ -674,11 +675,20 @@ receive_sensors(void)
 
   } 
 
-
   memcpy((void *)(&sm_joint_state_data[1]),(const void*)(&sm_joint_state->joint_state[1]),
 	 sizeof(SL_fJstate)*n_dofs);
 
   cSL_Jstate(joint_state,sm_joint_state_data,n_dofs,FLOAT2DOUBLE);
+
+  // get time stamp and check for synchronization errors
+  ts = sm_joint_state->ts;
+  dticks = (int)((ts-servo_time)*task_servo_rate);
+  if (dticks != 0) {
+    task_servo_calls   += dticks;
+    task_servo_time = servo_time = task_servo_calls/(double)task_servo_rate;
+    if (task_servo_calls > 1)
+      task_servo_errors += abs(dticks);
+  }
   
   semGive(sm_joint_state_sem);
 
@@ -699,7 +709,16 @@ receive_sensors(void)
     
     for (i=1; i<=n_misc_sensors; ++i)
       misc_sensor[i] = (double) sm_misc_sensor_data[i];
-    
+
+    // get time stamp and check for synchronization errors
+    ts = sm_misc_sensor->ts;
+    dticks = (int)((ts-servo_time)*task_servo_rate);
+    if (dticks != 0) {
+      task_servo_calls   += dticks;
+      task_servo_time = servo_time = task_servo_calls/(double)task_servo_rate;
+      if (task_servo_calls > 1)
+	task_servo_errors += abs(dticks);
+    }
     
     semGive(sm_misc_sensor_sem);
 

@@ -45,8 +45,6 @@ static int     delay_ns=FALSE;
   
 // local functions 
 static void openGL_servo(void *dummy);
-static  void dos(void);
-static  void disable_openGL_servo(void);
 
   
 /*!*****************************************************************************
@@ -178,40 +176,3 @@ openGL_servo(void *dummy)
 
 }
 
-/*!*****************************************************************************
- *******************************************************************************
-\note  dos & disable_openGL_servo
-\date  July 2010
-   
-\remarks 
-
-disables the openGL servo
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
- none
-     
- ******************************************************************************/
-void 
-dos(void)
-{
-  disable_openGL_servo();
-}
-
-void 
-disable_openGL_servo(void)
-{
-  int j;
-
-  if ( servo_enabled == 1 )   {
-
-    servo_enabled = 0;
-    printf("OpenGL Servo Terminated\n");
-
-    exit(-1);
-    
-  } else
-    fprintf( stderr, "OpenGL Servo is not on!\n" );
-  
-}

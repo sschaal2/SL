@@ -43,6 +43,7 @@
 
 // global variables
 long    openGL_servo_calls=0;
+long    last_openGL_servo_calls=0;
 int     openGL_servo_rate = R60HZ;
 int     openGL_servo_errors=0;
 double  openGL_servo_time=0;
@@ -53,6 +54,8 @@ int     stand_alone_flag = FALSE;
 // local functions 
 static void status(void);
 static void togglePause(void);
+static void dos(void);
+static void disable_openGL_servo(void);
 
   
 /*!*****************************************************************************
@@ -85,6 +88,7 @@ init_openGL_servo(int argc, char** argv)
   // add to man pages 
   addToMan("status","displays status information about servo",status);
   addToMan("p","toggles pausing of the simulation",togglePause);
+  addToMan("dos","disables the openGL servo",dos);
 
   /* inverse dynamics */
   if (!init_dynamics()) 
@@ -501,3 +505,40 @@ checkForMessages(void)
   return TRUE;
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  dos & disable_openGL_servo
+\date  July 2010
+   
+\remarks 
+
+disables the openGL servo
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+     
+ ******************************************************************************/
+void 
+dos(void)
+{
+  disable_openGL_servo();
+}
+
+void 
+disable_openGL_servo(void)
+{
+  int j;
+
+  if ( servo_enabled == 1 )   {
+
+    servo_enabled = 0;
+    printf("OpenGL Servo Terminated\n");
+
+    exit(-1);
+    
+  } else
+    fprintf( stderr, "OpenGL Servo is not on!\n" );
+  
+}

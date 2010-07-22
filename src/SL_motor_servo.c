@@ -377,7 +377,7 @@ receive_commands(void)
 
   if (semTake(sm_sjoint_des_state_ready_sem,wait_flag) == ERROR) {
 
-    if (wait_flag == WAIT_FOREVER) // an error win WAIT_FOREVER must be terminated
+    if (wait_flag == WAIT_FOREVER) // an error in WAIT_FOREVER must be terminated
       exit(-1);
 
     if (++count_no_receive < task_servo_ratio) {
@@ -495,7 +495,7 @@ broadcast_sensors(void)
   
   int i,j;
 
-  /* only write at the task servo rate to reduce VME traffic */
+  /* only write at the task servo rate to reduce traffic */
   if (motor_servo_calls%task_servo_ratio!=0)
     return TRUE;
 
