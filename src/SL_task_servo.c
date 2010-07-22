@@ -38,6 +38,7 @@
 /* variables for the task servo */
 int    task_servo_errors;
 long   task_servo_calls=0;
+long   last_task_servo_calls=0;
 int    task_servo_initialized = FALSE;
 double task_servo_time=0;
 double servo_time=0;
@@ -47,14 +48,12 @@ int    frame_counter = 0;
 int    exit_on_stop = FALSE;
 
 /* local variables */
-static int servo_mode = MOTORSERVO;
 
 /* global functions */
 int  step(int jid, int iamp);
 
 /* local functions */
 static int  send_commands(void);
-static int  send_invdyn(void);
 static int  send_cartesian(void);
 static int  receive_sensors(void);
 static int  receive_blobs(void);
@@ -583,20 +582,9 @@ run_task_servo(void)
    * send out the new commands
    */
 
-  switch (servo_mode) {
-  case INVDYNSERVO:
-    if (!send_invdyn()) {
-      stop("Problem when sending invdyn");
-      return FALSE;
-    }
-    break;
-  case CARTSERVO:
-    break;
-  default:
-    if (!send_commands()) {
-      stop("Problem when sending commands");
-      return FALSE;
-    }
+  if (!send_commands()) {
+    stop("Problem when sending commands");
+    return FALSE;
   }
 
   setOsc(d2a_ct,80.0);
@@ -648,7 +636,6 @@ status(void)
   printf("            Servo Running          = %d\n",servo_enabled);
   printf("            Task                   = %s\n",current_task_name);
   printf("            Vision Frame Counter   = %d\n",frame_counter);
-  printf("            Servo Mode             = %d\n",servo_mode);
 #ifdef __XENO__
   extern long count_xenomai_mode_switches;
   printf("            Xeonmai Mode Swiches   = %ld\n",count_xenomai_mode_switches);
@@ -771,59 +758,6 @@ send_commands(void)
 
   semGive(sm_sjoint_des_state_sem);
   semGive(sm_sjoint_des_state_ready_sem);
-  
-  return TRUE;
-  
-}
-
-/*!*****************************************************************************
- *******************************************************************************
-\note  send_invdyn
-\date  April 1999
-   
-\remarks 
-
-        just copies the invdyn data to shared memory
-	
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
-     none
-
- ******************************************************************************/
-static int 
-send_invdyn(void)
-{
-  
-  int i;
-
-  if (semTake(sm_joint_des_state_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
-    ++task_servo_errors;
-    return FALSE;
-  }
-
-  /* check for joint limits */
-
-  for (i=1; i<=n_dofs; ++i) {
-    if (whichDOFs[i]) {
-      if (joint_des_state[i].th > joint_range[i][MAX_THETA])
-	joint_des_state[i].th = joint_range[i][MAX_THETA];
-      if (joint_des_state[i].th < joint_range[i][MIN_THETA]) 
-	joint_des_state[i].th = joint_range[i][MIN_THETA];
-    }
-  }
-
-  cSL_DJstate(joint_des_state,sm_joint_des_state_data,n_dofs,DOUBLE2FLOAT);
-
-  for (i=1; i<=n_dofs; ++i) {
-    if (whichDOFs[i]) {
-      sm_joint_des_state->joint_des_state[i] = sm_joint_des_state_data[i];
-    }
-  }
-
-  semGive(sm_joint_des_state_sem);
-  semGive(sm_joint_des_state_ready_sem);
   
   return TRUE;
   
@@ -1298,35 +1232,6 @@ send_raw_blobs2D(void)
   return TRUE;
   
 }
-
-/*!*****************************************************************************
- *******************************************************************************
-\note  setServoMode
-\date  June 2000
-   
-\remarks 
-
-        switches the task servo into different servo modes, e.g.,
-        direct, invdyn, or cartdyn
-        
-	
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
- \param[in]     type  :  servo type
-
- ******************************************************************************/
-int 
-setServoMode(int type)
-{
-
-  printf("setServoMode is depricated --- simply remove statement from your code\n");
-  servo_mode = MOTORSERVO;
-  
-  return TRUE;
-}
-
 
 /*!*****************************************************************************
  *******************************************************************************
