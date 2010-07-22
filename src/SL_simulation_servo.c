@@ -897,7 +897,7 @@ send_sim_state(void)
   for (i=1; i<=n_dofs; ++i)
     sm_joint_sim_state->joint_sim_state[i] = sm_joint_sim_state_data[i];
 
-  sm_joint_sim_state->ts = ((double)simulation_servo_calls)/(double)simulation_servo_rate;
+  sm_joint_sim_state->ts = simulation_servo_time;
   
   semGive(sm_joint_sim_state_sem);
 
@@ -914,7 +914,7 @@ send_sim_state(void)
 
   sm_base_state->state[1] = sm_base_state_data[1];
 
-  sm_base_state->ts = ((double)simulation_servo_calls)/(double)simulation_servo_rate;
+  sm_base_state->ts = simulation_servo_time;
   
   semGive(sm_base_state_sem);
 
@@ -931,7 +931,7 @@ send_sim_state(void)
 
   sm_base_orient->orient[1] = sm_base_orient_data[1];
 
-  sm_base_orient->ts = ((double)simulation_servo_calls)/(double)simulation_servo_rate;
+  sm_base_orient->ts = simulation_servo_time;
   
   semGive(sm_base_orient_sem);
 
@@ -971,7 +971,7 @@ send_misc_sensors(void)
   for (i=1; i<=n_misc_sensors; ++i)
     sm_misc_sim_sensor->value[i] = misc_sim_sensor[i];
 
-  sm_misc_sim_sensor->ts = ((double)simulation_servo_calls)/(double)simulation_servo_rate;
+  sm_misc_sim_sensor->ts = simulation_servo_time;
   
   semGive(sm_misc_sim_sensor_sem);
 

@@ -511,6 +511,8 @@ broadcast_sensors(void)
 	   (const void*)(&sm_joint_state_data[1]),
 	   sizeof(SL_fJstate)*n_dofs);
 
+    sm_joint_state->ts = motor_servo_time;
+
     semGive(sm_joint_state_sem);
 
     // store the state that was currently boradcast in order to detect
