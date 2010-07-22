@@ -321,3 +321,65 @@ disable_ros_servo(void)
     fprintf( stderr, "ROS Servo is not on!\n" );
   
 }
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  checkForMessages
+\date  Nov. 2007
+   
+\remarks 
+
+Messages can be given to the servo for hard-coded tasks.This allows
+some information passing between the different processes on variables
+of common interest, e.g., the endeffector specs, object information,
+etc.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static int
+checkForMessages(void)
+{
+  int i,j;
+  char name[20];
+
+  // check whether a message is available
+  if (semTake(sm_ros_message_ready_sem,NO_WAIT) == ERROR)
+    return FALSE;
+
+  // receive the message
+  if (semTake(sm_ros_message_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
+    ++ros_servo_errors;
+    printf("Couldn't take task message semaphore\n");
+    return FALSE;
+  }
+
+  for (i=1; i<=sm_ros_message->n_msgs; ++i) {
+
+    // get the name of this message
+    strcpy(name,sm_ros_message->name[i]);
+
+    // act according to the message name
+
+    // ---------------------------------------------------------------------------
+    if (strcmp(name,"status") == 0) { 
+
+      status();
+
+    }
+
+
+  }
+
+  // give back semaphore
+  sm_ros_message->n_msgs = 0;
+  sm_ros_message->n_bytes_used = 0;
+  semGive(sm_ros_message_sem);
+
+
+  return TRUE;
+}
+

@@ -34,21 +34,25 @@ typedef struct smVisionBlobsaux {
 
 typedef struct smMiscSensors {
   SEM_ID          sm_sem;
+  float           ts;
   float           value[1];
 } smMiscSensors;
 
 typedef struct smMiscSimSensors {
   SEM_ID          sm_sem;
+  float           ts;
   float           value[1];
 } smMiscSimSensors;
 
 typedef struct smCartStates {
   SEM_ID          sm_sem;
+  float           ts;
   SL_fCstate      state[1];
 } smCartStates;
 
 typedef struct smCartOrients {
   SEM_ID          sm_sem;
+  float           ts;
   SL_fCorient     orient[1];
 } smCartOrients;
 
@@ -64,16 +68,19 @@ typedef struct smRawBlobs2D {
 
 typedef struct smSJointDesStates {
   SEM_ID         sm_sem;
+  float           ts;
   SL_fSDJstate   sjoint_des_state[1];
 } smSJointDesStates;
 
 typedef struct smJointStates {
   SEM_ID         sm_sem;
+  float           ts;
   SL_fJstate     joint_state[1];
 } smJointStates;
 
 typedef struct smJointDesStates {
   SEM_ID          sm_sem;
+  float           ts;
   SL_fDJstate     joint_des_state[1];
 } smJointDesStates;
 
@@ -87,11 +94,13 @@ typedef struct SL_fDCommands{
 
 typedef struct smDCommands {
   SEM_ID          sm_sem;
+  float           ts;
   SL_fDCommands   des_command[1];
 } smDCommands;
 
 typedef struct smJointSimStates {
   SEM_ID          sm_sem;
+  float           ts;
   SL_fJstate      joint_sim_state[1];
 } smJointSimStates;
 
@@ -107,11 +116,13 @@ typedef struct smContacts {
 
 typedef struct smBaseState {
   SEM_ID          sm_sem;
+  float           ts;
   SL_fCstate      state[1];
 } smBaseState;
 
 typedef struct smBaseOrient {
   SEM_ID          sm_sem;
+  float           ts;
   SL_fquat        orient[1];
 } smBaseOrient;
 

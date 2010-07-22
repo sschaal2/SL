@@ -322,7 +322,6 @@ run_ros_servo(void)
   ++ros_servo_calls;
   ros_servo_time = servo_time = ros_servo_calls/(double)ros_servo_rate;
 
-  return TRUE;
 
   /*********************************************************************
    * receive sensory data
