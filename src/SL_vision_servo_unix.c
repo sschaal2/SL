@@ -36,11 +36,8 @@ extern int stereo_mode;
 /* local variables */
 
 /* global functions */
-void status(void);
-int  stop(char *msg);
 
 /* local functions */
-static int checkForMessages(void);
 
 
 /*!*****************************************************************************
@@ -75,13 +72,10 @@ main(int argc, char**argv)
   // initializes the servo
   init_vision_servo();
 
-  // add to man pages 
-  addToMan("dvs","disables the vision servo",dvs);
-  addToMan("status","displays status information about servo",status);
-
   // setup servo
   servo_enabled           = 1;
   vision_servo_calls      = 0;
+  last_vision_servo_calls = 0;
   vision_servo_time       = 0;
   servo_time              = 0;
   vision_servo_errors     = 0;
@@ -106,9 +100,11 @@ main(int argc, char**argv)
     if (semTake(sm_vision_servo_sem,WAIT_FOREVER) == ERROR)
       stop("semTake Time Out -- Servo Terminated");
 
-    // check for messages
-    checkForMessages();
-   
+    // adjust the servo time (needs to come after acquire_blobs)
+    ++vision_servo_calls;
+    vision_servo_time = vision_servo_calls/(double)vision_servo_rate;
+    servo_time = vision_servo_time;
+
     // lock out the keyboard interaction 
     pthread_mutex_lock( &mutex1 );
 
@@ -133,165 +129,3 @@ main(int argc, char**argv)
 
 }
 
-/*!*****************************************************************************
- *******************************************************************************
-\note  dvs & disable_vision_servo
-\date  April 1999
-   
-\remarks 
-
-        disables the vision servo
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
-     none
-
- ******************************************************************************/
-void 
-dvs(void)
-{
-  disable_vision_servo();
-}
-
-void 
-disable_vision_servo(void)
-{
-  int j;
-
-  if ( servo_enabled == 1 )   {
-
-    servo_enabled = 0;
-    printf("Vision Servo Terminated\n");
-
-    exit(1);
-    
-  } else
-    fprintf( stderr, "vision servo is not on!\n" );
-  
-}
-
-/*!*****************************************************************************
- *******************************************************************************
-\note  status
-\date  August 7, 1992
-   
-\remarks 
-
-        prints out all important variables
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
-     none
-
- ******************************************************************************/
-void
-status(void)
-{
-
-  printf("\n");
-  printf("            Time                   = %f\n",vision_servo_time);
-  printf("            Servo Calls            = %d\n",vision_servo_calls);
-  printf("            Servo Rate             = %d\n",vision_servo_rate);
-  printf("            Servo Errors           = %d\n",vision_servo_errors);
-  printf("            Servo Initialize       = %d\n",vision_servo_initialized);
-  printf("            Servo Running          = %d\n",servo_enabled);
-  printf("           #frames read            = %d\n",count_all_frames);
-  printf("           #frames lost            = %d\n",count_lost_frames);
-  printf("            vision_pp              = %s\n",current_pp_name);
-  printf("            No Hardware Flag       = %d\n",no_hardware_flag);
-  printf("\n");
-
-}
-
-/*!*****************************************************************************
- *******************************************************************************
-\note  stop
-\date  August 7, 1992 
-   
-\remarks 
-
-       stops ongoing processing on this servo
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
-    none
-
- ******************************************************************************/
-int
-stop(char *msg)
-{
-
-  int i;
-
-  dvs();
-  beep(1);
-  printf("%s\n",msg);
-  
-  return TRUE;
-
-}
-
-/*!*****************************************************************************
- *******************************************************************************
-\note  checkForMessages
-\date  Nov. 2007
-   
-\remarks 
-
-Messages can be given to the servo for hard-coded tasks.This allows
-some information passing between the different processes on variables
-of common interest, e.g., the endeffector specs, object information,
-etc.
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
- none
-
- ******************************************************************************/
-static int
-checkForMessages(void)
-{
-  int i,j;
-  char name[20];
-
-  // check whether a message is available
-  if (semTake(sm_vision_message_ready_sem,NO_WAIT) == ERROR)
-    return FALSE;
-
-
-  // receive the message
-  if (semTake(sm_vision_message_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
-    ++vision_servo_errors;
-    printf("Couldn't take task message semaphore\n");
-    return FALSE;
-  }
-
-  for (i=1; i<=sm_vision_message->n_msgs; ++i) {
-
-    // get the name of this message
-    strcpy(name,sm_vision_message->name[i]);
-
-    // act according to the message name
-
-    // ---------------------------------------------------------------------------
-    if (strcmp(name,"status") == 0) { 
-
-      status();
-
-    }
-
-
-  }
-
-  // give back semaphore
-  sm_vision_message->n_msgs = 0;
-  sm_vision_message->n_bytes_used = 0;
-  semGive(sm_vision_message_sem);
-
-
-  return TRUE;
-}

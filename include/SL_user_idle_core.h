@@ -44,10 +44,9 @@ if (semTake(sm_openGL_servo_sem,WAIT_FOREVER) == ERROR) {
 }
 
 //-------------------------------------------------------------------------
-// advance the time
+// advance the time (note that the servo time is copied from the time stamp
+// of the receive_sim_state function)
 ++openGL_servo_calls;
-servo_time += 1./(double)openGL_servo_rate;
-openGL_servo_time = servo_time;
 
 //-------------------------------------------------------------------------
 // read from shared memory

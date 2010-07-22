@@ -41,6 +41,7 @@ double        servo_time;
 double        vision_servo_time;
 int           vision_servo_rate = R60HZ;
 int           vision_servo_calls;
+int           last_vision_servo_calls;
 char          current_pp_name[100];
 int           vision_servo_initialized = FALSE;
 int           vision_servo_errors;
@@ -59,11 +60,17 @@ static int  broadcast_blobs(void);
 static int  receive_cartesian(void);
 static int  learn_transformation(void );
 static int  check_raw_blob_overwrite(void);
+static int  checkForMessages(void);
+
 
 /* global functions */
 int  reset_learning( void );
 int  save_learning( void );
 int  set_learning( void );
+void status(void);
+int  stop(char *msg);
+
+
 
 /*!*****************************************************************************
  *******************************************************************************
@@ -177,7 +184,9 @@ init_vision_servo()
 
   updateDataCollectScript();
 
-  /* add to man pages */
+  // add to man pages 
+  addToMan("dvs","disables the vision servo",dvs);
+  addToMan("status","displays status information about servo",status);
 
   /* initialize user specific things */
   if (!init_user_vision())
@@ -212,12 +221,10 @@ run_vision_servo(void)
 
 
   /*************************************************************************
-   * adjust the servo time (needs to come after acquire_blobs)
+   *  check for messages
    */
   
-  ++vision_servo_calls;
-  vision_servo_time = vision_servo_calls/(double)vision_servo_rate;
-  servo_time = vision_servo_time;
+  checkForMessages();
 
   /*************************************************************************
    * this allows to overwrite the blobs, e.g., by simulated information
@@ -272,6 +279,8 @@ run_vision_servo(void)
   /*************************************************************************
    * end of program sequence
    */
+
+  last_vision_servo_calls = vision_servo_calls;
 
   return TRUE;
 
@@ -653,3 +662,165 @@ learn_transformation(void )
 
 
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  dvs & disable_vision_servo
+\date  April 1999
+   
+\remarks 
+
+        disables the vision servo
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+     none
+
+ ******************************************************************************/
+void 
+dvs(void)
+{
+  disable_vision_servo();
+}
+
+void 
+disable_vision_servo(void)
+{
+  int j;
+
+  if ( servo_enabled == 1 )   {
+
+    servo_enabled = 0;
+    printf("Vision Servo Terminated\n");
+
+    exit(1);
+    
+  } else
+    fprintf( stderr, "vision servo is not on!\n" );
+  
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  status
+\date  August 7, 1992
+   
+\remarks 
+
+        prints out all important variables
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+     none
+
+ ******************************************************************************/
+void
+status(void)
+{
+
+  printf("\n");
+  printf("            Time                   = %f\n",vision_servo_time);
+  printf("            Servo Calls            = %d\n",vision_servo_calls);
+  printf("            Servo Rate             = %d\n",vision_servo_rate);
+  printf("            Servo Errors           = %d\n",vision_servo_errors);
+  printf("            Servo Initialize       = %d\n",vision_servo_initialized);
+  printf("            Servo Running          = %d\n",servo_enabled);
+  printf("           #frames read            = %d\n",count_all_frames);
+  printf("           #frames lost            = %d\n",count_lost_frames);
+  printf("            vision_pp              = %s\n",current_pp_name);
+  printf("            No Hardware Flag       = %d\n",no_hardware_flag);
+  printf("\n");
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  stop
+\date  August 7, 1992 
+   
+\remarks 
+
+       stops ongoing processing on this servo
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+    none
+
+ ******************************************************************************/
+int
+stop(char *msg)
+{
+
+  int i;
+
+  dvs();
+  beep(1);
+  printf("%s\n",msg);
+  
+  return TRUE;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  checkForMessages
+\date  Nov. 2007
+   
+\remarks 
+
+Messages can be given to the servo for hard-coded tasks.This allows
+some information passing between the different processes on variables
+of common interest, e.g., the endeffector specs, object information,
+etc.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static int
+checkForMessages(void)
+{
+  int i,j;
+  char name[20];
+
+  // check whether a message is available
+  if (semTake(sm_vision_message_ready_sem,NO_WAIT) == ERROR)
+    return FALSE;
+
+
+  // receive the message
+  if (semTake(sm_vision_message_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
+    ++vision_servo_errors;
+    printf("Couldn't take task message semaphore\n");
+    return FALSE;
+  }
+
+  for (i=1; i<=sm_vision_message->n_msgs; ++i) {
+
+    // get the name of this message
+    strcpy(name,sm_vision_message->name[i]);
+
+    // act according to the message name
+
+    // ---------------------------------------------------------------------------
+    if (strcmp(name,"status") == 0) { 
+
+      status();
+
+    }
+
+
+  }
+
+  // give back semaphore
+  sm_vision_message->n_msgs = 0;
+  sm_vision_message->n_bytes_used = 0;
+  semGive(sm_vision_message_sem);
+
+
+  return TRUE;
+}

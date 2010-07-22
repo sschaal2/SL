@@ -150,6 +150,8 @@ receive_sim_state(void)
     sm_joint_sim_state_data[i] = sm_joint_sim_state->joint_sim_state[i];
   
   cSL_Jstate(joint_sim_state,sm_joint_sim_state_data,n_dofs,FLOAT2DOUBLE);
+
+  openGL_servo_time = servo_time = sm_joint_sim_state->ts;
     
   semGive(sm_joint_sim_state_sem);
 
@@ -284,7 +286,7 @@ status(void)
 {
 
   printf("\n");
-  printf("            Real Time              = %f\n",openGL_servo_time);
+  printf("            Time                   = %f\n",openGL_servo_time);
   printf("            Servo Calls            = %ld\n",openGL_servo_calls);
   printf("            Servo Rate             = %d\n",openGL_servo_rate);
   printf("            Servo Errors           = %d\n",openGL_servo_errors);
