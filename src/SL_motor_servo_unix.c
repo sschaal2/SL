@@ -51,13 +51,9 @@ extern int           count_no_broadcast;
 extern int           no_receive_flag;
 
 // global functions 
-void disable_motor_servo(void);
 void motor_servo(void);
-void status(void);
 
 // local functions
-static void sim_stop(void);
-static void reset(void);
 
 // local variables
 static pthread_cond_t      cond  = PTHREAD_COND_INITIALIZER;
@@ -126,11 +122,6 @@ main(int argc, char**argv)
   // initializes the servo
   init_motor_servo();
   read_whichDOFs(config_files[WHICHDOFS],"motor_servo");
-
-  // add to man pages 
-  addToMan("dms","disables the motor servo",dms);
-  addToMan("status","displays status information about servo",status);
-  addToMan("stop","kills the robot control",sim_stop);
 
   // reset motor_servo variables
   servo_enabled            = 1;
@@ -254,141 +245,3 @@ main(int argc, char**argv)
 
 }
  
-/*!*****************************************************************************
-*******************************************************************************
-\note  dms & disable_motor_servo
-\date  December 1997
-   
-\remarks 
-
-disables the motor servo
-
-*******************************************************************************
-Function Parameters: [in]=input,[out]=output
-
-\param[in]     param   :
-
-******************************************************************************/
-void 
-dms(void)
-{
-  disable_motor_servo();
-}
-
-void 
-disable_motor_servo(void)
-{
-  int j;
-
-  if ( servo_enabled == 1 )   {
-
-    servo_enabled = 0;
-    printf("Motor Servo Terminated\n");
-
-    exit(-1);
-
-  } else
-    fprintf( stderr, "motor servo is not on!\n" );
-}
-
-
-/*!*****************************************************************************
-*******************************************************************************
-\note  status
-\date  August 7, 1992
-   
-\remarks 
-
-prints out all important variables
-
-*******************************************************************************
-Function Parameters: [in]=input,[out]=output
-
-none
-
-******************************************************************************/
-void
-status(void)
-{
-
-  printf("\n");
-  printf("            Controller Kind        = %d\n",controller_kind);
-  printf("            Time                   = %f\n",servo_time);
-  printf("            Servo Calls            = %ld\n",motor_servo_calls);
-  printf("            Servo Rate             = %d\n",motor_servo_rate);
-  printf("            Servo Errors           = %d\n",motor_servo_errors);
-  printf("            Count No Receive       = %d\n",(int)count_no_receive_total);
-  printf("            Count No Broadcast     = %d\n",count_no_broadcast);
-  printf("            Servo Initialize       = %d\n",motor_servo_initialized);
-  printf("            Servo Running          = %d\n",servo_enabled);
-  printf("            Power Status           = %d\n",power_on);
-  printf("            Real Time Clock        = %d\n",real_time_clock_flag);
-  printf("\n");
-
-}
-
-/*!*****************************************************************************
-*******************************************************************************
-\note  stop
-\date  August 7, 1992 
-   
-\remarks 
-
-send pump into low pressure and terminate loops
-
-*******************************************************************************
-Function Parameters: [in]=input,[out]=output
-
-none
-
-******************************************************************************/
-static void
-sim_stop(void)
-{
-  stop("Simulation Triggered Stop");   /* for simulation environment only */
-}
-int
-stop(char *msg)
-{
-
-  int i;
-
-  beep(1);
-  printf("%s\n",msg);
-  fflush(stdout);
-  if (real_robot_flag)
-    dms();
-  else
-    reset();
-  
-  return TRUE;
-
-}
-
-/*!*****************************************************************************
- *******************************************************************************
- \note  reset
- \date  Nov. 2005
- 
- \remarks 
- 
- sends message to task_servo to reset
- 
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
- 
- none
- 
-******************************************************************************/
-static void 
-reset(void) 
-{
-  int i,j;
-  unsigned char buf[1];
-
-  sendMessageTaskServo("reset",(void *)buf,0);
-  setDefaultPosture();
-
-}
-
-

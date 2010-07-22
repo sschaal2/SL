@@ -37,6 +37,8 @@ extern int           real_time_clock_flag;
 
 int  read_register_file(char *fname_in);
 void dms(void);
+void disable_motor_servo(void);
+void status(void);
 void init_motor_servo(void);
 int  run_motor_servo(void);
 int  init_vxworks( void );
