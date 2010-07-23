@@ -1103,6 +1103,8 @@ send_cartesian(void)
     memcpy((void *)(&sm_cart_states->state[1]),(const void*)(&sm_cart_states_data[1]),
 	   sizeof(SL_fCstate)*n_endeffs);
 
+    sm_cart_states->ts = task_servo_time;
+
     semGive(sm_cart_states_sem);
 
   }

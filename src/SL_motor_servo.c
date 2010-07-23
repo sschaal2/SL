@@ -607,7 +607,7 @@ triggerSynchronization(void)
 
   iaux = (int)(((double)motor_servo_rate)/60.0+0.5);
   if (motor_servo_calls%iaux==1)
-    semFlush(sm_vision_servo_sem);
+    semGive(sm_vision_servo_sem);
 
 #ifdef VX
   if (motor_servo_calls%iaux==1)

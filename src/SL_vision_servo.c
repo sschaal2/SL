@@ -11,7 +11,7 @@
   ==============================================================================
   \remarks
 
-  The program communicates with the QuickMag system and receives
+
   the (open loop) vision information. Since there is no data
   buffering in the QuickMag, it is necessary to poll the QuickMag
   connection all the time. The 712 transition module of the 
@@ -33,7 +33,7 @@
 #include "SL_man.h"
 #include "SL_common.h"
 
-#define TIME_OUT_NS  1000000000
+#define TIME_OUT_NS  100000
 
 /* global variables */
 int           servo_enabled;
@@ -218,7 +218,13 @@ run_vision_servo(void)
 {
 
   int i,j;
+  int dticks;
 
+
+  // check for missed calls to the servo
+  dticks = vision_servo_calls - last_vision_servo_calls;
+    if (dticks != 1 && vision_servo_calls > 2) // need transient ticks to sync servos
+      vision_servo_errors += abs(dticks-1);
 
   /*************************************************************************
    *  check for messages
@@ -364,11 +370,10 @@ receive_cartesian(void)
 {
   
   int i;
+  int dticks;
+  double ts;
 
-  if (!learn_transformation_flag)
-    return TRUE;
-
-  if (semTake(sm_cart_states_sem,NO_WAIT) == ERROR) {
+  if (semTake(sm_cart_states_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
     ++vision_servo_errors;
     return FALSE;
   } 
@@ -377,6 +382,17 @@ receive_cartesian(void)
 	 sizeof(SL_fCstate)*n_endeffs);
 
   cSL_Cstate(cart_state,sm_cart_states_data,n_endeffs,FLOAT2DOUBLE);
+
+  // get time stamp and check for synchronization errors
+  ts = sm_cart_states->ts;
+  dticks = (int)((ts-vision_servo_time)*vision_servo_rate);
+  if (dticks != 0) {
+    vision_servo_calls   += dticks;
+    vision_servo_time = servo_time = vision_servo_calls/(double)vision_servo_rate;
+    if (vision_servo_calls > 1)
+      vision_servo_errors += abs(dticks);
+  }
+
   
   semGive(sm_cart_states_sem);
 
