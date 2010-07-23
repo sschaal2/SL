@@ -425,6 +425,7 @@ init_shared_memory(void)
   } else {
     return FALSE;
   }
+  printf("0x%x 0x%x\n",sm_ros_state,sm_ros_state->data);
   /********************************************************************/
   /********************************************************************/
   /* shared semaphores */

@@ -81,7 +81,7 @@ typedef struct smJointStates {
 typedef struct smROSState {
   SEM_ID         sm_sem;
   float          ts;
-  float          data[1];
+  char           data[1];
 } smROSState;
 
 typedef struct smJointDesStates {

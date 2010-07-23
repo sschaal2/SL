@@ -46,9 +46,7 @@ int    ros_servo_rate;
 /* global functions */
 
 /* local functions */
-static int  receive_sensors(void);
-static int  receive_des_commands(void);
-static int  receive_blobs(void);
+static int  receive_ros_state(void);
 static void compute_kinematics(void);
 static int  checkForMessages(void);
 static void disable_ros_servo(void);
@@ -340,23 +338,12 @@ run_ros_servo(void)
    * receive sensory data
    */
 
-  if (!receive_sensors()) {
-    printf("Problem when receiving sensor data\n");
+  if (!receive_ros_state()) {
+    printf("Problem when receiving ros state\n");
     return FALSE;
   }
   
   setOsc(d2a_cr,10.0);
-
-  /*********************************************************************
-   * receive commands
-   */
-
-  if (!receive_des_commands()) {
-    printf("Problem when receiving desired commands\n");
-    return FALSE;
-  }
-  
-  setOsc(d2a_cr,15.0);
 
   /*********************************************************************
    * compute useful kinematic variables
@@ -382,8 +369,6 @@ run_ros_servo(void)
 
   setOsc(d2a_cr,90.0);
   
-
-
   /*************************************************************************
    * collect data
    */
@@ -435,91 +420,81 @@ status(void)
   printf("\n");
 
 }
+
 /*!*****************************************************************************
  *******************************************************************************
-\note  receive_sensors
-\date  April 1999
+\note  receive_ros_state
+\date  July 2010
    
 \remarks 
 
-        receives new sensory data 
+receives all relevant state variables to ROS process
 	
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
-     none
+ none
 
  ******************************************************************************/
 static int 
-receive_sensors(void)
+receive_ros_state(void)
 {
   
-  int i;
-  double ts;
-  int dticks;
+  int i,j;
+  SL_fJstate  *fJstate;
+  SL_fDJstate *fDJstate;
+  SL_fCstate  *fCstate;
+  SL_fquat    *fquat;
+  float       *misc;
+  double       ts;
+  int          dticks;
 
-
-  // the joint state
-  if (semTake(sm_joint_state_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
-
+  if (semTake(sm_ros_state_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
     ++ros_servo_errors;
     return FALSE;
+  }
 
-  } 
-
-
-  memcpy((void *)(&sm_joint_state_data[1]),(const void*)(&sm_joint_state->joint_state[1]),
-	 sizeof(SL_fJstate)*n_dofs);
+  // create pointers to share memory
+  fJstate   = (SL_fJstate *) sm_ros_state->data;
+  fDJstate  = (SL_fDJstate *) &(sm_ros_state->data[sizeof(SL_fJstate)*(n_dofs+1)]);
+  fCstate   = (SL_fCstate *) &(sm_ros_state->data[sizeof(SL_fJstate)*(n_dofs+1)+
+						  sizeof(SL_fDJstate)*(n_dofs+1)]);
+  fquat     = (SL_fquat *) &(sm_ros_state->data[sizeof(SL_fJstate)*(n_dofs+1)+
+						sizeof(SL_fDJstate)*(n_dofs+1)+
+						sizeof(SL_fCstate)*(1+1)]);
+  misc      = (float *) &(sm_ros_state->data[sizeof(SL_fJstate)*(n_dofs+1)+
+					     sizeof(SL_fDJstate)*(n_dofs+1)+
+					     sizeof(SL_fCstate)*(1+1)+
+					     sizeof(SL_fquat)*(1+1)]);
+  
+  memcpy((void *)(&sm_joint_state_data[1]),(const void*)(&(fJstate[1])),sizeof(SL_fJstate)*n_dofs);
+  memcpy((void *)(&sm_joint_des_state_data[1]),(const void*)(&(fDJstate[1])),sizeof(SL_fDJstate)*n_dofs);
+  memcpy((void *)(&sm_base_state_data[1]),(const void*)(&(fCstate[1])),sizeof(SL_fCstate)*1);
+  memcpy((void *)(&sm_base_orient_data[1]),(const void*)(&(fquat[1])),sizeof(SL_fquat)*1);
+  memcpy((void *)(&sm_misc_sensor_data[1]),(const void*)(&(misc[1])),sizeof(float)*n_misc_sensors);
 
   cSL_Jstate(joint_state,sm_joint_state_data,n_dofs,FLOAT2DOUBLE);
+  cSL_DJstate(joint_des_state, sm_joint_des_state_data, n_dofs,FLOAT2DOUBLE);
+  cSL_Cstate((&base_state)-1, sm_base_state_data, 1, FLOAT2DOUBLE);
+  cSL_quat((&base_orient)-1, sm_base_orient_data, 1, FLOAT2DOUBLE);
+  for (i=1; i<=n_misc_sensors; ++i)
+    misc_sensor[i] = (double) sm_misc_sensor_data[i];
 
   // get time stamp and check for synchronization errors
-  ts = sm_joint_state->ts;
+  ts = sm_ros_state->ts;
   dticks = (int)((ts-servo_time)*ros_servo_rate);
   if (dticks != 0) {
-      printf("dticks=%d\n",dticks);
     ros_servo_calls   += dticks;
     ros_servo_time = servo_time = ros_servo_calls/(double)ros_servo_rate;
     if (ros_servo_calls > 1)
       ros_servo_errors += abs(dticks);
   }
-  
-  semGive(sm_joint_state_sem);
 
-
-  // the misc sensors
-
-  if (n_misc_sensors > 0) {
-    
-    if (semTake(sm_misc_sensor_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
-      
-      ++ros_servo_errors;
-      return FALSE;
-      
-    } 
-    
-    memcpy((void *)(&sm_misc_sensor_data[1]),(const void*)(&sm_misc_sensor->value[1]),
-	   sizeof(float)*n_misc_sensors);
-    
-    for (i=1; i<=n_misc_sensors; ++i)
-      misc_sensor[i] = (double) sm_misc_sensor_data[i];
-    
-    // get time stamp and check for synchronization errors
-    ts = sm_misc_sensor->ts;
-    dticks = (int)((ts-servo_time)*ros_servo_rate);
-    if (dticks != 0) {
-      ros_servo_calls   += dticks;
-      ros_servo_time = servo_time = ros_servo_calls/(double)ros_servo_rate;
-      if (ros_servo_calls > 1)
-	ros_servo_errors += abs(dticks);
-    }
-    
-    semGive(sm_misc_sensor_sem);
-
-  }
-
+  semGive(sm_ros_state_sem);
+   
   return TRUE;
+  
 }
 
 /*!*****************************************************************************
@@ -674,48 +649,6 @@ compute_kinematics(void)
   /* reset first time flag */
   firsttime = FALSE;
 
-}
-
-/*!*****************************************************************************
-*******************************************************************************
-\note  receive_des_commands
-\date  Nov. 2007
-
-\remarks 
-
-receives the commands from the joint_des_state shared memory
-structure
-
-
-*******************************************************************************
-Function Parameters: [in]=input,[out]=output
-
-none
-
-******************************************************************************/
-static int 
-receive_des_commands(void)
-{
-  
-  int i;
-
-  if (semTake(sm_des_commands_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
-    
-    ++ros_servo_errors;
-    return FALSE;
-
-  } 
-
-  for (i=1; i<=n_dofs; ++i) {
-    joint_des_state[i].th  = (double) sm_des_commands->des_command[i].th;
-    joint_des_state[i].thd = (double) sm_des_commands->des_command[i].thd;
-    joint_des_state[i].uff = (double) sm_des_commands->des_command[i].uff;
-    joint_sim_state[i].u   = (double) sm_des_commands->des_command[i].u;
-  }
-  
-  semGive(sm_des_commands_sem);
-
-  return TRUE;
 }
 
 /*!*****************************************************************************

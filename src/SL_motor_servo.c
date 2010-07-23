@@ -593,7 +593,6 @@ triggerSynchronization(void)
       semFlush(sm_task_servo_sem);
 #else
       semGive(sm_task_servo_sem);
-      semGive(sm_ros_servo_sem);
 #endif
     }
   } else {
@@ -601,7 +600,6 @@ triggerSynchronization(void)
     semFlush(sm_task_servo_sem);
 #else
     semGive(sm_task_servo_sem);
-    semGive(sm_ros_servo_sem);
 #endif
   }
 

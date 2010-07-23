@@ -63,6 +63,7 @@ static void sim_step(void);
 static int  checkForMessages(void);
 static void freezeBaseToggle(void);
 static void statusAll(void);
+static int  send_ros_state(void);
 
 
 /*!*****************************************************************************
@@ -589,6 +590,14 @@ run_task_servo(void)
 
   setOsc(d2a_ct,80.0);
   
+  
+  /**********************************************************************
+   * send out ros state
+   */
+
+  send_ros_state();
+
+  setOsc(d2a_ct,90.0);
   
   /*************************************************************************
    * collect data
@@ -1842,5 +1851,73 @@ statusAll(void)
   sendMessageVisionServo("status",(void *)cbuf,0);
   status();
 
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  send_ros_state
+\date  July 2010
+   
+\remarks 
+
+sends all relevant state variables to ROS process
+	
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static int 
+send_ros_state(void)
+{
+  
+  int i,j;
+  SL_fJstate  *fJstate;
+  SL_fDJstate *fDJstate;
+  SL_fCstate  *fCstate;
+  SL_fquat    *fquat;
+  float       *misc;
+
+  if (semTake(sm_ros_state_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
+    ++task_servo_errors;
+    return FALSE;
+  }
+
+  // create pointers to share memory
+
+  fJstate   = (SL_fJstate *) sm_ros_state->data;
+  fDJstate  = (SL_fDJstate *) &(sm_ros_state->data[sizeof(SL_fJstate)*(n_dofs+1)]);
+  fCstate   = (SL_fCstate *) &(sm_ros_state->data[sizeof(SL_fJstate)*(n_dofs+1)+
+						  sizeof(SL_fDJstate)*(n_dofs+1)]);
+  fquat     = (SL_fquat *) &(sm_ros_state->data[sizeof(SL_fJstate)*(n_dofs+1)+
+						sizeof(SL_fDJstate)*(n_dofs+1)+
+						sizeof(SL_fCstate)*(1+1)]);
+  misc      = (float *) &(sm_ros_state->data[sizeof(SL_fJstate)*(n_dofs+1)+
+					     sizeof(SL_fDJstate)*(n_dofs+1)+
+					     sizeof(SL_fCstate)*(1+1)+
+					     sizeof(SL_fquat)*(1+1)]);
+  
+  cSL_Jstate(joint_state,sm_joint_state_data,n_dofs,DOUBLE2FLOAT);
+  cSL_DJstate(joint_des_state, sm_joint_des_state_data, n_dofs,DOUBLE2FLOAT);
+  cSL_Cstate((&base_state)-1, sm_base_state_data, 1, DOUBLE2FLOAT);
+  cSL_quat((&base_orient)-1, sm_base_orient_data, 1, DOUBLE2FLOAT);
+  for (i=1; i<=n_misc_sensors; ++i)
+    sm_misc_sensor_data[i] = (float) misc_sensor[i];
+
+  memcpy((void*)(&(fJstate[1])),(const void *)(&sm_joint_state_data[1]),sizeof(SL_fJstate)*n_dofs);
+  memcpy((void*)(&(fDJstate[1])),(const void *)(&sm_joint_des_state_data[1]),sizeof(SL_fDJstate)*n_dofs);
+  memcpy((void*)(&(fCstate[1])),(const void *)(&sm_base_state_data[1]),sizeof(SL_fCstate)*1);
+  memcpy((void*)(&(fquat[1])),(const void *)(&sm_base_orient_data[1]),sizeof(SL_fquat)*1);
+  memcpy((void*)(&(misc[1])),(const void *)(&sm_misc_sensor_data[1]),sizeof(float)*n_misc_sensors);
+
+  sm_ros_state->ts = task_servo_time;
+
+  semGive(sm_ros_state_sem);
+  semGive(sm_ros_servo_sem);
+  
+  return TRUE;
+  
 }
 
