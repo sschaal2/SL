@@ -499,7 +499,9 @@ status(void)
   printf("            Gravity                = %f\n",gravity);
 #ifdef __XENO__
   extern long count_xenomai_mode_switches;
+  extern int  delay_ns;
   printf("            Xeonmai Mode Swiches   = %ld\n",count_xenomai_mode_switches);
+  printf("            Delay [ns]             = %d\n",delay_ns);
 #endif
 
   printf("\n");

@@ -34,6 +34,7 @@
 #include "SL_xeno_common.h"
 
 // global variables
+int     delay_ns=FALSE;
 
 // local variables
 static RT_TASK servo_ptr;
@@ -41,7 +42,6 @@ static int     use_spawn = FALSE; // somehow openGL does not work in a spawned p
 static int     servo_priority = 10;
 static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
-static int     delay_ns=FALSE;
   
 // local functions 
 static void openGL_servo(void *dummy);
@@ -100,9 +100,6 @@ main(int argc, char**argv)
   // initializes the servo
   if (!init_openGL_servo(argc,argv))
     return FALSE;
-
-  // add to man pages 
-  addToMan("dos","disables the openGL servo",dos);
 
   // get the servo parameters
   sprintf(name,"%s_servo",servo_name);

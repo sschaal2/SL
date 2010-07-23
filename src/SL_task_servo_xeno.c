@@ -34,6 +34,7 @@
 
 // global variabes
 char initial_user_command[100]="";
+int  delay_ns = FALSE;
 
 // local variables
 static RT_TASK servo_ptr;
@@ -41,11 +42,12 @@ static int     use_spawn = TRUE;
 static int     servo_priority = 25;
 static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
-static int     delay_ns = FALSE;
 
 // global functions 
 
 // local functions
+static void task_servo(void *dummy);
+
 
 // external functions
 extern void initUserTasks(void);
@@ -96,15 +98,6 @@ main(int argc, char**argv)
 
   // generic computations
   init_user_task();
-
-  // add to man pages 
-  addToMan("dts","disables the task servo",dts);
-  addToMan("statusAll","prints status on all processes",statusAll);
-  if (!real_robot_flag) {
-    addToMan("reset","reset state of simulation",reset);
-    addToMan("setG","set gravity constant",setG);
-    addToMan("freezeBase","freeze the base at orgin",freezeBaseToggle);
-  }
 
   // reset task_servo variables
   servo_enabled           = 1;

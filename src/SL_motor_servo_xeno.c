@@ -51,7 +51,9 @@ static int     use_spawn = TRUE;
 static int     servo_priority = 75;
 static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
-static int     delay_ns = FALSE;
+
+// global variables
+int    delay_ns = FALSE;
 
 // external functions
 
@@ -108,14 +110,10 @@ main(int argc, char**argv)
   read_servoParameters(config_files[SERVOPARAMETERS],name,&servo_priority,
 		       &servo_stack_size,&cpuID,&delay_ns);
 
-  // add to man pages 
-  addToMan("dms","disables the motor servo",dms);
-  addToMan("status","displays status information about servo",status);
-  addToMan("stop","kills the robot control",sim_stop);
-
   // reset motor_servo variables
   servo_enabled            = 1;
   motor_servo_calls        = 0;
+  last_motor_servo_calls   = 0;
   servo_time               = 0;
   motor_servo_time         = 0;
   motor_servo_rate         = servo_base_rate;

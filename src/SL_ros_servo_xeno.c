@@ -35,7 +35,9 @@ static int     use_spawn = TRUE;
 static int     servo_priority = 10;
 static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
-static int     delay_ns = FALSE;
+
+// global variables
+int     delay_ns = FALSE;
 
 // global functions 
 

@@ -31,6 +31,7 @@
 
 /* global variables */
 extern int stereo_mode;
+int     delay_ns = FALSE;
 
 /* local variables */
 static RT_TASK servo_ptr;
@@ -38,7 +39,6 @@ static int     use_spawn = TRUE;
 static int     servo_priority = 10;
 static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
-static int     delay_ns = FALSE;
 
 /* global functions */
 void status(void);

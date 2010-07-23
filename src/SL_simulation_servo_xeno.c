@@ -45,6 +45,7 @@
 #define TIME_OUT_NS  1000000000
 
 // global variables
+int     delay_ns = FALSE;
 
 // local variables
 static int     pause_flag = FALSE;
@@ -53,7 +54,6 @@ static int     use_spawn = TRUE;
 static int     servo_priority = 90;
 static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
-static int     delay_ns = FALSE;
 
 // global functions 
 
