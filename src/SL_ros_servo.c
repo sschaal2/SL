@@ -29,7 +29,7 @@
 #include "SL_oscilloscope.h"
 #include "SL_kinematics.h"
 
-#define TIME_OUT_NS  100000
+#define TIME_OUT_NS  1000000
 
 /* variables for the task servo */
 int    ros_servo_errors;
@@ -321,9 +321,14 @@ run_ros_servo(void)
 {
   int    j,i;
   double dt;
+  int    dticks;
 
   setOsc(d2a_cr,0.0);
   
+  // check for missed calls to the servo
+  dticks = ros_servo_calls - last_ros_servo_calls;
+  if (dticks != 1 && ros_servo_calls > 2) // need transient ticks to sync servos
+    ros_servo_errors += abs(dticks-1);
 
   /*********************************************************************
    * check for messages
@@ -391,6 +396,8 @@ run_ros_servo(void)
    * end of program sequence
    */
 
+  last_ros_servo_calls = ros_servo_calls;
+
   return TRUE;
   
 }
@@ -449,6 +456,8 @@ receive_sensors(void)
 {
   
   int i;
+  double ts;
+  int dticks;
 
 
   // the joint state
@@ -464,6 +473,17 @@ receive_sensors(void)
 	 sizeof(SL_fJstate)*n_dofs);
 
   cSL_Jstate(joint_state,sm_joint_state_data,n_dofs,FLOAT2DOUBLE);
+
+  // get time stamp and check for synchronization errors
+  ts = sm_joint_state->ts;
+  dticks = (int)((ts-servo_time)*ros_servo_rate);
+  if (dticks != 0) {
+      printf("dticks=%d\n",dticks);
+    ros_servo_calls   += dticks;
+    ros_servo_time = servo_time = ros_servo_calls/(double)ros_servo_rate;
+    if (ros_servo_calls > 1)
+      ros_servo_errors += abs(dticks);
+  }
   
   semGive(sm_joint_state_sem);
 
@@ -485,6 +505,15 @@ receive_sensors(void)
     for (i=1; i<=n_misc_sensors; ++i)
       misc_sensor[i] = (double) sm_misc_sensor_data[i];
     
+    // get time stamp and check for synchronization errors
+    ts = sm_misc_sensor->ts;
+    dticks = (int)((ts-servo_time)*ros_servo_rate);
+    if (dticks != 0) {
+      ros_servo_calls   += dticks;
+      ros_servo_time = servo_time = ros_servo_calls/(double)ros_servo_rate;
+      if (ros_servo_calls > 1)
+	ros_servo_errors += abs(dticks);
+    }
     
     semGive(sm_misc_sensor_sem);
 
