@@ -125,6 +125,9 @@ SEM_ID             sm_vision_message_sem;
 smDCommands       *sm_des_commands;
 SEM_ID             sm_des_commands_sem;
 
+smROSState        *sm_ros_state;
+SEM_ID             sm_ros_state_sem;
+
 /* local functions */
 static int init_sm_object(char *smname, size_t structsize, size_t datasize, 
 			  SEM_ID *semptr, void **structptr);
@@ -404,6 +407,20 @@ init_shared_memory(void)
 		     sizeof(SL_fDCommands)*(n_dofs+1),
 		     &sm_des_commands_sem,
 		     (void **)&sm_des_commands)) {
+    ;
+  } else {
+    return FALSE;
+  }
+  /********************************************************************/
+  if (init_sm_object("smROSState", 
+		     sizeof(smROSState),
+		     sizeof(SL_fJstate)*(n_dofs+1) +
+		     sizeof(SL_fDJstate)*(n_dofs+1) +
+		     sizeof(SL_fCstate)*(1+1) +		     
+		     sizeof(SL_fquat)*(1+1) +
+		     sizeof(float)*(n_misc_sensors+1),
+		     &sm_ros_state_sem,
+		     (void **)&sm_ros_state)) {
     ;
   } else {
     return FALSE;

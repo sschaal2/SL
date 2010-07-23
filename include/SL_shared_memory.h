@@ -78,6 +78,12 @@ typedef struct smJointStates {
   SL_fJstate     joint_state[1];
 } smJointStates;
 
+typedef struct smROSState {
+  SEM_ID         sm_sem;
+  float          ts;
+  float          data[1];
+} smROSState;
+
 typedef struct smJointDesStates {
   SEM_ID          sm_sem;
   float           ts;
@@ -243,6 +249,10 @@ extern "C" {
 
   extern smDCommands       *sm_des_commands;
   extern SEM_ID             sm_des_commands_sem;
+
+  extern smROSState        *sm_ros_state;
+  extern SEM_ID             sm_ros_state_sem;
+
 
   
   int   init_shared_memory(void);
