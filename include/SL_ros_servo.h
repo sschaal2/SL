@@ -22,6 +22,7 @@ extern "C" {
 
   extern int    ros_servo_errors;
   extern long   ros_servo_calls;
+  extern long   last_ros_servo_calls;
   extern int    ros_servo_initialized;
   extern double ros_servo_time;
   extern double servo_time;

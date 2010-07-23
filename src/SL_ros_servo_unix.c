@@ -33,9 +33,6 @@
 void ros_servo(void);
 
 // local functions
-static  int  checkForMessages(void);
-static  void disable_ros_servo(void);
-static  void drs(void);
 
 // external functions
 
@@ -71,12 +68,10 @@ main(int argc, char**argv)
   // initializes the servo
   init_ros_servo();
 
-  // add to man pages 
-  addToMan("drs","disables the ros servo",drs);
-
   // reset ros_servo variables
   servo_enabled          = 1;
   ros_servo_calls        = 0;
+  last_ros_servo_calls   = 0;
   ros_servo_time         = 0;
   ros_servo_errors       = 0;
   ros_servo_rate         = servo_base_rate/(double)task_servo_ratio;
@@ -98,8 +93,9 @@ main(int argc, char**argv)
       return FALSE;
     }
 
-    // check for messages
-    checkForMessages();
+    // adjust the servo time
+    ++ros_servo_calls;
+    ros_servo_time = servo_time = ros_servo_calls/(double)ros_servo_rate;
 
     // lock out the keyboard interaction 
     pthread_mutex_lock( &mutex1 );
@@ -119,103 +115,3 @@ main(int argc, char**argv)
 
 }
  
-/*!*****************************************************************************
- *******************************************************************************
-\note  drs & disable_ros_servo
-\date  July 2010
-   
-\remarks 
-
-disables the ros servo
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
- none
-
- ******************************************************************************/
-void 
-drs(void)
-{
-  disable_ros_servo();
-}
-
-void 
-disable_ros_servo(void)
-{
-  int j;
-
-  if ( servo_enabled == 1 )   {
-
-    servo_enabled = 0;
-    printf("ROS Servo Terminated\n");
-
-    exit(-1);
-    
-  } else
-    fprintf( stderr, "ROS Servo is not on!\n" );
-  
-}
-
-
-/*!*****************************************************************************
- *******************************************************************************
-\note  checkForMessages
-\date  Nov. 2007
-   
-\remarks 
-
-Messages can be given to the servo for hard-coded tasks.This allows
-some information passing between the different processes on variables
-of common interest, e.g., the endeffector specs, object information,
-etc.
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
- none
-
- ******************************************************************************/
-static int
-checkForMessages(void)
-{
-  int i,j;
-  char name[20];
-
-  // check whether a message is available
-  if (semTake(sm_ros_message_ready_sem,NO_WAIT) == ERROR)
-    return FALSE;
-
-  // receive the message
-  if (semTake(sm_ros_message_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
-    ++ros_servo_errors;
-    printf("Couldn't take task message semaphore\n");
-    return FALSE;
-  }
-
-  for (i=1; i<=sm_ros_message->n_msgs; ++i) {
-
-    // get the name of this message
-    strcpy(name,sm_ros_message->name[i]);
-
-    // act according to the message name
-
-    // ---------------------------------------------------------------------------
-    if (strcmp(name,"status") == 0) { 
-
-      status();
-
-    }
-
-
-  }
-
-  // give back semaphore
-  sm_ros_message->n_msgs = 0;
-  sm_ros_message->n_bytes_used = 0;
-  semGive(sm_ros_message_sem);
-
-
-  return TRUE;
-}
-
