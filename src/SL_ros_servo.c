@@ -34,8 +34,8 @@
 /* variables for the task servo */
 int    ros_servo_errors;
 long   ros_servo_calls=0;
-long   last_ros_servo_calls=0;
 int    ros_servo_initialized = FALSE;
+double last_ros_servo_time=0;
 double ros_servo_time=0;
 double servo_time=0;
 int    servo_enabled;
@@ -323,8 +323,15 @@ run_ros_servo(void)
 
   setOsc(d2a_cr,0.0);
   
-  // check for missed calls to the servo
-  dticks = ros_servo_calls - last_ros_servo_calls;
+  /*********************************************************************
+   * adjust time
+   */
+  ++ros_servo_calls;
+  ros_servo_time += 1./(double)ros_servo_rate;
+  servo_time = ros_servo_time;
+
+  // check for unexpected time drift
+  dticks = (int)((ros_servo_time - last_ros_servo_time)*(double)ros_servo_rate);
   if (dticks != 1 && ros_servo_calls > 2) // need transient ticks to sync servos
     ros_servo_errors += abs(dticks-1);
 
@@ -381,7 +388,7 @@ run_ros_servo(void)
    * end of program sequence
    */
 
-  last_ros_servo_calls = ros_servo_calls;
+  last_ros_servo_time = ros_servo_time;
 
   return TRUE;
   
@@ -483,15 +490,8 @@ receive_ros_state(void)
   for (i=1; i<=n_misc_sensors; ++i)
     misc_sensor[i] = (double) sm_misc_sensor_data[i];
 
-  // get time stamp and check for synchronization errors
-  ts = sm_ros_state->ts;
-  dticks = (int)((ts-servo_time)*ros_servo_rate);
-  if (dticks != 0) {
-    ros_servo_calls   += dticks;
-    ros_servo_time = servo_time = ros_servo_calls/(double)ros_servo_rate;
-    if (ros_servo_calls > 1)
-      ros_servo_errors += abs(dticks);
-  }
+  // get time stamp and adjust time
+  ros_servo_time = servo_time = sm_ros_state->ts;
 
   semGive(sm_ros_state_sem);
    

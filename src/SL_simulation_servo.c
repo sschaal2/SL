@@ -36,12 +36,13 @@
 
 // global variables
 int     servo_enabled;
-double  servo_time=0;
 long    simulation_servo_calls=0;
-long    last_simulation_servo_calls=0;
 int     simulation_servo_rate;
 int     simulation_servo_errors=0;
+double  last_simulation_servo_time=0;
 double  simulation_servo_time=0;
+double  servo_time=0;
+
 
 int     n_integration = 1;   
 int     integrate_method = INTEGRATE_EULER;
@@ -166,9 +167,13 @@ run_simulation_servo(void)
   static double last_time = 0;
   static double current_time = 0;
 
-  // check for missed ticks
+  // advance the simulation servo
+  ++simulation_servo_calls;
+  simulation_servo_time += 1./(double)simulation_servo_rate;
+  servo_time = simulation_servo_time;
+
   // check for missed calls to the servo
-  dtick = simulation_servo_calls - last_simulation_servo_calls;
+  dtick = (int)((simulation_servo_time - last_simulation_servo_time)*(double)simulation_servo_rate);
   if (dtick != 1 && simulation_servo_calls > 2) // need transient ticks to sync servos
     simulation_servo_errors += abs(dtick-1);
 
@@ -281,7 +286,7 @@ run_simulation_servo(void)
   // data collection
   writeToBuffer();
 
-  last_simulation_servo_calls = simulation_servo_calls;
+  last_simulation_servo_time = simulation_servo_time;
 
   return TRUE;
 

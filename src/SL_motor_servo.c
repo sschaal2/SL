@@ -40,11 +40,11 @@
 /* variables for the motor servo */
 int           motor_servo_errors;
 long          motor_servo_calls=0;
-long          last_motor_servo_calls = 0;
 int           motor_servo_initialized = FALSE;
 int           motor_servo_rate;
 double        servo_time=0;
 double        motor_servo_time=0;
+double        last_motor_servo_time=0;
 int           servo_enabled;
 int           count_no_receive = 0;
 double        count_no_receive_total = 0;
@@ -227,8 +227,16 @@ run_motor_servo(void)
 
   setOsc(d2a_cm,100.0);
   
+  /*********************************************************************
+   * timing
+   */
+
+  ++motor_servo_calls;
+  motor_servo_time += 1./(double)motor_servo_rate;
+  servo_time = motor_servo_time;
+
   // check for missed calls to the servo
-  dticks = motor_servo_calls - last_motor_servo_calls;
+  dticks = (int)((motor_servo_time - last_motor_servo_time)*(double)motor_servo_rate);
   if (dticks != 1 && motor_servo_calls > 2) // need transient ticks to sync servos
     motor_servo_errors += abs(dticks-1);
   
@@ -336,7 +344,7 @@ run_motor_servo(void)
    * end of functions
    */
 
-  last_motor_servo_calls = motor_servo_calls;
+  last_motor_servo_time = motor_servo_time;
 
   return TRUE;
 

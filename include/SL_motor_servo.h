@@ -25,8 +25,8 @@ extern "C" {
 #endif
 
 extern long          motor_servo_calls;
-extern long          last_motor_servo_calls;
 extern int           motor_servo_rate;
+extern double        last_motor_servo_time;
 extern double        motor_servo_time;
 extern double        servo_time;
 extern int           servo_enabled;

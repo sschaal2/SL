@@ -90,7 +90,7 @@ main(int argc, char**argv)
   // setup servo
   servo_enabled           = 1;
   vision_servo_calls      = 0;
-  last_vision_servo_calls = 0;
+  last_vision_servo_time  = 0;
   vision_servo_time       = 0;
   servo_time              = 0;
   vision_servo_errors     = 0;
@@ -182,11 +182,6 @@ vision_servo(void *dummy)
     if (semTake(sm_vision_servo_sem,WAIT_FOREVER) == ERROR)
       stop("semTake Time Out -- Servo Terminated");
    
-    // adjust the servo time (needs to come after acquire_blobs)
-    ++vision_servo_calls;
-    vision_servo_time = vision_servo_calls/(double)vision_servo_rate;
-    servo_time = vision_servo_time;
-
     // lock out the keyboard interaction 
     pthread_mutex_lock( &mutex1 );
 

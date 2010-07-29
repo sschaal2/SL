@@ -30,8 +30,8 @@ extern "C" {
 
   extern int    task_servo_errors;
   extern long   task_servo_calls;
-  extern long   last_task_servo_calls;
   extern int    task_servo_initialized;
+  extern double last_task_servo_time;
   extern double task_servo_time;
   extern double servo_time;
   extern int    servo_enabled;

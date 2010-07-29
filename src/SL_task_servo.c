@@ -38,8 +38,8 @@
 /* variables for the task servo */
 int    task_servo_errors;
 long   task_servo_calls=0;
-long   last_task_servo_calls=0;
 int    task_servo_initialized = FALSE;
+double last_task_servo_time=0;
 double task_servo_time=0;
 double servo_time=0;
 int    servo_enabled;
@@ -498,6 +498,19 @@ run_task_servo(void)
   setOsc(d2a_ct,0.0);
   
   /*********************************************************************
+   * adjust servo time
+   */
+
+  ++task_servo_calls;
+  task_servo_time += 1./(double)task_servo_rate;
+  servo_time = task_servo_time;
+
+  // check for missed calls to the servo
+  dticks = (int)((task_servo_time - last_task_servo_time)*(double)task_servo_rate);
+  if (dticks != 1 && task_servo_calls > 2) // need transient ticks to sync servos
+    task_servo_errors += abs(dticks-1);
+  
+  /*********************************************************************
    * start up chores
    */
 
@@ -507,11 +520,6 @@ run_task_servo(void)
   /* check for messages */
   checkForMessages();
 
-  // check for missed calls to the servo
-  dticks = task_servo_calls - last_task_servo_calls;
-  if (dticks != 1 && task_servo_calls > 2) // need transient ticks to sync servos
-    task_servo_errors += abs(dticks-1);
-  
   /*********************************************************************
    * receive sensory data
    */
@@ -613,7 +621,7 @@ run_task_servo(void)
    * end of program sequence
    */
 
-  last_task_servo_calls = task_servo_calls;
+  last_task_servo_time = task_servo_time;
 
   return TRUE;
   
@@ -694,15 +702,8 @@ receive_sensors(void)
 
   cSL_Jstate(joint_state,sm_joint_state_data,n_dofs,FLOAT2DOUBLE);
 
-  // get time stamp and check for synchronization errors
-  ts = sm_joint_state->ts;
-  dticks = (int)((ts-servo_time)*task_servo_rate);
-  if (dticks != 0) {
-    task_servo_calls   += dticks;
-    task_servo_time = servo_time = task_servo_calls/(double)task_servo_rate;
-    if (task_servo_calls > 1)
-      task_servo_errors += abs(dticks);
-  }
+  // get time stamp and adjust servo time
+  task_servo_time = servo_time = sm_joint_state->ts;
   
   semGive(sm_joint_state_sem);
 
@@ -724,16 +725,6 @@ receive_sensors(void)
     for (i=1; i<=n_misc_sensors; ++i)
       misc_sensor[i] = (double) sm_misc_sensor_data[i];
 
-    // get time stamp and check for synchronization errors
-    ts = sm_misc_sensor->ts;
-    dticks = (int)((ts-servo_time)*task_servo_rate);
-    if (dticks != 0) {
-      task_servo_calls   += dticks;
-      task_servo_time = servo_time = task_servo_calls/(double)task_servo_rate;
-      if (task_servo_calls > 1)
-	task_servo_errors += abs(dticks);
-    }
-    
     semGive(sm_misc_sensor_sem);
 
   }

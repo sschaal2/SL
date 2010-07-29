@@ -39,9 +39,9 @@
 int           servo_enabled;
 double        servo_time;
 double        vision_servo_time;
+double        last_vision_servo_time;
 int           vision_servo_rate = R60HZ;
 int           vision_servo_calls;
-int           last_vision_servo_calls;
 char          current_pp_name[100];
 int           vision_servo_initialized = FALSE;
 int           vision_servo_errors;
@@ -221,10 +221,18 @@ run_vision_servo(void)
   int dticks;
 
 
+  /*************************************************************************
+   *  adjust time
+   */
+  
+  ++vision_servo_calls;
+  vision_servo_time += 1./(double)vision_servo_rate;
+  servo_time = vision_servo_time;
+
   // check for missed calls to the servo
-  dticks = vision_servo_calls - last_vision_servo_calls;
-    if (dticks != 1 && vision_servo_calls > 2) // need transient ticks to sync servos
-      vision_servo_errors += abs(dticks-1);
+  dticks = (int)((vision_servo_time - last_vision_servo_time)*(double)vision_servo_rate);
+  if (dticks != 1 && vision_servo_calls > 2) // need transient ticks to sync servos
+    vision_servo_errors += abs(dticks-1);
 
   /*************************************************************************
    *  check for messages
@@ -286,7 +294,7 @@ run_vision_servo(void)
    * end of program sequence
    */
 
-  last_vision_servo_calls = vision_servo_calls;
+  last_vision_servo_time = vision_servo_time;
 
   return TRUE;
 
@@ -383,16 +391,8 @@ receive_cartesian(void)
 
   cSL_Cstate(cart_state,sm_cart_states_data,n_endeffs,FLOAT2DOUBLE);
 
-  // get time stamp and check for synchronization errors
-  ts = sm_cart_states->ts;
-  dticks = (int)((ts-vision_servo_time)*vision_servo_rate);
-  if (dticks != 0) {
-    vision_servo_calls   += dticks;
-    vision_servo_time = servo_time = vision_servo_calls/(double)vision_servo_rate;
-    if (vision_servo_calls > 1)
-      vision_servo_errors += abs(dticks);
-  }
-
+  // get time stamp and adjust local time
+  vision_servo_time = servo_time = sm_cart_states->ts;
   
   semGive(sm_cart_states_sem);
 

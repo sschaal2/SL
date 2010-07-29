@@ -103,6 +103,7 @@ main(int argc, char**argv)
   servo_enabled           = 1;
   task_servo_calls        = 0;
   task_servo_time         = 0;
+  last_task_servo_time    = 0;
   task_servo_errors       = 0;
   task_servo_rate         = servo_base_rate/(double) task_servo_ratio;
 
@@ -190,10 +191,6 @@ task_servo(void *dummy)
     // wait to take semaphore 
     if (semTake(sm_task_servo_sem,WAIT_FOREVER) == ERROR)
 	stop("semTake Time Out -- Servo Terminated");
-
-    // adjust the servo time
-    ++task_servo_calls;
-    task_servo_time = servo_time = task_servo_calls/(double)task_servo_rate;
 
     // lock out the keyboard interaction 
     pthread_mutex_lock( &mutex1 );

@@ -34,9 +34,9 @@ extern "C" {
 extern int           servo_enabled;
 extern double        servo_time;
 extern double        vision_servo_time;
+extern double        last_vision_servo_time;
 extern int           vision_servo_rate;
 extern int           vision_servo_calls;
-extern int           last_vision_servo_calls;
 extern char          current_pp_name[100];
 extern int           vision_servo_initialized;
 extern int           vision_servo_errors;

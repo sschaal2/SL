@@ -128,6 +128,7 @@ main(int argc, char**argv)
   motor_servo_calls        = 0;
   servo_time               = 0;
   motor_servo_time         = 0;
+  last_motor_servo_time    = 0;
   motor_servo_rate         = servo_base_rate;
   motor_servo_errors       = 0;
   count_no_receive         = 0;
@@ -217,11 +218,6 @@ main(int argc, char**argv)
       exit(-1);
     }
     
-    // increment time
-    ++motor_servo_calls;
-    servo_time += 1./(double)motor_servo_rate;
-    motor_servo_time = servo_time;
-
     // lock out the keyboard interaction 
     pthread_mutex_lock( &mutex1 );
 

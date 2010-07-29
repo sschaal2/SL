@@ -198,11 +198,6 @@ simulation_servo(void *dummy)
       return;
     }
 
-    // advance the simulation servo
-    ++simulation_servo_calls;
-    servo_time += 1./(double)simulation_servo_rate;
-    simulation_servo_time = servo_time;
-    
     // lock out the keyboard interaction 
     pthread_mutex_lock( &mutex1 );
     

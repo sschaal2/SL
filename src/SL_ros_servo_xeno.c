@@ -91,7 +91,7 @@ main(int argc, char**argv)
   // reset ros_servo variables
   servo_enabled          = 1;
   ros_servo_calls        = 0;
-  last_ros_servo_calls   = 0;
+  last_ros_servo_time    = 0;
   ros_servo_time         = 0;
   ros_servo_errors       = 0;
   ros_servo_rate         = servo_base_rate/(double) task_servo_ratio;
@@ -174,10 +174,6 @@ ros_servo(void *dummy)
       printf("semTake Time Out -- Servo Terminated\n");
       return FALSE;
     }
-
-    // adjust the servo time
-    ++ros_servo_calls;
-    ros_servo_time = servo_time = ros_servo_calls/(double)ros_servo_rate;
 
     // lock out the keyboard interaction 
     pthread_mutex_lock( &mutex1 );
