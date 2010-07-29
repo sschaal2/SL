@@ -509,7 +509,7 @@ run_task_servo(void)
   dticks = (int)((task_servo_time - last_task_servo_time)*(double)task_servo_rate);
   if (dticks != 1 && task_servo_calls > 2) // need transient ticks to sync servos
     task_servo_errors += abs(dticks-1);
-  
+
   /*********************************************************************
    * start up chores
    */
@@ -528,7 +528,7 @@ run_task_servo(void)
     stop("Problem when receiving sensor data");
     return FALSE;
   }
-  
+
   setOsc(d2a_ct,10.0);
 
   if (firsttime) { // initialize desired at first servo tick
@@ -547,7 +547,7 @@ run_task_servo(void)
   compute_kinematics();
   
   setOsc(d2a_ct,20.0);
-  
+
   /**********************************************************************
    * send out the kinematic variables
    */
@@ -570,7 +570,6 @@ run_task_servo(void)
   }
   
   setOsc(d2a_ct,50.0);
-  
   
   /*********************************************************************
    * call the tasks
@@ -1906,8 +1905,9 @@ send_ros_state(void)
   memcpy((void*)(&(fDJstate[1])),(const void *)(&sm_joint_des_state_data[1]),sizeof(SL_fDJstate)*n_dofs);
   memcpy((void*)(&(fCstate[1])),(const void *)(&sm_base_state_data[1]),sizeof(SL_fCstate)*1);
   memcpy((void*)(&(fquat[1])),(const void *)(&sm_base_orient_data[1]),sizeof(SL_fquat)*1);
-  memcpy((void*)(&(misc[1])),(const void *)(&sm_misc_sensor_data[1]),sizeof(float)*n_misc_sensors);
-
+  if (n_misc_sensors > 0)
+    memcpy((void*)(&(misc[1])),(const void *)(&sm_misc_sensor_data[1]),sizeof(float)*n_misc_sensors);
+  
   sm_ros_state->ts = task_servo_time;
 
   semGive(sm_ros_state_sem);

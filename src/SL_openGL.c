@@ -2367,7 +2367,7 @@ initCheckerBoard(void)
     return FALSE;
   }
 
-  // look for use parameters
+  // look for user parameters
   if (read_parameter_pool_double(config_files[PARAMETERPOOL],"checkerboard_width", &w))
     checkImageWidth = round(floorObjectPtr->scale[_X_]/w);
   
