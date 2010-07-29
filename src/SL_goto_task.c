@@ -102,6 +102,7 @@ init_goto_task(void)
   char string[100];
   double max_range=0;
   int ans;
+
   
   /* check whether any other task is running */
   if (strcmp(current_task_name,NO_TASK) != 0) {
@@ -167,7 +168,7 @@ init_goto_task(void)
     check_range(joint_goto_state);
 
   }
-    
+
   n_steps = 0;
   n_goto_steps = max_range/goto_speed*task_servo_rate;
   if (n_goto_steps == 0) {

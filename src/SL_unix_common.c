@@ -119,7 +119,7 @@ checkKeyboard(void *initial_command)
         usleep(100000);
       // else wait until the servo_time goes beyond 100ms:
       else {
-        while (servo_time < 0.1)
+        while (servo_time < 0.1*10)
 	  usleep(10000);
       }
 

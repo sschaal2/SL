@@ -493,6 +493,7 @@ run_task_servo(void)
   int    j,i;
   double dt;
   int    dticks;
+  static int firsttime = TRUE;
 
   setOsc(d2a_ct,0.0);
   
@@ -522,12 +523,13 @@ run_task_servo(void)
   
   setOsc(d2a_ct,10.0);
 
-  if (task_servo_calls <= 1) { // initialize desired at first servo tick
+  if (firsttime) { // initialize desired at first servo tick
     for (i=1; i<=n_dofs; ++i) {
       joint_des_state[i].th  = joint_state[i].th;
       joint_des_state[i].thd = 0.0;
       joint_des_state[i].uff = 0.0;
     }
+    firsttime = FALSE;
   }
 
   /*********************************************************************
