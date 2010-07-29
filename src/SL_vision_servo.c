@@ -230,7 +230,7 @@ run_vision_servo(void)
   servo_time = vision_servo_time;
 
   // check for missed calls to the servo
-  dticks = (int)((vision_servo_time - last_vision_servo_time)*(double)vision_servo_rate);
+  dticks = round((vision_servo_time - last_vision_servo_time)*(double)vision_servo_rate);
   if (dticks != 1 && vision_servo_calls > 2) // need transient ticks to sync servos
     vision_servo_errors += abs(dticks-1);
 

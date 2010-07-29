@@ -236,7 +236,7 @@ run_motor_servo(void)
   servo_time = motor_servo_time;
 
   // check for missed calls to the servo
-  dticks = (int)((motor_servo_time - last_motor_servo_time)*(double)motor_servo_rate);
+  dticks = round((motor_servo_time - last_motor_servo_time)*(double)motor_servo_rate);
   if (dticks != 1 && motor_servo_calls > 2) // need transient ticks to sync servos
     motor_servo_errors += abs(dticks-1);
   

@@ -506,9 +506,10 @@ run_task_servo(void)
   servo_time = task_servo_time;
 
   // check for missed calls to the servo
-  dticks = (int)((task_servo_time - last_task_servo_time)*(double)task_servo_rate);
+  dticks = round((task_servo_time - last_task_servo_time)*(double)task_servo_rate);
   if (dticks != 1 && task_servo_calls > 2) // need transient ticks to sync servos
     task_servo_errors += abs(dticks-1);
+
 
   /*********************************************************************
    * start up chores

@@ -331,7 +331,7 @@ run_ros_servo(void)
   servo_time = ros_servo_time;
 
   // check for unexpected time drift
-  dticks = (int)((ros_servo_time - last_ros_servo_time)*(double)ros_servo_rate);
+  dticks = round((ros_servo_time - last_ros_servo_time)*(double)ros_servo_rate);
   if (dticks != 1 && ros_servo_calls > 2) // need transient ticks to sync servos
     ros_servo_errors += abs(dticks-1);
 

@@ -173,7 +173,7 @@ run_simulation_servo(void)
   servo_time = simulation_servo_time;
 
   // check for missed calls to the servo
-  dtick = (int)((simulation_servo_time - last_simulation_servo_time)*(double)simulation_servo_rate);
+  dtick = round((simulation_servo_time - last_simulation_servo_time)*(double)simulation_servo_rate);
   if (dtick != 1 && simulation_servo_calls > 2) // need transient ticks to sync servos
     simulation_servo_errors += abs(dtick-1);
 
