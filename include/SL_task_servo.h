@@ -58,7 +58,6 @@ extern "C" {
   void goVisTarget(void);
   void status(void);
   int  stop(char *);
-  int  setServoMode(int type);
   int  init_user_task(void);
   int  run_user_task(void);
   int  sendUserGraphics(char *name, void *buf, int n_bytes);
