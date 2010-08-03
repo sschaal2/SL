@@ -100,6 +100,8 @@ extern "C" {
 
   double        gravity = G;
 
+  int           n_contacts = N_LINKS;           /* number of contacts and default initialization */
+
 #ifdef __cplusplus
 }
 #endif

@@ -858,6 +858,9 @@ reset(void)
   int i,j;
   unsigned char buf[1];
 
+  if (real_robot_flag)
+    return;
+
   sendMessageTaskServo("reset",(void *)buf,0);
   setDefaultPosture();
 

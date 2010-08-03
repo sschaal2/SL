@@ -1014,7 +1014,7 @@ send_contacts(void)
 
   } 
 
-  for (i=0; i<=n_links; ++i) {
+  for (i=0; i<=n_contacts; ++i) {
     sm_contacts->contact[i].status = contacts[i].status;
     for (j=1; j<=N_CART; ++j)
       sm_contacts->contact[i].f[j] = contacts[i].f[j];

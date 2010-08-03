@@ -36,7 +36,8 @@ char config_files[][100] = {
   {"Objects.cf"},
   {"ServoParameters.cf"},
   {"StereoParameters.cf"},
-  {"ParameterPool.cf"}
+  {"ParameterPool.cf"},
+  {"Contacts.cf"}
 };
 
 // local variables
@@ -51,8 +52,11 @@ static char config_file_tags[][40]= {
   {"Objects"},
   {"ServoParameters"},
   {"StereoParameters"},
-  {"ParameterPool"}
+  {"ParameterPool"},
+  {"Contacts"}
 };
+
+static char parameter_pool_vars[] = ".parameter_pool_vars";
 
 /* external variables */
 extern int servo_enabled;
@@ -2151,6 +2155,29 @@ quatErrorVector(double* q1, double* q2, double *ad)
 
 /*!*****************************************************************************
  *******************************************************************************
+\note  init_parameter_pool
+\date  July 2010
+\remarks 
+
+some initialization of the parameter pool
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+void
+init_parameter_pool(void)
+{
+
+  // remove the file which stores all parameter pool variables
+  remove(parameter_pool_vars);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
 \note  read_parameter_pool_double
 \date  July 2010
 \remarks 
@@ -2174,6 +2201,13 @@ read_parameter_pool_double(char *fname, char *keyword, double *value)
   int    j,i,rc;
   char   string[100];
   FILE  *in;
+
+  in = fopen(parameter_pool_vars,"a");
+  if (in != NULL) {
+    fseek(in,0,SEEK_END);
+    fprintf(in,"%s (double, %s)\n",keyword,servo_name);
+    fclose(in);
+  }
 
   sprintf(string,"%s%s",CONFIG,fname);
   in = fopen_strip(string);
@@ -2224,6 +2258,13 @@ read_parameter_pool_double_array(char *fname, char *keyword, int n_values, doubl
   int    j,i,rc;
   char   string[100];
   FILE  *in;
+
+  in = fopen(parameter_pool_vars,"a");
+  if (in != NULL) {
+    fseek(in,0,SEEK_END);
+    fprintf(in,"%s (%d-coeff double array, %s)\n",keyword,n_values,servo_name);
+    fclose(in);
+  }
 
   sprintf(string,"%s%s",CONFIG,fname);
   in = fopen_strip(string);
@@ -2276,6 +2317,13 @@ read_parameter_pool_int(char *fname, char *keyword, int *ivalue)
   char   string[100];
   FILE  *in;
 
+  in = fopen(parameter_pool_vars,"a");
+  if (in != NULL) {
+    fseek(in,0,SEEK_END);
+    fprintf(in,"%s (int, %s)\n",keyword,servo_name);
+    fclose(in);
+  }
+
   sprintf(string,"%s%s",CONFIG,fname);
   in = fopen_strip(string);
   if (in == NULL) {
@@ -2325,6 +2373,13 @@ read_parameter_pool_int_array(char *fname, char *keyword, int n_values, int *iva
   int    j,i,rc;
   char   string[100];
   FILE  *in;
+
+  in = fopen(parameter_pool_vars,"a");
+  if (in != NULL) {
+    fseek(in,0,SEEK_END);
+    fprintf(in,"%s (%d-coeff int array, %s)\n",keyword,n_values,servo_name);
+    fclose(in);
+  }
 
   sprintf(string,"%s%s",CONFIG,fname);
   in = fopen_strip(string);
@@ -2377,6 +2432,13 @@ read_parameter_pool_string(char *fname, char *keyword, char *svalue)
   char   string[100];
   FILE  *in;
   char   c;
+
+  in = fopen(parameter_pool_vars,"a");
+  if (in != NULL) {
+    fseek(in,0,SEEK_END);
+    fprintf(in,"%s (string, %s)\n",keyword,servo_name);
+    fclose(in);
+  }
 
   sprintf(string,"%s%s",CONFIG,fname);
   in = fopen_strip(string);
@@ -2536,4 +2598,56 @@ parseWindowSpecs(char *string, int dw, int dh, char *xstring, int *x, int *y, in
   sprintf(xstring,"%dx%d+%d+%d",*w,*h,*x,*y);
 
   return TRUE;
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  count_extra_contact_points
+\date  July 2010
+\remarks 
+
+check in the appropriate contact configuration file how many extra contacts
+the user specified.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname : file name of file where config files are stored
+
+ returns the number of extra contact points
+
+ ******************************************************************************/
+int
+count_extra_contact_points(char *fname) {
+
+  int    j,i,rc;
+  char   string[100];
+  FILE  *in;
+  int    count = 0;
+  char   name1[100],name2[100];
+  int    n_checks;
+  int    active;
+
+  // open file and strip comments 
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen_strip(string);
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  // read the file until EOF
+  while (TRUE) {
+    n_checks = 0;
+    rc = fscanf(in,"%s %s %d %d",name1,name2,&active,&n_checks);
+    if (rc == 4)
+      count += n_checks;
+    else
+      break;
+  }
+
+  fclose(in);
+
+  return count;
 }

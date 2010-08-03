@@ -41,17 +41,19 @@ typedef struct Object {
 
 /*! structure to deal with contact forces */
 typedef struct Contact {
-  int        active;                           /*!< TRUE/FALSE: indicates whether this
-						  point should be checked for contacts */
+  int        active;                           /*!< TRUE/FALSE: indicates whether this point should be checked for contacts */
   int        status;                           /*!< contact is true or false */
   int        friction_flag;                    /*!< flag for switching between different friction models */
   ObjectPtr  optr;                             /*!< ptr of object that is contacted */
-  int        base_dof;                         /*!< to which DOF does this point
-						  connect? */
-  int        off_link;                         /*!< which link should be used for
-						  moment arm */
-  double     x[N_CART+1];                      /*!< point of contact in object 
-						  coordintates */
+  int        base_dof_start;                   /*!< to which DOF does this point connect? */
+  int        off_link_start;                   /*!< which link should be used for moment arm */
+  int        base_dof_end;                     /*!< to which DOF does this point connect? */
+  int        off_link_end;                     /*!< which link should be used for moment arm */
+  int        id_start;                         /*!< link ID where line starts */
+  int        id_end;                           /*!< link ID where line ends */
+  double     fraction_start;                   /*!< fraction relative to start point */
+  double     fraction_end;                     /*!< fraction relative to end point */
+  double     x[N_CART+1];                      /*!< point of contact in object coordintates */
   double     x_start[N_CART+1];                /*!< point of first contact */
   double     normal[N_CART+1];                 /*!< normal displacement vector */
   double     normvel[N_CART+1];                /*!< normal velocity vector */
@@ -60,9 +62,11 @@ typedef struct Contact {
   double     viscvel[N_CART+1];                /*!< velocity vector for viscous friction */
   double     f[N_CART+1];                      /*!< contact forces in world coordinates */
   double     face_index;                       /*!< _X_, _Y_, or _Z_ to indicate with which face we are in contact */
+  double     nv_start2end[N_CART+1];           /*!< the normal vector from start to end point of contact */
 
 						  
 } Contact, *ContactPtr;
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -98,11 +102,16 @@ extern "C" {
   int        getObjForcesByPtr(ObjectPtr ptr, double *f, double *t);
   ObjectPtr  getObjPtrByName(char *name);
 
+  int        read_extra_contact_points(char *fname);
+
+
+
 
   // external variables
   extern ObjectPtr  objs;
   extern ContactPtr contacts;
   extern SL_uext   *ucontact;
+  extern int        n_contacts;
 
   
 #ifdef __cplusplus

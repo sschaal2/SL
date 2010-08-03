@@ -24,6 +24,9 @@ int  display_width;
 int  display_height;
 
 
+// init the parameter pool
+init_parameter_pool();
+
 // connect to X server using the DISPLAY environment variable
 if ( (display=XOpenDisplay(NULL)) == NULL ) {
   printf("Cannot connect to X servo %s\n",XDisplayName(NULL));

@@ -31,6 +31,7 @@ enum ConfigFile {
   SERVOPARAMETERS,
   STEREOPARAMETERS,
   PARAMETERPOOL,
+  CONTACTS,
 
   N_CONFIG_ENUMS
 };
@@ -362,6 +363,7 @@ extern "C" {
   extern SL_Cstate     cog;
   extern SL_Cstate     cog_des;
   extern double        gravity;
+  extern int           n_contacts;
 
   /* Function prototypes */
   void  where(void);

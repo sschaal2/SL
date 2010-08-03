@@ -31,19 +31,23 @@
 ObjectPtr  objs = NULL;
 ContactPtr contacts=NULL;
 SL_uext   *ucontact;
+int        n_contacts;
 
 // local variables
 
 // global functions 
 
 // local functions
-static void  computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind);
+static void  computeContactForces(ObjectPtr optr, ContactPtr cptr);
 static void  contactVelocity(int cID, ObjectPtr optr, double *v);
 static void  addObjectSync(char *name, int type, int contact, double *rgb, double *pos, 
 			   double *rot, double *scale, double *cparms, double *oparms);
 static void  deleteObjByNameSync(char *name);
 static void  changeHideObjByNameSync(char *name, int hide);
 static void  changeObjPosByNameSync(char *name, double *pos, double *rot);
+static void  convertGlobal2Object(ObjectPtr optr, double *xg, double *xl);
+static void  computeStart2EndNorm(double *xs, double *xe, ObjectPtr optr, double *n);
+static void  projectOntoRange(double *f, double *n, int option, double *fp);
 
 
 // external functions
@@ -65,13 +69,19 @@ static void  changeObjPosByNameSync(char *name, double *pos, double *rot);
 int
 initObjects(void) 
 {
+  int n;
+
+  // check how may contact points we need
+  n=count_extra_contact_points(config_files[CONTACTS]);
 
   // contacts
-  contacts = my_calloc(n_links+1,sizeof(Contact),MY_STOP);
+  contacts = my_calloc(n_links+1+n,sizeof(Contact),MY_STOP);
   ucontact = my_calloc(n_dofs+1,sizeof(SL_uext),MY_STOP);
 
   // initalize objects in the environment
   readObjects(config_files[OBJECTS]);
+
+  n_contacts = n+n_links;
 
   return TRUE;
 
@@ -612,7 +622,7 @@ checkContacts(void)
   } while (optr != NULL);
   
   
-  for (i=0; i<=n_links; ++i) { /* loop over all contact points */
+  for (i=0; i<=n_contacts; ++i) { /* loop over all contact points */
     
     if (!contacts[i].active)
       continue;
@@ -634,27 +644,13 @@ checkContacts(void)
       
       // the link point relative to object
       for (j=1; j<=N_CART; ++j)
-	x[j] = link_pos_sim[i][j] - optr->trans[j];
+	x[j] = (link_pos_sim[contacts[i].id_start][j]*contacts[i].fraction_start + 
+		link_pos_sim[contacts[i].id_end][j]*contacts[i].fraction_end) - 
+	  optr->trans[j];
       
       // the link point in object centered coordinates
-      if (optr->rot[1] != 0.0) {
-	aux  =  x[2]*cos(optr->rot[1])+x[3]*sin(optr->rot[1]);
-	x[3] = -x[2]*sin(optr->rot[1])+x[3]*cos(optr->rot[1]);
-	x[2] = aux;
-      }
-      
-      if (optr->rot[2] != 0.0) {
-	aux  =  x[1]*cos(optr->rot[2])-x[3]*sin(optr->rot[2]);
-	x[3] =  x[1]*sin(optr->rot[2])+x[3]*cos(optr->rot[2]);
-	x[1] = aux;
-      }
-      
-      if (optr->rot[3] != 0.0) {
-	aux  =  x[1]*cos(optr->rot[3])+x[2]*sin(optr->rot[3]);
-	x[2] = -x[1]*sin(optr->rot[3])+x[2]*cos(optr->rot[3]);
-	x[1] = aux;
-      }
-      
+      convertGlobal2Object(optr, x, x);
+
       // is this point inside the object? 
       switch (optr->type) {
       case CUBE: //---------------------------------------------------------------
@@ -732,8 +728,16 @@ checkContacts(void)
 	      contacts[i].viscvel[j]=0.0;
 	    }
 	  }
-	  
-	  computeContactForces(optr,&contacts[i],i);
+
+	  // compute norm vector from start to end of line
+	  computeStart2EndNorm(link_pos_sim[contacts[i].id_start],
+			       link_pos_sim[contacts[i].id_end],
+			       optr,
+			       contacts[i].nv_start2end);
+
+
+	  // finally apply contact models
+	  computeContactForces(optr,&contacts[i]);
 	  optr = NULL;
 	  continue; /* only one object can be in contact with a contact point */
 	  
@@ -808,7 +812,14 @@ checkContacts(void)
 	    contacts[i].viscvel[j] = v[j] - n[j]*aux2;
 	  }
 	  
-	  computeContactForces(optr,&contacts[i],i);
+	  // compute norm vector from start to end of line
+	  computeStart2EndNorm(link_pos_sim[contacts[i].id_start],
+			       link_pos_sim[contacts[i].id_end],
+			       optr,
+			       contacts[i].nv_start2end);
+
+
+	  computeContactForces(optr,&contacts[i]);
 	  optr=NULL;
 	  continue; /* only one object can be in contact with a contact point */
 	  
@@ -940,7 +951,14 @@ checkContacts(void)
 	    }
 	  }
 
-	  computeContactForces(optr,&contacts[i],i);
+	  // compute norm vector from start to end of line
+	  computeStart2EndNorm(link_pos_sim[contacts[i].id_start],
+			       link_pos_sim[contacts[i].id_end],
+			       optr,
+			       contacts[i].nv_start2end);
+
+
+	  computeContactForces(optr,&contacts[i]);
 	  optr=NULL;
 	  continue; /* only one object can be in contact with a contact point */
 
@@ -1003,7 +1021,14 @@ checkContacts(void)
 	  for (j=1; j<=N_CART; ++j)
 	    contacts[i].viscvel[j] = v[j]-n[j]*aux1;
 
-	  computeContactForces(optr,&contacts[i],i);
+	  // compute norm vector from start to end of line
+	  computeStart2EndNorm(link_pos_sim[contacts[i].id_start],
+			       link_pos_sim[contacts[i].id_end],
+			       optr,
+			       contacts[i].nv_start2end);
+
+
+	  computeContactForces(optr,&contacts[i]);
 	  optr = NULL;
 	  continue; /* only one object can be in contact with a contact point */
 
@@ -1038,6 +1063,157 @@ checkContacts(void)
       ucontact[i].f[j] += uext_sim[i].f[j];
       ucontact[i].t[j] += uext_sim[i].t[j];
     }
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  computeStart2EndNorm
+\date  Aug 2010
+   
+\remarks 
+
+ computes the norm vector from start to end point of line in object centered
+ coordinates
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]   xs  : start point of line (global coordinates)
+ \param[in]   xe  : end point of line (global coordinates)
+ \param[in]   optr: point to object
+ \param[out]  n   : norm vector from start to end
+
+ note: xl and xg can be the same pointers
+
+ ******************************************************************************/
+static void
+computeStart2EndNorm(double *xs, double *xe, ObjectPtr optr, double *n)
+{
+  int i,j;
+  double x[N_CART+1];
+  double aux = 0;
+
+  // difference vector pointing from start to end
+  for (i=1; i<=N_CART; ++i) {
+    x[i] = xe[i] - xs[i];
+    aux += x[i];
+  }
+
+  // normalize
+  for (i=1; i<=N_CART; ++i)
+    x[i] /= (aux + 1.e-10);
+
+  // convert to local coordinates
+  convertGlobal2Object(optr, x, n);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  convertGlobal2Object
+\date  Aug 2010
+   
+\remarks 
+
+rotates global coordinates to object coordinates (no translation). This uses
+Euler angle notation x-y-z rotations
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]   optr: point to object
+ \param[in]   xg  : vector in global coordinates
+ \param[out]  xl  : vector in local coordinates
+
+ note: xl and xg can be the same pointers
+
+ ******************************************************************************/
+static void
+convertGlobal2Object(ObjectPtr optr, double *xg, double *xl)
+
+{
+
+  double aux;
+
+  // the link point in object centered coordinates
+  if (optr->rot[1] != 0.0) {
+    aux  =  xg[2]*cos(optr->rot[1])+xg[3]*sin(optr->rot[1]);
+    xl[3] = -xg[2]*sin(optr->rot[1])+xg[3]*cos(optr->rot[1]);
+    xl[2] = aux;
+  }
+  
+  if (optr->rot[2] != 0.0) {
+    aux  =  xg[1]*cos(optr->rot[2])-xg[3]*sin(optr->rot[2]);
+    xl[3] =  xg[1]*sin(optr->rot[2])+xg[3]*cos(optr->rot[2]);
+    xl[1] = aux;
+  }
+  
+  if (optr->rot[3] != 0.0) {
+    aux  =  xg[1]*cos(optr->rot[3])+xg[2]*sin(optr->rot[3]);
+    xl[2] = -xg[1]*sin(optr->rot[3])+xg[2]*cos(optr->rot[3]);
+    xl[1] = aux;
+  }
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  projectOnRange
+\date  Aug 2010
+   
+\remarks 
+
+ projects a force vector on the range space that is perpendicular to given
+ norm vector. A sign constraint can be given, i.e., the subtraction only happens
+ if the inner product of force and norm vector is positive or negative
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]   f      : force vector to be projected
+ \param[in]   n      : norm vector
+ \param[in]   option : =0 for normal null space subtraction, +1 for subtraction
+                       if inner product is positive, -1 if inner product is negative
+ \param[out]  fp     : the projected vector
+
+ note: f and fp can be the same pointers
+
+ ******************************************************************************/
+static void
+projectOntoRange(double *f, double *n, int option, double *fp)
+{
+  int    i;
+  double aux = 0;
+
+  // inner product
+  for (i=1; i<=N_CART; ++i) {
+    aux  += f[i]*n[i];
+    fp[i] = f[i];
+  }
+
+  // check different cases
+  option = macro_sign(option);
+  switch (option) {
+
+  case 1:
+    if (aux < 0)
+      aux = 0;
+    break;
+
+  case -1:
+    if (aux > 0)
+      aux = 0;
+    break;
+
+  default:
+    break;
+
+  }
+
+  // subtract the null space
+  for (i=1; i<=N_CART; ++i)
+    fp[i] -= aux * n[i];
 
 }
 
@@ -1191,11 +1367,10 @@ readObjects(char *cfname)
 
  \param[in]     optr  : ptr to object
  \param[in]     ctpr  : ptr to contact point
- \param[in]     ind   : index of the current contact point
 
  ******************************************************************************/
 static void
-computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind)
+computeContactForces(ObjectPtr optr, ContactPtr cptr)
 
 {
   int i,j;
@@ -1210,6 +1385,7 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind)
   double tangent_force;
   double tangent_velocity;
   double viscvel;
+  int    option=0;
 
   /* compute the contact forces in object centered coordinates */
   switch (optr->contact_model) {
@@ -1237,6 +1413,9 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind)
       normal_force += sqr(cptr->f[i]);
     }
     normal_force = sqrt(normal_force);
+
+    // erase the component of normal force that is parallel to contact line    
+    projectOntoRange(cptr->f, cptr->nv_start2end, option, cptr->f);
     
     
     // the force due to static friction, modeled as horizontal damper, again
@@ -1289,6 +1468,9 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind)
 	cptr->f[i] = 0.0;
     }
     
+    // erase the component of normal force that is parallel to contact line    
+    projectOntoRange(cptr->f, cptr->nv_start2end, option, cptr->f);
+    
     /* the force due to viscous friction */
     for (i=1; i<=N_CART; ++i) {
       cptr->f[i] += -optr->contact_parms[3] * cptr->viscvel[i];
@@ -1332,7 +1514,9 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind)
     }
     normal_force = sqrt(normal_force);
 
-    
+    // erase the component of normal force that is parallel to contact line    
+    projectOntoRange(cptr->f, cptr->nv_start2end, option, cptr->f);
+
     // the force due to static friction, modeled as horizontal damper, again
     // in object centered coordinates
     tangent_force = 0;
@@ -1404,29 +1588,61 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind)
     cptr->f[_Y_] = aux;
   }
 
-  /* add forces to appropriate DOF and object */
+  /* project the force into the range space of the contact */
+  if (cptr->id_start != cptr->id_end) {
+    double unit[N_CART+1];
+    // don't i have to do this for normal and tangential separately?
+  }
+
+  /* add forces to appropriate DOFs and object */
+
+  /* first the start link */
   for (i=1; i<=N_CART; ++i) {
-    ucontact[cptr->base_dof].f[i] += cptr->f[i];
-    optr->f[i] += cptr->f[i];
-    moment_arm[i] = link_pos_sim[ind][i]-link_pos_sim[cptr->off_link][i];
-    moment_arm_object[i] = link_pos_sim[ind][i]-optr->trans[i];
+    ucontact[cptr->base_dof_start].f[i] += cptr->f[i]*cptr->fraction_start;
+    optr->f[i] += cptr->f[i]*cptr->fraction_start;
+    moment_arm[i] = link_pos_sim[cptr->id_start][i]-link_pos_sim[cptr->off_link_start][i];
+    moment_arm_object[i] = link_pos_sim[cptr->id_start][i]-optr->trans[i];
   }
 
   /* get the torque at the DOF from the cross product */
-  ucontact[cptr->base_dof].t[_A_] += moment_arm[_Y_]*cptr->f[_Z_] - 
-    moment_arm[_Z_]*cptr->f[_Y_];
-  ucontact[cptr->base_dof].t[_B_] += moment_arm[_Z_]*cptr->f[_X_] - 
-    moment_arm[_X_]*cptr->f[_Z_];
-  ucontact[cptr->base_dof].t[_G_] += moment_arm[_X_]*cptr->f[_Y_] - 
-    moment_arm[_Y_]*cptr->f[_X_];
+  ucontact[cptr->base_dof_start].t[_A_] += moment_arm[_Y_]*cptr->f[_Z_]*cptr->fraction_start - 
+    moment_arm[_Z_]*cptr->f[_Y_]*cptr->fraction_start;
+  ucontact[cptr->base_dof_start].t[_B_] += moment_arm[_Z_]*cptr->f[_X_]*cptr->fraction_start - 
+    moment_arm[_X_]*cptr->f[_Z_]*cptr->fraction_start;
+  ucontact[cptr->base_dof_start].t[_G_] += moment_arm[_X_]*cptr->f[_Y_]*cptr->fraction_start - 
+    moment_arm[_Y_]*cptr->f[_X_]*cptr->fraction_start;
 
   /* get the torque at the object center from the cross product */
-  optr->t[_A_] += moment_arm_object[_Y_]*cptr->f[_Z_] - 
-    moment_arm_object[_Z_]*cptr->f[_Y_];
-  optr->t[_B_] += moment_arm_object[_Z_]*cptr->f[_X_] - 
-    moment_arm_object[_X_]*cptr->f[_Z_];
-  optr->t[_G_] += moment_arm_object[_X_]*cptr->f[_Y_] - 
-    moment_arm_object[_Y_]*cptr->f[_X_];
+  optr->t[_A_] += moment_arm_object[_Y_]*cptr->f[_Z_]*cptr->fraction_start - 
+    moment_arm_object[_Z_]*cptr->f[_Y_]*cptr->fraction_start;
+  optr->t[_B_] += moment_arm_object[_Z_]*cptr->f[_X_]*cptr->fraction_start - 
+    moment_arm_object[_X_]*cptr->f[_Z_]*cptr->fraction_start;
+  optr->t[_G_] += moment_arm_object[_X_]*cptr->f[_Y_]*cptr->fraction_start - 
+    moment_arm_object[_Y_]*cptr->f[_X_]*cptr->fraction_start;
+
+  /* second the end link */
+  for (i=1; i<=N_CART; ++i) {
+    ucontact[cptr->base_dof_end].f[i] += cptr->f[i]*cptr->fraction_end;
+    optr->f[i] += cptr->f[i]*cptr->fraction_end;
+    moment_arm[i] = link_pos_sim[cptr->id_end][i]-link_pos_sim[cptr->off_link_end][i];
+    moment_arm_object[i] = link_pos_sim[cptr->id_end][i]-optr->trans[i];
+  }
+
+  /* get the torque at the DOF from the cross product */
+  ucontact[cptr->base_dof_end].t[_A_] += moment_arm[_Y_]*cptr->f[_Z_]*cptr->fraction_end - 
+    moment_arm[_Z_]*cptr->f[_Y_]*cptr->fraction_end;
+  ucontact[cptr->base_dof_end].t[_B_] += moment_arm[_Z_]*cptr->f[_X_]*cptr->fraction_end - 
+    moment_arm[_X_]*cptr->f[_Z_]*cptr->fraction_end;
+  ucontact[cptr->base_dof_end].t[_G_] += moment_arm[_X_]*cptr->f[_Y_]*cptr->fraction_end - 
+    moment_arm[_Y_]*cptr->f[_X_]*cptr->fraction_end;
+
+  /* get the torque at the object center from the cross product */
+  optr->t[_A_] += moment_arm_object[_Y_]*cptr->f[_Z_]*cptr->fraction_end - 
+    moment_arm_object[_Z_]*cptr->f[_Y_]*cptr->fraction_end;
+  optr->t[_B_] += moment_arm_object[_Z_]*cptr->f[_X_]*cptr->fraction_end - 
+    moment_arm_object[_X_]*cptr->f[_Z_]*cptr->fraction_end;
+  optr->t[_G_] += moment_arm_object[_X_]*cptr->f[_Y_]*cptr->fraction_end - 
+    moment_arm_object[_Y_]*cptr->f[_X_]*cptr->fraction_end;
 
 }
 
@@ -1437,7 +1653,7 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind)
    
 \remarks 
 
-        computes the velocity of a contact point in object coordinates
+computes the velocity of a contact point in object coordinates
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -1450,11 +1666,19 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr, int ind)
 static void 
 contactVelocity(int cID, ObjectPtr optr, double *v)
 {
+  int    i;
   double aux;
+  double v_start[N_CART+1];
+  double v_end[N_CART+1];
 
   // get the velocity in world coordinates
-  computeLinkVelocity(cID, link_pos_sim, joint_origin_pos_sim, 
-		      joint_axis_pos_sim, joint_sim_state, v);
+  computeLinkVelocity(contacts[cID].id_start, link_pos_sim, joint_origin_pos_sim, 
+		      joint_axis_pos_sim, joint_sim_state, v_start);
+  computeLinkVelocity(contacts[cID].id_end, link_pos_sim, joint_origin_pos_sim, 
+		      joint_axis_pos_sim, joint_sim_state, v_end);
+
+  for (i=1; i<=N_CART; ++i)
+    v[i] = v_start[i]*contacts[cID].fraction_start + v_end[i]*contacts[cID].fraction_end;
 
   // convert the velocity to object coordinates
   if (optr->rot[1] != 0.0) {
@@ -1704,3 +1928,95 @@ deleteObjByNameSync(char *name)
 }
 
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_extra_contact_points
+\date  July 2010
+\remarks 
+
+parses from the appropriate contact configuration file the extra contact
+point specifications. The contacts data structure is assumed to exist and
+to have all memory allocated. Moreover, the first n_links components need to
+be assigned correctly, which is achieved from including the LEKin_contacts.h 
+before call read_extra_contact_points
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname : file name of file where config files are stored
+ 
+ ******************************************************************************/
+int
+read_extra_contact_points(char *fname) 
+
+{
+  int    j,i,rc;
+  char   string[100];
+  FILE  *in;
+  int    count;
+  char   name1[100],name2[100];
+  int    id1=-999,id2=-999;
+  int    n_checks;
+  int    active;
+
+  // open file and strip comments 
+  sprintf(string,"%s%s",CONFIG,fname);
+  in = fopen_strip(string);
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  // read the file until EOF
+  count = n_links;
+  while (TRUE) {
+    rc = fscanf(in,"%s %s %d %d",name1,name2,&active,&n_checks);
+    if (rc == 4) { // add the appropriate number of contact points
+
+      // convert link names into IDs
+      for (i=1; i<=n_links; ++i)
+	if (strcmp(link_names[i],name1) == 0) {
+	  id1 = i;
+	  break;
+	}
+
+      for (i=1; i<=n_links; ++i)
+	if (strcmp(link_names[i],name2) == 0) {
+	  id2 = i;
+	  break;
+	}
+
+      if (id1 == -999) {
+	printf(">%s< does not seem to be a valid link name\n",name1);
+	continue;
+      }
+
+      if (id2 == -999) {
+	printf(">%s< does not seem to be a valid link name\n",name2);
+	continue;
+      }
+
+      // set these two link points as active
+      contacts[id1].active = active;
+      contacts[id2].active = active;
+
+      for (i=1; i<=n_checks; ++i) {
+	++count;
+	contacts[count].id_start = id1;
+	contacts[count].id_end   = id2;
+	contacts[count].off_link_start = contacts[id1].off_link_start;
+	contacts[count].off_link_end   = contacts[id2].off_link_end;
+	contacts[count].base_dof_start = contacts[id1].base_dof_start;
+	contacts[count].base_dof_end   = contacts[id2].base_dof_end;
+	contacts[count].active         = active;
+	contacts[count].fraction_start = ((double)i)/((double)(n_checks+1));
+	contacts[count].fraction_end   = 1.-contacts[count].fraction_start;
+      }
+    } else // most likely EOF encountered
+      break;
+  }
+
+  fclose(in);
+
+  return TRUE;
+}

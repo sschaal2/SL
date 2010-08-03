@@ -21,6 +21,7 @@
 #include "SL.h"
 #include "SL_shared_memory.h"
 #include "SL_man.h"
+#include "SL_common.h"
 
 #define TIME_OUT_NS 1000000000
 
@@ -151,13 +152,17 @@ none
 int
 init_shared_memory(void)
 {
-  int j, i;
+  int    j,i,n;
   STATUS error;
   char   string[100];
   char   name[100];
   int    mtype;
   char  *ptr;
   int    flag;
+
+  /* make sure that n_contacts is correct */
+  n=count_extra_contact_points(config_files[CONTACTS]);
+  n_contacts = n_links + n;
 
 
   /********************************************************************/
@@ -298,7 +303,7 @@ init_shared_memory(void)
   /********************************************************************/
   if (init_sm_object("smContacts", 
 		     sizeof(smContacts),
-		     sizeof(contactShort)*(n_links+1),
+		     sizeof(contactShort)*(n_contacts+1),
 		     &sm_contacts_sem,
 		     (void **)&sm_contacts)) {
     ;

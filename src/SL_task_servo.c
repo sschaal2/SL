@@ -1520,6 +1520,10 @@ reset(void)
   float buf[N_CART+N_QUAT+1];
   unsigned char cbuf[(N_CART+N_QUAT)*sizeof(float)];
 
+
+  if (real_robot_flag)
+    return;
+
   j = 0;
   for (i=1; i<=N_CART; ++i)
     buf[++j] = freeze_base_pos[i];

@@ -1509,22 +1509,36 @@ drawContacts(double fscale)
 {
   int i,j;
   GLfloat   color_point[4]={(float)1.0,(float)0.35,(float)0.35,(float)1.0};
-  double    radius = 0.01;
+  double    x[N_CART+1];
+  static int    firsttime = TRUE;
+  static double radius = 0.01;
 
   /* if there are no objects, exit */
   if (objs==NULL)
     return;
 
-  for (i=0; i<=n_links; ++i) { /* loop over all contact points */
+  if (firsttime) {
+    double w;
+    firsttime = FALSE;
+    if (read_parameter_pool_double(config_files[PARAMETERPOOL],"contact_point_radius", &w))
+      radius = w;
+  }
+
+  for (i=0; i<=n_contacts; ++i) { /* loop over all contact points */
 
     // check whether there is an active contact
     if (!contacts[i].active || !contacts[i].status)
       continue;
 
+    // compute the point of contact
+    for (j=1; j<=N_CART; ++j)
+      x[j] = 
+	link_pos_sim[contacts[i].id_start][j] * contacts[i].fraction_start + 
+	link_pos_sim[contacts[i].id_end][j] * contacts[i].fraction_end;
+
     // draw a blob at the point of contact
     glPushMatrix();
-    glTranslated((GLdouble)link_pos_sim[i][_X_],(GLdouble)link_pos_sim[i][_Y_],
-		 (GLdouble)link_pos_sim[i][_Z_]);
+    glTranslated((GLdouble)x[_X_],(GLdouble)x[_Y_],(GLdouble)x[_Z_]);
     glColor4fv(color_point);
     if (solid)
       glutSolidSphere(radius,10,10);

@@ -254,7 +254,7 @@ receive_contacts(void)
 
   } 
 
-  for (i=0; i<=n_links; ++i) {
+  for (i=0; i<=n_contacts; ++i) {
     contacts[i].status = sm_contacts->contact[i].status;
     for (j=1; j<=N_CART; ++j)
       contacts[i].f[j] = sm_contacts->contact[i].f[j];

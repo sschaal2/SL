@@ -150,7 +150,7 @@ int sl_readline_callback()
   extern double   servo_time;
   static double   prev_servo_time = 999.0;
 
-  if (prev_servo_time > servo_time) {
+  if (prev_servo_time - servo_time > 10.0) {  // 10 seconds slack parameter to trust this
     rl_done = 1;
     time_reset_detected = 1;
   }
