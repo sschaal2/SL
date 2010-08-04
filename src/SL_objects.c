@@ -27,6 +27,23 @@
 #include "SL_simulation_servo.h"
 #include "SL_shared_memory.h"
 
+// contact related defines
+enum ForceConditions {
+  F_FULL=1,
+  F_HALF,
+  F_ORTH,
+
+  NFC
+};
+#define N_FORCE_CONDITIONS (NFC-1)
+
+static char f_cond_names[][20]= {
+  {"dummy"},
+  {"full"},
+  {"half"},
+  {"orth"}
+};
+
 // global variables
 ObjectPtr  objs = NULL;
 ContactPtr contacts=NULL;
@@ -47,7 +64,7 @@ static void  changeHideObjByNameSync(char *name, int hide);
 static void  changeObjPosByNameSync(char *name, double *pos, double *rot);
 static void  convertGlobal2Object(ObjectPtr optr, double *xg, double *xl);
 static void  computeStart2EndNorm(double *xs, double *xe, ObjectPtr optr, double *n);
-static void  projectOntoRange(double *f, double *n, int option, double *fp);
+static void  projectForce(ContactPtr cptr, ObjectPtr optr);
 
 
 // external functions
@@ -729,13 +746,6 @@ checkContacts(void)
 	    }
 	  }
 
-	  // compute norm vector from start to end of line
-	  computeStart2EndNorm(link_pos_sim[contacts[i].id_start],
-			       link_pos_sim[contacts[i].id_end],
-			       optr,
-			       contacts[i].nv_start2end);
-
-
 	  // finally apply contact models
 	  computeContactForces(optr,&contacts[i]);
 	  optr = NULL;
@@ -812,13 +822,6 @@ checkContacts(void)
 	    contacts[i].viscvel[j] = v[j] - n[j]*aux2;
 	  }
 	  
-	  // compute norm vector from start to end of line
-	  computeStart2EndNorm(link_pos_sim[contacts[i].id_start],
-			       link_pos_sim[contacts[i].id_end],
-			       optr,
-			       contacts[i].nv_start2end);
-
-
 	  computeContactForces(optr,&contacts[i]);
 	  optr=NULL;
 	  continue; /* only one object can be in contact with a contact point */
@@ -951,13 +954,6 @@ checkContacts(void)
 	    }
 	  }
 
-	  // compute norm vector from start to end of line
-	  computeStart2EndNorm(link_pos_sim[contacts[i].id_start],
-			       link_pos_sim[contacts[i].id_end],
-			       optr,
-			       contacts[i].nv_start2end);
-
-
 	  computeContactForces(optr,&contacts[i]);
 	  optr=NULL;
 	  continue; /* only one object can be in contact with a contact point */
@@ -1020,13 +1016,6 @@ checkContacts(void)
 	  // the tangential velocity for viscous friction
 	  for (j=1; j<=N_CART; ++j)
 	    contacts[i].viscvel[j] = v[j]-n[j]*aux1;
-
-	  // compute norm vector from start to end of line
-	  computeStart2EndNorm(link_pos_sim[contacts[i].id_start],
-			       link_pos_sim[contacts[i].id_end],
-			       optr,
-			       contacts[i].nv_start2end);
-
 
 	  computeContactForces(optr,&contacts[i]);
 	  optr = NULL;
@@ -1097,8 +1086,9 @@ computeStart2EndNorm(double *xs, double *xe, ObjectPtr optr, double *n)
   // difference vector pointing from start to end
   for (i=1; i<=N_CART; ++i) {
     x[i] = xe[i] - xs[i];
-    aux += x[i];
+    aux += sqr(x[i]);
   }
+  aux = sqrt(aux);
 
   // normalize
   for (i=1; i<=N_CART; ++i)
@@ -1133,25 +1123,28 @@ static void
 convertGlobal2Object(ObjectPtr optr, double *xg, double *xl)
 
 {
-
+  int    i;
   double aux;
+
+  for (i=1; i<=N_CART; ++i)
+    xl[i] = xg[i];
 
   // the link point in object centered coordinates
   if (optr->rot[1] != 0.0) {
-    aux  =  xg[2]*cos(optr->rot[1])+xg[3]*sin(optr->rot[1]);
-    xl[3] = -xg[2]*sin(optr->rot[1])+xg[3]*cos(optr->rot[1]);
+    aux  =  xl[2]*cos(optr->rot[1])+xl[3]*sin(optr->rot[1]);
+    xl[3] = -xl[2]*sin(optr->rot[1])+xl[3]*cos(optr->rot[1]);
     xl[2] = aux;
   }
   
   if (optr->rot[2] != 0.0) {
-    aux  =  xg[1]*cos(optr->rot[2])-xg[3]*sin(optr->rot[2]);
-    xl[3] =  xg[1]*sin(optr->rot[2])+xg[3]*cos(optr->rot[2]);
+    aux  =  xl[1]*cos(optr->rot[2])-xl[3]*sin(optr->rot[2]);
+    xl[3] =  xl[1]*sin(optr->rot[2])+xl[3]*cos(optr->rot[2]);
     xl[1] = aux;
   }
   
   if (optr->rot[3] != 0.0) {
-    aux  =  xg[1]*cos(optr->rot[3])+xg[2]*sin(optr->rot[3]);
-    xl[2] = -xg[1]*sin(optr->rot[3])+xg[2]*cos(optr->rot[3]);
+    aux  =  xl[1]*cos(optr->rot[3])+xl[2]*sin(optr->rot[3]);
+    xl[2] = -xl[1]*sin(optr->rot[3])+xl[2]*cos(optr->rot[3]);
     xl[1] = aux;
   }
 
@@ -1159,61 +1152,120 @@ convertGlobal2Object(ObjectPtr optr, double *xg, double *xl)
 
 /*!*****************************************************************************
  *******************************************************************************
-\note  projectOnRange
+\note  projectForce
 \date  Aug 2010
    
 \remarks 
 
- projects a force vector on the range space that is perpendicular to given
- norm vector. A sign constraint can be given, i.e., the subtraction only happens
- if the inner product of force and norm vector is positive or negative
+ projects a force vector onto the space that is defined by the information in
+ the contact structure. Note that contact points coinciding with links are
+ processed differently than contact points that interpolate between links.
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
- \param[in]   f      : force vector to be projected
- \param[in]   n      : norm vector
- \param[in]   option : =0 for normal null space subtraction, +1 for subtraction
-                       if inner product is positive, -1 if inner product is negative
- \param[out]  fp     : the projected vector
+ \param[in,out]   cptr  : pointer to contact structure
+ \param[in]       optr  : pointer to object structure
 
- note: f and fp can be the same pointers
+ returns cptr->f adjusted according to the projection information
 
  ******************************************************************************/
 static void
-projectOntoRange(double *f, double *n, int option, double *fp)
+projectForce(ContactPtr cptr, ObjectPtr optr)
 {
-  int    i;
-  double aux = 0;
+  int    i,j;
+  double aux;
+  double nv[N_CART+1];
+  double sf[N_CART+1];
+  double nnv[N_CART+1];
 
-  // inner product
-  for (i=1; i<=N_CART; ++i) {
-    aux  += f[i]*n[i];
-    fp[i] = f[i];
+  if (cptr->n_connected_links == 0) { // this is a interpolated contact point
+
+    // compute norm vector from start to end of line
+    computeStart2EndNorm(link_pos_sim[cptr->id_start],
+			 link_pos_sim[cptr->id_end],			 
+			 optr,nv);
+
+    // inner product norm with contact force
+    aux = 0.0;
+    for (j=1; j<=N_CART; ++j)
+      aux  += cptr->f[j]*nv[j];
+
+    // subtract this component out
+    for (j=1; j<=N_CART; ++j)
+      cptr->f[j] -= aux * nv[j];
+
+  } else { // this is a contact point coinciding with a link point
+
+    // loop over all connected links, and compute average contact force
+    // from all projections
+    
+    for (j=1; j<=N_CART; ++j)
+      sf[j] = 0.0;
+
+    for (i=1; i<=cptr->n_connected_links; ++i) {
+
+      switch (cptr->force_condition[i]) {
+
+      case F_FULL: // no projection needed 
+
+	for (j=1; j<=N_CART; ++j)
+	  sf[j] += cptr->f[j];
+
+	break;
+
+      case F_HALF: // project away force aligned with line, pointing out of line
+
+	// compute norm vector from start to end of line
+	computeStart2EndNorm(link_pos_sim[cptr->connected_links[i]],
+			     link_pos_sim[cptr->id_start],			 
+			     optr,nv);
+
+	// inner product norm with contact force
+	aux = 0.0;
+	for (j=1; j<=N_CART; ++j)
+	  aux  += cptr->f[j]*nv[j];
+
+	if (aux < 0)
+	  aux = 0;
+
+	// subtract this component out
+	for (j=1; j<=N_CART; ++j)
+	  sf[j] += cptr->f[j] - aux * nv[j];
+
+	break;
+
+      case F_ORTH: // only allow force components orthogonal to line
+
+	// compute norm vector from start to end of line
+	computeStart2EndNorm(link_pos_sim[cptr->connected_links[i]],
+			     link_pos_sim[cptr->id_start],			 
+			     optr,nv);
+
+	// inner product norm with contact force
+	aux = 0.0;
+	for (j=1; j<=N_CART; ++j)
+	  aux  += cptr->f[j]*nv[j];
+
+	// subtract this component out
+	for (j=1; j<=N_CART; ++j)
+	  sf[j] += cptr->f[j] - aux * nv[j];
+
+	break;
+
+      default:
+	printf("Unknown force condition\n");
+
+      } // switch(cptr->force_condition)
+
+    } // for (i=1; i<=cptr->n_connected_links; ++i)
+
+
+    // compute average of accumulated force
+    for (j=1; j<=N_CART; ++j)
+      cptr->f[j] = sf[j]/(double)(cptr->n_connected_links);
+
   }
-
-  // check different cases
-  option = macro_sign(option);
-  switch (option) {
-
-  case 1:
-    if (aux < 0)
-      aux = 0;
-    break;
-
-  case -1:
-    if (aux > 0)
-      aux = 0;
-    break;
-
-  default:
-    break;
-
-  }
-
-  // subtract the null space
-  for (i=1; i<=N_CART; ++i)
-    fp[i] -= aux * n[i];
 
 }
 
@@ -1414,9 +1466,8 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr)
     }
     normal_force = sqrt(normal_force);
 
-    // erase the component of normal force that is parallel to contact line    
-    projectOntoRange(cptr->f, cptr->nv_start2end, option, cptr->f);
-    
+    // project the spring force according to the information in the contact and object structures
+    projectForce(cptr,optr);
     
     // the force due to static friction, modeled as horizontal damper, again
     // in object centered coordinates
@@ -1468,8 +1519,8 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr)
 	cptr->f[i] = 0.0;
     }
     
-    // erase the component of normal force that is parallel to contact line    
-    projectOntoRange(cptr->f, cptr->nv_start2end, option, cptr->f);
+    // project the spring force according to the information in the contact and object structures
+    projectForce(cptr,optr);
     
     /* the force due to viscous friction */
     for (i=1; i<=N_CART; ++i) {
@@ -1514,8 +1565,8 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr)
     }
     normal_force = sqrt(normal_force);
 
-    // erase the component of normal force that is parallel to contact line    
-    projectOntoRange(cptr->f, cptr->nv_start2end, option, cptr->f);
+    // project the spring force according to the information in the contact and object structures
+    projectForce(cptr,optr);
 
     // the force due to static friction, modeled as horizontal damper, again
     // in object centered coordinates
@@ -1871,7 +1922,7 @@ changeObjPosByNameSync(char *name, double *pos, double *rot)
 synchronizes hiding of objects across processes
 
  *******************************************************************************
- Function Parameters: [in]=input,[out]=output
+[ Function Parameters: [in]=input,[out]=output
 
  \param[in]     name : name object
  \param[in]     hide : TRUE/FALSE
@@ -1937,8 +1988,8 @@ deleteObjByNameSync(char *name)
 parses from the appropriate contact configuration file the extra contact
 point specifications. The contacts data structure is assumed to exist and
 to have all memory allocated. Moreover, the first n_links components need to
-be assigned correctly, which is achieved from including the LEKin_contacts.h 
-before call read_extra_contact_points
+be assigned correctly, which is achieved from including the LEKin_contacts.h,
+which also calls read_extra_contact_points.
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -1956,8 +2007,11 @@ read_extra_contact_points(char *fname)
   int    count;
   char   name1[100],name2[100];
   int    id1=-999,id2=-999;
+  char   fcond1[100],fcond2[100];
+  int    fcond1ID,fcond2ID;
   int    n_checks;
   int    active;
+  int    f_full_flag;
 
   // open file and strip comments 
   sprintf(string,"%s%s",CONFIG,fname);
@@ -1970,8 +2024,11 @@ read_extra_contact_points(char *fname)
   // read the file until EOF
   count = n_links;
   while (TRUE) {
-    rc = fscanf(in,"%s %s %d %d",name1,name2,&active,&n_checks);
-    if (rc == 4) { // add the appropriate number of contact points
+    rc = fscanf(in,"%s %s %d %d %s %s",name1,name2,&active,&n_checks,fcond1,fcond2);
+    if (rc == 6) { // add the appropriate number of contact points
+
+      if (!active)
+	continue;
 
       // convert link names into IDs
       for (i=1; i<=n_links; ++i)
@@ -2000,6 +2057,61 @@ read_extra_contact_points(char *fname)
       contacts[id1].active = active;
       contacts[id2].active = active;
 
+      // parse the force condition
+      fcond1ID = F_FULL;
+      fcond2ID = F_FULL;
+      for (i=1; i<=N_FORCE_CONDITIONS; ++i) {
+	if (strcmp(f_cond_names[i],fcond1)==0)
+	  fcond1ID = i;
+	if (strcmp(f_cond_names[i],fcond2)==0)
+	  fcond2ID = i;
+      }
+
+      // update the connected link structures for these two links
+      f_full_flag = FALSE;
+      for (i=1; i<=contacts[id1].n_connected_links; ++i)
+	if (contacts[id1].force_condition[i] == F_FULL)
+	  f_full_flag = TRUE;
+
+      if (!f_full_flag) { // a full force condition overwrites any partial force conditions
+	if (fcond1ID == F_FULL) {
+	  contacts[id1].force_condition[1] = F_FULL;
+	  contacts[id1].connected_links[1] = id2;
+	  contacts[id1].n_connected_links  = 1;
+	} else {
+	  if (contacts[id1].n_connected_links < MAX_CONNECTED) {
+	    j = ++contacts[id1].n_connected_links;
+	    contacts[id1].connected_links[j] = id2;
+	    contacts[id1].force_condition[j] = fcond1ID;
+	  } else {
+	    printf("ERROR: ran out of memory for connected links -- increase MAX_CONNECTED in SL_objects.h\n");
+	  }
+	}
+      }
+
+      f_full_flag = FALSE;
+      for (i=1; i<=contacts[id2].n_connected_links; ++i)
+	if (contacts[id2].force_condition[i] == F_FULL)
+	  f_full_flag = TRUE;
+
+      if (!f_full_flag) { // a full force condition overwrites any partial force conditions
+	if (fcond2ID == F_FULL) {
+	  contacts[id2].force_condition[1] = F_FULL;
+	  contacts[id2].connected_links[1] = id1;
+	  contacts[id2].n_connected_links  = 1;
+	} else {
+	  if (contacts[id2].n_connected_links < MAX_CONNECTED) {
+	    j = ++contacts[id2].n_connected_links;
+	    contacts[id2].connected_links[j] = id1;
+	    contacts[id2].force_condition[j] = fcond2ID;
+	  } else {
+	    printf("ERROR: ran out of memory for connected links -- increase MAX_CONNECTED in SL_objects.h\n");
+	  }
+	}
+      }
+
+
+      // initialize the current contact structure
       for (i=1; i<=n_checks; ++i) {
 	++count;
 	contacts[count].id_start = id1;
@@ -2012,9 +2124,18 @@ read_extra_contact_points(char *fname)
 	contacts[count].fraction_start = ((double)i)/((double)(n_checks+1));
 	contacts[count].fraction_end   = 1.-contacts[count].fraction_start;
       }
-    } else // most likely EOF encountered
+
+
+    } else { // should be EOF
+
+      if (rc != EOF)
+	printf("Parsing error in read_extra_contact_points in SL_objects.c (rc=%d)\n",rc);
       break;
-  }
+
+    }
+
+
+  } // while (TRUE)
 
   fclose(in);
 

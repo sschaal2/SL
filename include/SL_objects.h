@@ -39,6 +39,8 @@ typedef struct Object {
 } Object, *ObjectPtr;
 
 
+#define MAX_CONNECTED 25
+
 /*! structure to deal with contact forces */
 typedef struct Contact {
   int        active;                           /*!< TRUE/FALSE: indicates whether this point should be checked for contacts */
@@ -62,8 +64,9 @@ typedef struct Contact {
   double     viscvel[N_CART+1];                /*!< velocity vector for viscous friction */
   double     f[N_CART+1];                      /*!< contact forces in world coordinates */
   double     face_index;                       /*!< _X_, _Y_, or _Z_ to indicate with which face we are in contact */
-  double     nv_start2end[N_CART+1];           /*!< the normal vector from start to end point of contact */
-
+  int        n_connected_links;                /*!< number of connected links */
+  int        connected_links[MAX_CONNECTED+1]; /*!< list of connected links (only used for link end points, not intermediate points */
+  int        force_condition[MAX_CONNECTED+1]; /*!< what force conditions are permitted */
 						  
 } Contact, *ContactPtr;
 

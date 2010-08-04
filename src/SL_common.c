@@ -2626,6 +2626,7 @@ count_extra_contact_points(char *fname) {
   FILE  *in;
   int    count = 0;
   char   name1[100],name2[100];
+  char   fcond1[100],fcond2[100];
   int    n_checks;
   int    active;
 
@@ -2640,11 +2641,14 @@ count_extra_contact_points(char *fname) {
   // read the file until EOF
   while (TRUE) {
     n_checks = 0;
-    rc = fscanf(in,"%s %s %d %d",name1,name2,&active,&n_checks);
-    if (rc == 4)
+    rc = fscanf(in,"%s %s %d %d %s %s",name1,name2,&active,&n_checks,fcond1,fcond2);
+    if (rc == 6)
       count += n_checks;
-    else
+    else {
+      if (rc != EOF)
+	printf("Parsing error in count_extra_contact_points in SL_common.c (rc=%d)\n",rc);
       break;
+    }
   }
 
   fclose(in);
