@@ -92,7 +92,6 @@ static void  toggleCometDisplay(void);
 static void  toggleCoordDisplay(void);
 
 
-
 // global variables 
 int        solid = TRUE;
 double     window_update_rate = 30.;
@@ -212,9 +211,8 @@ initGraphics(int *argc, char*** argv)
   for (i=1; i<=n_endeffs; ++i)
     switchEndeffectorCometDisplay(i,TRUE);
 
-  // comet toggle
+  // coordinate display toggle
   addToMan("coordDisplay","draws local coordinate systems",toggleCoordDisplay);
-
 
   return TRUE;
 
@@ -2939,7 +2937,6 @@ displayCoord(void)
 
   for (i=0; i<=n_links; ++i)  {
 
-
     v[_X_] = coordAxisLength;
     v[_Y_] = v[_Z_] = 0.0;
     v[_Z_+1] = 1.0;
@@ -2984,6 +2981,14 @@ displayCoord(void)
     mat_vec_mult_size(Alink_sim[i],N_CART+1,N_CART+1,v,N_CART+1,r);
     glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
     glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'Z');
+
+    glColor4f (0.0,0.0,0.0,0.0);
+    glBegin(GL_LINES);     
+    glVertex3d(link_pos_sim[i][_X_],link_pos_sim[i][_Y_],link_pos_sim[i][_Z_]);
+    glVertex3d(link_pos_sim[i][_X_],link_pos_sim[i][_Y_],link_pos_sim[i][_Z_]+0.1);
+    glEnd();
+    glRasterPos3f(link_pos_sim[i][_X_],link_pos_sim[i][_Y_],link_pos_sim[i][_Z_]+0.1);
+    glutBitmapString(GLUT_BITMAP_HELVETICA_18,(const unsigned char *)link_names[i]);
 
   }
 
