@@ -2031,13 +2031,13 @@ read_extra_contact_points(char *fname)
 	continue;
 
       // convert link names into IDs
-      for (i=1; i<=n_links; ++i)
+      for (i=0; i<=n_links; ++i)
 	if (strcmp(link_names[i],name1) == 0) {
 	  id1 = i;
 	  break;
 	}
 
-      for (i=1; i<=n_links; ++i)
+      for (i=0; i<=n_links; ++i)
 	if (strcmp(link_names[i],name2) == 0) {
 	  id2 = i;
 	  break;
