@@ -91,7 +91,6 @@ static void  initCometDisplay(int n_steps);
 static void  toggleCometDisplay(void);
 static void  toggleCoordDisplay(void);
 
-
 // global variables 
 int        solid = TRUE;
 double     window_update_rate = 30.;
@@ -298,7 +297,8 @@ Function Parameters: [in]=input,[out]=output
 
 
 ******************************************************************************/
-static void  motion(int x, int y)
+static void  
+motion(int x, int y)
 {
   int flag=0, i;
   OpenGLWPtr ptr;
@@ -306,6 +306,7 @@ static void  motion(int x, int y)
   ptr = whichGLWindow();
   if (ptr == NULL)
     return;
+
   if (modifiers)
     {
       int dx=x-mouseX;
@@ -375,7 +376,7 @@ static void  motion(int x, int y)
   mouseY=y;
   
   if (flag)
-    glutPostRedisplay();
+    glutPostRedisplayAll();
 }
 
 /*!*****************************************************************************
@@ -606,7 +607,7 @@ keyboard(unsigned char key, int x, int y)
   default:
     ptr = first_window_ptr;
     while (ptr != NULL) {
-      sprintf(c,"%d",ptr->openGLId);
+      sprintf(c,"%d",ptr->ID);
       if (c[0] == key)
 	toggleHideWindow(ptr);
       ptr = (OpenGLWPtr) ptr->next_wptr;
@@ -615,7 +616,7 @@ keyboard(unsigned char key, int x, int y)
     
   }
 
-  glutPostRedisplay();
+  glutPostRedisplayAll();
 
   if (flag)
     printPrompt();
@@ -648,7 +649,9 @@ initializeLighting(OpenGLWPtr ptr)
 
   /* a nice position for lighting */
   glLoadIdentity();
-  gluLookAt(ptr->eye[_X_],ptr->eye[_Y_],ptr->eye[_Z_],ptr->center[_X_],ptr->center[_Y_],ptr->center[_Z_],ptr->up[_X_],ptr->up[_Y_],ptr->up[_Z_]);
+  gluLookAt(ptr->eye[_X_],ptr->eye[_Y_],ptr->eye[_Z_],
+	    ptr->center[_X_],ptr->center[_Y_],ptr->center[_Z_],
+	    ptr->up[_X_],ptr->up[_Y_],ptr->up[_Z_]);
  	
   /* lighting settings */
   glClearColor ((float)0.9, (float)0.9, (float)1.0, (float)1.0);
@@ -862,9 +865,14 @@ SLGenericDisplay(void)
   GLfloat  objscolor[4]={(float)0.2,(float)0.2,(float)0.2,(float)1.0};
   OpenGLWPtr ptr = first_window_ptr;
 
+  // lock out the keyboard interaction 
+  pthread_mutex_lock( &mutex1 );
+
   ptr = whichGLWindow();
-  if (ptr == NULL)
+  if (ptr == NULL) {
+    pthread_mutex_unlock( &mutex1 );
     return;
+  }
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
@@ -933,6 +941,9 @@ SLGenericDisplay(void)
 #endif
 
   glutSwapBuffers();
+
+  // continue keyboard interaction
+  pthread_mutex_unlock( &mutex1 );
 
 }
 
@@ -1021,6 +1032,9 @@ glutMenu(OpenGLWPtr ptr)
   char string[100];
   char c[100];
 
+  if (ptr->hide)
+    return;
+
   glutCreateMenu(menu_select);
   glutAddMenuEntry("Rotation   [SHIFT+CTRL+RMB]", 'n');
   glutAddMenuEntry("Panning   [SHIFT+RMB]", 'n');
@@ -1045,7 +1059,7 @@ glutMenu(OpenGLWPtr ptr)
   glutAddMenuEntry("Toggle Wireframe   [t]", 't');
   glutAddMenuEntry("Quit   [q,ESC]", 'q');
   glutAddMenuEntry("-----------------------------------", 'n');
-  sprintf(string,"Toggle Hide %s   [%d]",ptr->name,ptr->openGLId);
+  sprintf(string,"Toggle Hide %s   [%d]",ptr->name,ptr->ID);
   sprintf(c,"%d",ptr->openGLId);
   glutAddMenuEntry(string,c[0]);
 
@@ -1284,8 +1298,13 @@ whichGLWindow(void)
   ID = glutGetWindow();
 
   while (ptr != NULL) {
-    if (ptr->openGLId == ID)
-      return ptr;
+    if (ptr->openGLId == ID) {
+      if (ptr->hide) {
+	return NULL;
+      } else {
+	return ptr;
+      }
+    }
     ptr = (OpenGLWPtr) ptr->next_wptr;
   } 
 
@@ -1295,7 +1314,7 @@ whichGLWindow(void)
 
 /*!*****************************************************************************
 *******************************************************************************
-\note  hide and show of eye windows
+\note  hide and show of windows
 \date  March 2003
    
 \remarks 
@@ -1312,6 +1331,9 @@ void
 toggleHideWindow(OpenGLWPtr ptr)
 {
 
+  // make sure we don't interfer with the display functions
+  pthread_mutex_lock( &mutex1 );
+
   glutSetWindow(ptr->openGLId);
 
   if (ptr->hide) {
@@ -1324,8 +1346,9 @@ toggleHideWindow(OpenGLWPtr ptr)
     printf("Hide Window %s [%d]\n",ptr->name,ptr->ID);
   }
 
-}
+  pthread_mutex_unlock( &mutex1 );
 
+}
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -1427,36 +1450,6 @@ followBaseByPtr(OpenGLWPtr ptr, int follow)
   }
 
 }
-
-/*!*****************************************************************************
-*******************************************************************************
-\note  updateAllWindows
-\date  March 2003
-   
-\remarks 
-
-force an update of the diplay of all windows manually
-
-*******************************************************************************
-Function Parameters: [in]=input,[out]=output
-
-none
-
-******************************************************************************/
-void
-updateAllWindows(void)
-{
-  int ID;
-  OpenGLWPtr ptr = first_window_ptr;
-
-  while (ptr != NULL) {
-    glutSetWindow(ptr->openGLId);
-    SLGenericDisplay();
-    ptr = (OpenGLWPtr) ptr->next_wptr;
-  } 
-
-}
-
 
 /*!*****************************************************************************
 *******************************************************************************

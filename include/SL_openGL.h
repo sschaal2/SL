@@ -85,7 +85,6 @@ extern "C" {
   void       glutPostRedisplayAll(void);
   OpenGLWPtr whichGLWindow(void);
   void       toggleHideWindow(OpenGLWPtr ptr);
-  void       updateAllWindows(void);
   void       changeWindowUpdateRate(double rate);
   void       hideWindowByName(char *name, int hide);
   void       clmcplotUpdateState(void);
