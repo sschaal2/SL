@@ -608,8 +608,10 @@ keyboard(unsigned char key, int x, int y)
     ptr = first_window_ptr;
     while (ptr != NULL) {
       sprintf(c,"%d",ptr->ID);
-      if (c[0] == key)
+      if (c[0] == key) {
 	toggleHideWindow(ptr);
+	return;
+      }
       ptr = (OpenGLWPtr) ptr->next_wptr;
     }
     break;
@@ -874,6 +876,28 @@ SLGenericDisplay(void)
     return;
   }
 
+  // check hide and show request status
+  if (ptr->show_me) {
+    ptr->show_me = FALSE;
+    glutShowWindow();
+    // reactivate the window -- somehow this is neede
+    glViewport(0,0,(GLsizei) ptr->width, (GLsizei) ptr->height);
+    glutPositionWindow(ptr->x, ptr->y-22);
+    pthread_mutex_unlock( &mutex1 );
+    return;
+  }
+
+  if (ptr->hide_me) {
+    ptr->hide = TRUE;
+    ptr->hide_me = FALSE;
+    // remember the window position
+    ptr->x = glutGet(GLUT_WINDOW_X);
+    ptr->y = glutGet(GLUT_WINDOW_Y);
+    glutHideWindow();
+    pthread_mutex_unlock( &mutex1 );
+    return;
+  }
+
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   glLoadIdentity();
   glPushMatrix();
@@ -1060,7 +1084,7 @@ glutMenu(OpenGLWPtr ptr)
   glutAddMenuEntry("Quit   [q,ESC]", 'q');
   glutAddMenuEntry("-----------------------------------", 'n');
   sprintf(string,"Toggle Hide %s   [%d]",ptr->name,ptr->ID);
-  sprintf(c,"%d",ptr->openGLId);
+  sprintf(c,"%d",ptr->ID);
   glutAddMenuEntry(string,c[0]);
 
   glutAttachMenu(GLUT_LEFT_BUTTON);
@@ -1298,13 +1322,8 @@ whichGLWindow(void)
   ID = glutGetWindow();
 
   while (ptr != NULL) {
-    if (ptr->openGLId == ID) {
-      if (ptr->hide) {
-	return NULL;
-      } else {
-	return ptr;
-      }
-    }
+    if (ptr->openGLId == ID)
+      return ptr;
     ptr = (OpenGLWPtr) ptr->next_wptr;
   } 
 
@@ -1319,7 +1338,8 @@ whichGLWindow(void)
    
 \remarks 
 
-toggle hide status of windows
+toggle hide status of windows. Note that the actual glut commands must be given
+from the glutMainLoop, and not from the command line thread.
 
 *******************************************************************************
 Function Parameters: [in]=input,[out]=output
@@ -1334,15 +1354,12 @@ toggleHideWindow(OpenGLWPtr ptr)
   // make sure we don't interfer with the display functions
   pthread_mutex_lock( &mutex1 );
 
-  glutSetWindow(ptr->openGLId);
-
   if (ptr->hide) {
-    glutShowWindow();
-    ptr->hide = FALSE;
+    ptr->hide    = FALSE;
+    ptr->show_me = TRUE;
     printf("Show Window %s [%d]\n",ptr->name,ptr->ID);
   } else {
-    ptr->hide = TRUE;
-    glutHideWindow();
+    ptr->hide_me = TRUE;
     printf("Hide Window %s [%d]\n",ptr->name,ptr->ID);
   }
 

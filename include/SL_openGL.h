@@ -45,6 +45,8 @@ typedef struct OpenGLWindow {
   int    width;            /*!< width of window */
   char   name[100];        /*!< name of window */
   int    hide;             /*!< hide window or not */
+  int    hide_me;          /*!< request to hide */
+  int    show_me;          /*!< request to show */
   int    draw_axis;        /*!< TRUE/FALSE */
   int    follow_basis;     /*!< TRUE/FALSE */
   double fovea;            /*!< fovea angle in degrees */
