@@ -579,12 +579,12 @@ removeSharedMemory(int dummy)
   
   sptr = smlist;
 
-  printf("Remove shared memory objects and semaphores (sig=%d) ...",dummy);
+  printf("\nRemove shared memory objects and semaphores (sig=%d, %s) ...",dummy,strsignal(dummy));
 
   // keep a log why the termination happened
   sprintf(string,".%s_log",servo_name);
   FILE *fd = fopen(string,"w");
-  fprintf(fd,"Terminated due to sig=%d\n",dummy);  
+  fprintf(fd,"Terminated due to sig=%d, %s\n",dummy,strsignal(dummy));  
   fclose(fd);
   
   while (sptr!=NULL) {
