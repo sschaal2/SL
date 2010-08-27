@@ -497,7 +497,7 @@ removeSharedMemory(int dummy)
   
   sptr = smlist;
 
-  printf("\nRemove shared memory objects and semaphores (sig=%d) ...",dummy);
+  printf("\nRemove shared memory objects and semaphores (sig=%d, %s) ...",dummy,strsignal(dummy));
 
   // keep a log why the termination happened
   sprintf(string,".%s_log",servo_name);
