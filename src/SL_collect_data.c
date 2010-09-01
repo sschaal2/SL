@@ -833,4 +833,45 @@ updateDataCollectScript( void )
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  getDataCollectPtr
+\date  Aug. 2010
+   
+\remarks 
+
+ returns the pointer to a variable and its data type, if this variable exists
+ in the data collection
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name : name of variable
+ \param[out]    vptr : ptr to variable (or NULL if not existant)
+ \param[out]    type : data type (see SL_collect_data.h)
+
+ returns FALSE if not found, and TRUE if found
+
+ ******************************************************************************/
+int
+getDataCollectPtr( char *name, void **vptr, int *type )
+{
+
+  Cinfo *ptr;
+  char string[100];
+  
+  // search all variables for data collection
+  ptr = &vars;
+  while (ptr != NULL) {
+    if (strcmp(ptr->name,name)==0) {
+      *vptr = (void *)ptr->ptr;
+      *type = ptr->type;
+      return TRUE;
+    }
+    ptr = (Cinfo *)ptr->nptr;
+  }
+
+  return FALSE;
+}
+
 

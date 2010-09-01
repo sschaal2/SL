@@ -122,9 +122,6 @@ init_motor_servo(void)
   printf("done\n");
 #endif
   
-  /* set oscilloscope to start value */
-  setOsc(d2a_cm,0.0);
-
   /* initialize the controller */
   printf("Init controller ...");
   if (!init_controller())
@@ -199,6 +196,9 @@ init_motor_servo(void)
 
   /* if all worked out, we mark the servo as ready to go */
   motor_servo_initialized = TRUE;
+
+  /* set oscilloscope to start value */
+  setOsc(d2a_cm,0.0);
 
   scd();
 

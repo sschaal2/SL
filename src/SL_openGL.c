@@ -134,7 +134,7 @@ static double VIEW_ROTZ0     =-165.0;
 #define MAX_OSC_DATA      10000
 static int    openGLId_osc = 0;
 static int    periods_window_AD = 2;   //<! number of task_servo periods to display
-static double time_window_vars = 5.0;  //<! time window variables in seconds
+double time_window_vars = 5.0;         //<! time window variables in seconds
 static int    n_oscilloscope_plots = 3;
 static int    osc_enabled = FALSE;
 
@@ -144,6 +144,8 @@ typedef struct {  //<! this keeps all the data for oscilloscope display
   int    current_index[MAX_VARS_PER_PLOT+1];
   int    n_data[MAX_VARS_PER_PLOT+1];
   double data[MAX_VARS_PER_PLOT+1][MAX_OSC_DATA+1][2+1];
+  double max;
+  double min;
 } OscData;
 
 static OscData *osc_data = NULL;
@@ -3108,7 +3110,7 @@ initOscilloscope(void)
   }
   
   // window size of variable display
-  if (read_parameter_pool_double(config_files[PARAMETERPOOL],"osc_window_vars", &aux)) {
+  if (read_parameter_pool_double(config_files[PARAMETERPOOL],"osc_time_window_vars", &aux)) {
     if (aux > 0)
       time_window_vars = aux;
   }
@@ -3119,6 +3121,8 @@ initOscilloscope(void)
     for (j=1; j<=MAX_VARS_PER_PLOT; ++j) {
       osc_data[i].current_index[j] = 1;
     }
+    osc_data[i].max = -1.e10;
+    osc_data[i].min =  1.e10;
   }
 
   // connect to X server using the DISPLAY environment variable
@@ -3178,7 +3182,7 @@ static void
 osc_display(void)
 
 {
-  int i,j,c;
+  int i,j,c,r;
   static int firsttime = TRUE;
   static int listID = 999;
   double offx_left = 0.17;
@@ -3247,7 +3251,7 @@ osc_display(void)
     glPopMatrix();
   }
 
-  // draw data traces
+  // draw data traces ===========================================================
   // the 0-th plot is special for the A/D signals -------------------------------
 
   // find "D2A_task" for trigger
@@ -3314,15 +3318,13 @@ osc_display(void)
   glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
 
 
-
-
   for (j=1; j<=osc_data[0].n_active; ++j) {
 
     glColor4fv(colors[j%10]);    
     last_ts = 0.0;
     last_c  = 0;
     glBegin(GL_LINE_STRIP);
-    for (i=0; i < osc_data[0].n_data[its]; ++i) {
+    for (i=0; i < osc_data[0].n_data[j]; ++i) {
 
       c = osc_data[0].current_index[j]-i;
       if (c < 1)
@@ -3351,7 +3353,72 @@ osc_display(void)
     glEnd();
     
   }
+
+  glPopMatrix();
+
+  // the variable plots  ---------------------------------------------------------
+
+  for (r=1; r<=n_oscilloscope_plots; ++r) {
+
+    for (j=1; j<=osc_data[r].n_active; ++j) {
+
+      tend = osc_data[r].data[j][osc_data[r].current_index[j]][1];
+      tstart = tend - time_window_vars;
+
+      glPushMatrix();
+
+      glTranslated(offx_left,(n_oscilloscope_plots-r)+offy-offy_extra,0.0);
+      glScaled(1.-offx_left-offx_right,1-2*offy,1.0);
+
+
+      glColor4fv(colors[j%10]);    
+      glRasterPos2d(-offx_left,(j-1)*0.1);
+      glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)osc_data[r].names[j]);
+
+      glColor4fv(colors[j%10]);    
+
+      glBegin(GL_LINE_STRIP);
+      for (i=0; i < osc_data[r].n_data[j]; ++i) {
+	
+	c = osc_data[r].current_index[j]-i;
+	if (c < 1)
+	  c += MAX_OSC_DATA;
+	
+	if (osc_data[r].data[j][c][1] > tend)
+	  continue;
+	
+	if (osc_data[r].data[j][c][1] < tstart)
+	  break;
+	
+	// just make the data a vertex
+	glVertex2d((osc_data[r].data[j][c][1]-tstart)/(tend-tstart),
+		   (osc_data[r].data[j][c][2]-osc_data[r].min)/(osc_data[r].max-osc_data[r].min));
+	
+      }
+      glEnd();
+
+      glPopMatrix();
+      
+    }
+
+  }
+
+  glPushMatrix();
+
+  glTranslated(offx_left,offy-offy_extra,0.0);
+  glScaled(1.-offx_left-offx_right,1-2*offy,1.0);
+  glColor4f (1.0,1.0,1.0,1.0);      
   
+  sprintf(string,"%6.3f",-(tend-tstart));
+  glRasterPos2d(-0.0,-2*offy);
+  glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
+  
+  sprintf(string,"0.0");
+  glRasterPos2d(1.0,-2*offy);
+  glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
+
+  glPopMatrix();
+
   glutSwapBuffers();
 
 }
@@ -3493,5 +3560,10 @@ addOscData(SL_oscEntry entry)
   osc_data[pID].data[tID][c][1] = entry.ts;
   osc_data[pID].data[tID][c][2] = entry.v;
 
+  if (entry.v > osc_data[pID].max)
+    osc_data[pID].max = entry.v;
+
+  if (entry.v < osc_data[pID].min)
+    osc_data[pID].min = entry.v;
 
 }

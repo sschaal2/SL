@@ -120,9 +120,6 @@ init_vision_servo()
   no_hardware_flag = TRUE;
 #endif
 
-  /* set oscilloscope to start value */  
-  setOsc(d2a_cv,0.0);
-  
   /* initialize shared memories and shared semaphores */
   if (!init_shared_memory())
     return;
@@ -195,6 +192,9 @@ init_vision_servo()
   /* if all worked out, we mark the servo as ready to go */
   vision_servo_initialized = TRUE;
 
+  /* set oscilloscope to start value */  
+  setOsc(d2a_cv,0.0);
+  
 }
 
 /*!*****************************************************************************

@@ -107,9 +107,6 @@ init_task_servo(void)
   /* the servo name */
   sprintf(servo_name,"task");
 
-  /* set oscilloscope to start value */
-  setOsc(d2a_ct,0.0);
-
   /* initialize the tasks */
   initTasks();
   add_goto_task();
@@ -467,6 +464,9 @@ init_task_servo(void)
 
   /* if all worked out, we mark the servo as ready to go */
   task_servo_initialized = TRUE;
+
+  /* set oscilloscope to start value */
+  setOsc(d2a_ct,0.0);
 
   scd();
 

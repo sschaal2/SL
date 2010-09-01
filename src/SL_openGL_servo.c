@@ -462,6 +462,16 @@ checkForMessages(void)
 	switchCometDisplay(data.status,data.n_steps);
       
     // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"updateOscTimeWindow") == 0) { 
+      extern double time_window_vars;
+      struct {
+	float w;
+      } data;
+      
+      memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
+      time_window_vars = data.w;
+      
+    // ---------------------------------------------------------------------------
     } else if (strcmp(name,"resetCometDisplay") == 0) { 
 
       resetCometDisplay();

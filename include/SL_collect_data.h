@@ -28,23 +28,25 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-/* shared functions */
-
-void addVarToCollect(char *ptr,char *name,char *units, int type, int flag);
-void initCollectData( int freq );
-void writeToBuffer(void);
-void saveData(void);
-void scds(void);
-void mscds(int num);
-void scd(void);
-void stopcd(void);
-int  dscd(int parm);
-int  startCollectData(void);
-void outMenu(void);
-void changeCollectFreq( int freq );
-void updateDataCollectScript( void );
-
+  
+  /* shared functions */
+  
+  void addVarToCollect(char *ptr,char *name,char *units, int type, int flag);
+  void initCollectData( int freq );
+  void writeToBuffer(void);
+  void saveData(void);
+  void scds(void);
+  void mscds(int num);
+  void scd(void);
+  void stopcd(void);
+  int  dscd(int parm);
+  int  startCollectData(void);
+  void outMenu(void);
+  void changeCollectFreq( int freq );
+  void updateDataCollectScript( void );
+  int  getDataCollectPtr( char *name, void **vptr, int *type );
+  
+  
 #ifdef __cplusplus
 }
 #endif

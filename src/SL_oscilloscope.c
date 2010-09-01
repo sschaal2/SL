@@ -26,23 +26,42 @@
 #include "SL_oscilloscope.h"
 #include "SL_shared_memory.h"
 #include "SL_common.h"
+#include "SL_collect_data.h"
+#include "SL_man.h"
 
 // defines
+#define  MAX_CHARS 20
+
+/*! a structure to store information about variables */
+typedef struct Cinfo {
+  char *ptr;
+  char  name[MAX_CHARS];
+  int   type;
+  int   pID;
+  char *nptr;
+} OscInfo;
+
+static OscInfo *osc_info_ptr = NULL;
 
 // global variabes
 
 // local variabes
-static int (*d2a_function)(int,double) = NULL;
+static int   (*d2a_function)(int,double) = NULL;
 
 // data collection for oscilloscope
 static SL_oscEntry   oscbuf[OSC_BUFFER_SIZE+1];        //<! the ring buffer of all entries
 static int           current_osc_index = 1;            //<! index of latest entry
 static int           n_osc_entries = 0;                //<! number of entries in buffer
 static int           osc_enabled = FALSE;              //<! is the oscilloscope active?
+static char          osc_vars_name[100];               //<! file name for osc variables
 
 // global functions
 
 // local functions
+static void oscMenu(void);
+static int  readOscVarsScript( char *fn, int flag );
+static void updateOscTimeWindow(double w);
+
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -70,12 +89,23 @@ setOsc(int channel, double pval)
   int    rc;
   double ts;
   char   string[40];
+  char   fname[100];
   static int firsttime = TRUE;
 
   if (firsttime) {
     firsttime = FALSE;
     if (read_parameter_pool_int(config_files[PARAMETERPOOL],"osc_enabled", &rc))
       osc_enabled = macro_sign(abs(rc));
+
+    if (osc_enabled) {
+      addToMan("oscMenu","interactively change oscilloscope settings",oscMenu);
+      sprintf(osc_vars_name,"%s_default.osc",servo_name);
+      sprintf(string,"osc_vars_%s_file",servo_name);
+      if (read_parameter_pool_string(config_files[PARAMETERPOOL],string,fname))
+	strcpy(osc_vars_name,fname);
+      readOscVarsScript(osc_vars_name,FALSE);
+    }
+
   }
 
   // if the user provide a special oscilloscope function
@@ -197,11 +227,53 @@ void
 sendOscilloscopeData(void)
 {
   
-  int i,j,r;
-  int count;
+  int      i,j,r;
+  int      count;
+  double   temp = 0;
+  OscInfo *optr;
+  extern double servo_time;
   
   if (!osc_enabled) 
     return;
+
+  // add data to the buffer
+  optr = osc_info_ptr;
+  while (optr != NULL) {
+
+    switch (optr->type) {
+
+      case DOUBLE:
+	temp = (float) *((double *) optr->ptr);
+	break;
+
+      case FLOAT:
+	temp = (float) *((float *) optr->ptr);
+	break;
+
+      case INT:
+	temp = (float) *((int *) optr->ptr);
+	break;
+
+      case SHORT:
+	temp = (float) *((short *) optr->ptr);
+	break;
+
+      case LONG:
+	temp = (float) *((long *) optr->ptr);
+	break;
+
+      case CHAR:
+	temp = (float) *((char *) optr->ptr);
+	break;
+
+    }
+
+    addEntryOscBuffer(optr->name, temp, servo_time, optr->pID);
+
+    optr = (OscInfo *) optr->nptr;
+
+  }
+  
 
   // try to take semaphore with very short time-out -- we don't care if we 
   // cannot copy the data to shared memory every time, as this is not a time 
@@ -233,3 +305,199 @@ sendOscilloscopeData(void)
   semGive(sm_oscilloscope_sem);
   
 }
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  readOscVarsScript
+\date  Aug. 2010
+   
+\remarks 
+
+reads an oscilloscope data visulization script
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fn : the name of the file to be opened
+ \param[in]   flag : verbose TRUE/FALSE
+
+ ******************************************************************************/
+static int
+readOscVarsScript( char *fn, int flag )
+     
+{
+
+  FILE    *infile;
+  int      i,rc;
+  char     string[100];
+  char     fname[100];
+  int      pID;
+  void    *vptr;
+  int      type;
+  int      count=0;
+  OscInfo *optr;
+
+  if (!osc_enabled)
+    return TRUE;
+
+  sprintf(fname,"%s%s",PREFS,fn);
+  infile = fopen(fname,"r");
+
+  if (infile == NULL) {
+    printf("Error when trying to open file >%s< !\n",fname);
+    return FALSE;
+  }
+
+  // erase old variables
+  optr = osc_info_ptr;
+  while (optr != NULL) {
+    osc_info_ptr = (OscInfo *)optr;
+    optr         = (OscInfo *)optr->nptr;
+    free(osc_info_ptr);
+  }
+  osc_info_ptr = NULL;
+    
+  
+  // now read the file
+  while ((rc=fscanf(infile,"%s %d",string,&pID)) != EOF) {
+
+    // figure out whether the string exists
+    if (getDataCollectPtr(string, &vptr, &type )) {
+      ++count;
+      if (count == 1) {
+	osc_info_ptr = (OscInfo *) my_calloc(1,sizeof(OscInfo),MY_STOP);
+	optr = (OscInfo *) osc_info_ptr;
+      } else {
+	optr->nptr = (char *) my_calloc(1,sizeof(OscInfo),MY_STOP);
+	optr = (OscInfo *) optr->nptr;
+      }
+
+      optr->ptr  = (char *)vptr;
+      optr->type = type;
+      optr->nptr = NULL;
+      optr->pID  = pID;
+      sprintf(optr->name,"%c.%s",servo_name[0],string);
+
+    }
+  }
+
+  fclose(infile);
+
+  if (flag)
+    printf("\nRead %d valid names from file >%s< .\n\n",count,fname);
+
+  return TRUE;
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  oscMenu
+\date  Aug. 2010
+   
+\remarks 
+
+a menu to configure the variables for the oscilloscope
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static void
+oscMenu(void)
+
+{
+  int aux = 2;
+  static double time_window=5.0;
+  double temp;
+  static char  fname[100] = "default.script";
+
+  if (!osc_enabled)
+    return;
+
+  if (read_parameter_pool_double(config_files[PARAMETERPOOL],"osc_time_window_vars", &temp))
+    time_window = temp;
+
+  AGAIN:
+  
+  printf("\n\n\nCHANGE OSCILLOSCOPE SETTINGS:\n\n");
+  printf("        Time Window of Plots            ---> %d\n",1);
+  printf("        Read Oscilloscope Variables     ---> %d\n",2);
+  printf("        Quit                            ---> q\n");
+  printf("\n");
+  if (!get_int("        ----> Input",aux,&aux)) return;
+  
+  if (aux > 2 || aux < 1) {
+    
+    goto AGAIN;
+    
+  } 
+  
+  
+  if (aux == 1) {
+    
+    if (get_double("Time Window of Plots [s]?\0",time_window,&temp))
+      if (temp > 0) {
+	updateOscTimeWindow(temp);
+	time_window = temp;
+      }
+    
+  } else if (aux == 2) {
+    
+  ONCE_MORE:
+
+    // get the file name
+
+    if (!get_string("Name of the Oscilloscope Variables File\0",osc_vars_name,fname)) 
+      goto AGAIN;
+
+    // try to read this file
+
+    if (!readOscVarsScript(fname,TRUE)) 
+      goto ONCE_MORE;
+
+    strcpy(osc_vars_name,fname);
+    
+  }
+
+  goto AGAIN;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  updateOscTimeWindow
+\date  Aug 2010
+   
+\remarks 
+
+sends messages to openGL servo to update the time window of oscilloscope
+
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     w : time window value
+
+ ******************************************************************************/
+static void 
+updateOscTimeWindow(double w) 
+{
+  int i,j;
+  float buf[1+1];
+  unsigned char cbuf[sizeof(float)];
+
+  buf[1] = w;
+
+  memcpy(cbuf,(void *)&(buf[1]),sizeof(float));
+    
+  sendMessageOpenGLServo("updateOscTimeWindow",(void *)cbuf,sizeof(float));
+
+}
+
+
+
+

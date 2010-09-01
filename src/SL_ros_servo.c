@@ -82,9 +82,6 @@ init_ros_servo(void)
   // the servo name
   sprintf(servo_name,"ros");
 
-  // set oscilloscope to start value
-  setOsc(d2a_cr,0.0);
-
   // initialize shared memories and shared semaphores
   if (!init_shared_memory())
     return;
@@ -294,6 +291,9 @@ init_ros_servo(void)
 
   // if all worked out, we mark the servo as ready to go
   ros_servo_initialized = TRUE;
+
+  // set oscilloscope to start value
+  setOsc(d2a_cr,0.0);
 
   scd();
 
