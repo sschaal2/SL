@@ -99,13 +99,13 @@ extern "C" {
   void       setUserGraphicsUpdateMode(int mode);
   void       switchCheckerBoard(int flag);
   void       displayComet(void);
+  void       updateComet(void);
   void       switchEndeffectorCometDisplay(int id, int s);
   void       switchLinkCometDisplay(int id, int s);
   void       switchCometDisplay(int flag, int n_steps);
   void       resetCometDisplay(void);
   void       displayCoord(void);
-
-
+  void       receiveOscilloscopeData(void);
 
   
   /* exported variables */

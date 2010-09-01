@@ -24,6 +24,7 @@
 #include "SL_tasks.h"
 #include "SL_task_servo.h"
 #include "SL_man.h"
+#include "SL_common.h"
 
 /* local variables */
 static SL_DJstate *joint_goto_state;
@@ -63,6 +64,7 @@ add_goto_task( void )
 {
   int i, j;
   static int firsttime = TRUE;
+  double aux;
   
   if (firsttime) {
 
@@ -75,6 +77,13 @@ add_goto_task( void )
     addTask("Goto Task", init_goto_task, run_goto_task, change_goto_task);
     addToMan("go0","go to default posture",go0);
     addToMan("go","go to a specific posture",sim_go);
+
+    if (read_parameter_pool_double(config_files[PARAMETERPOOL],"goto_speed",&aux)) {
+      if (aux > 0 && aux < 3.0) {
+	goto_speed = aux;
+      } else 
+	printf("Invalid goto_speed (%f)in parameter pool file\n",aux);
+    }
 
   }
 

@@ -129,6 +129,9 @@ SEM_ID             sm_des_commands_sem;
 smROSState        *sm_ros_state;
 SEM_ID             sm_ros_state_sem;
 
+smOscilloscope    *sm_oscilloscope;
+SEM_ID             sm_oscilloscope_sem;
+
 /* local functions */
 static int init_sm_object(char *smname, size_t structsize, size_t datasize, 
 			  SEM_ID *semptr, void **structptr);
@@ -430,6 +433,17 @@ init_shared_memory(void)
   } else {
     return FALSE;
   }
+  /********************************************************************/
+  if (init_sm_object("smOscilloscope", 
+		     sizeof(smOscilloscope),
+		     sizeof(SL_oscEntry)*(OSC_SM_BUFFER_SIZE+1),
+		     &sm_oscilloscope_sem,
+		     (void **)&sm_oscilloscope)) {
+    ;
+  } else {
+    return FALSE;
+  }
+
   /********************************************************************/
   /********************************************************************/
   /* shared semaphores */

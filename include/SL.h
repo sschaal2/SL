@@ -100,6 +100,10 @@ enum ConfigFile {
 #define MAX_BYTES_MESSAGES      10000
 #define MAX_N_MESSAGES          100
 
+#define OSC_BUFFER_SIZE 1000
+#define OSC_SM_BUFFER_SIZE (4*OSC_BUFFER_SIZE)
+
+
 /* The data structures */
 typedef struct { /*!< joint space state for each DOF */
   double   th;   /*!< theta */
@@ -274,6 +278,14 @@ typedef struct { /*!< external forces */
   double   f[N_CART+1];   /*!< external forces */
   double   t[N_CART+1];   /*!< external torques */
 } SL_uext;
+
+typedef struct {    /*!< oscilloscope data entry structure */
+  char    name[40]; /*!< name of variable to be plotted */
+  float   v;        /*!< value */
+  double  ts;       /*!< time stamp in seconds */
+  int     plotID;   /*!< ID of plot to be used for plotting */
+} SL_oscEntry;
+
 
 #ifdef __cplusplus
 extern "C" {

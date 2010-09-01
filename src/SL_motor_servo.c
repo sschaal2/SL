@@ -337,6 +337,7 @@ run_motor_servo(void)
    */
 
   writeToBuffer();
+  sendOscilloscopeData();
 
   setOsc(d2a_cm,0.0);
   

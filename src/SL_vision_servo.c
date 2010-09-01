@@ -289,6 +289,7 @@ run_vision_servo(void)
   
   setOsc(d2a_cv,100.0);
   writeToBuffer();
+  sendOscilloscopeData();
   
   /*************************************************************************
    * end of program sequence

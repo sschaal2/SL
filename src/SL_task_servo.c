@@ -614,6 +614,7 @@ run_task_servo(void)
    */
 
   writeToBuffer();
+  sendOscilloscopeData();
 
   setOsc(d2a_ct,100.0);
   

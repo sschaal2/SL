@@ -147,6 +147,13 @@ typedef struct smMessage {
   unsigned char   buf[MAX_BYTES_MESSAGES];
 } smMessage;
 
+typedef struct smOscilloscope {
+  SEM_ID          sm_sem;
+  int             n_entries;
+  SL_oscEntry     entries[1];
+} smOscilloscope;
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -252,6 +259,9 @@ extern "C" {
 
   extern smROSState        *sm_ros_state;
   extern SEM_ID             sm_ros_state_sem;
+
+  extern smOscilloscope    *sm_oscilloscope;
+  extern SEM_ID             sm_oscilloscope_sem;
 
 
   

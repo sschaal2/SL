@@ -27,6 +27,12 @@ extern "C" {
   void
   setD2AFunction(int (*fptr)(int,double));
 
+  void
+  addEntryOscBuffer(char *name, double v, double ts, int cID);
+
+  void 
+  sendOscilloscopeData(void);
+
 
   // external variables
 

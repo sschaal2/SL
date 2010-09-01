@@ -55,6 +55,8 @@ receive_misc_sensors();
 receive_contacts();
 checkForUserGraphics();
 checkForMessages();
+updateComet();
+receiveOscilloscopeData();
 
 //-------------------------------------------------------------------------
 // compute link info

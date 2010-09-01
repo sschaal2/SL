@@ -381,6 +381,7 @@ run_ros_servo(void)
    */
 
   writeToBuffer();
+  sendOscilloscopeData();
 
   setOsc(d2a_cr,100.0);
   
