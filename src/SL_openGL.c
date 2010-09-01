@@ -3185,8 +3185,8 @@ osc_display(void)
   int i,j,c,r;
   static int firsttime = TRUE;
   static int listID = 999;
-  double offx_left = 0.17;
-  double offx_right = 0.03;
+  double offx_left = 0.15;
+  double offx_right = 0.1;
   double offy = 0.05;
   double offy_extra = 0.1;
   double tick_length = 0.1;
@@ -3196,6 +3196,7 @@ osc_display(void)
   double last_ts = 0;
   int    last_c = 0;
   char   string[40];
+  double aux;
 
   GLfloat  colors[][4]={
     {(float)0.0,(float)1.0,(float)1.0,(float)1.0},   // cyan
@@ -3301,9 +3302,11 @@ osc_display(void)
   glTranslated(offx_left,n_oscilloscope_plots+offy,0.0);
   glScaled(1.-offx_left-offx_right,1-2*offy,1.0);
 
+  aux = (-offx_left*0.95)/(1.-offx_left-offx_right);
+
   for (j=1; j<=osc_data[0].n_active; ++j) {
     glColor4fv(colors[j%10]);    
-    glRasterPos2d(-offx_left,(j-1)*0.1);
+    glRasterPos2d(aux,(j-1)*0.1);
     glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)osc_data[0].names[j]);
   }
 
@@ -3315,6 +3318,14 @@ osc_display(void)
 
   sprintf(string,"0.0");
   glRasterPos2d(1.0,-2*offy);
+  glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
+
+  sprintf(string,"% .2f",osc_data[0].min);
+  glRasterPos2d(1.0,0.0);
+  glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
+
+  sprintf(string,"% .2f",osc_data[0].max);
+  glRasterPos2d(1.0,1.0-2*offy);
   glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
 
 
@@ -3370,10 +3381,21 @@ osc_display(void)
       glTranslated(offx_left,(n_oscilloscope_plots-r)+offy-offy_extra,0.0);
       glScaled(1.-offx_left-offx_right,1-2*offy,1.0);
 
+      aux = (-offx_left*0.95)/(1.-offx_left-offx_right);
 
       glColor4fv(colors[j%10]);    
-      glRasterPos2d(-offx_left,(j-1)*0.1);
+      glRasterPos2d(aux,(j-1)*0.1);
       glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)osc_data[r].names[j]);
+
+      glColor4f (1.0,1.0,1.0,1.0);      
+
+      sprintf(string,"% .2f",osc_data[r].min);
+      glRasterPos2d(1.0,0.0);
+      glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
+      
+      sprintf(string,"% .2f",osc_data[r].max);
+      glRasterPos2d(1.0,1.0-2*offy);
+      glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
 
       glColor4fv(colors[j%10]);    
 
@@ -3400,6 +3422,7 @@ osc_display(void)
       glPopMatrix();
       
     }
+
 
   }
 

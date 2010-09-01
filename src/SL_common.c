@@ -2452,7 +2452,7 @@ read_parameter_pool_string(char *fname, char *keyword, char *svalue)
     fclose(in);
     return FALSE;
   } else {
-    while ((c=fgetc(in)) == ' ') // skip initial blank characters
+    while ((c=fgetc(in)) == ' ' || c == '\t') // skip initial blank and tab characters
       ;
     ungetc(c,in);                // reset the file pointer by one
 
