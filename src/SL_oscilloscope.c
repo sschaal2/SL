@@ -115,7 +115,8 @@ setOsc(int channel, double pval)
     } else {
       rc = (*d2a_function)(channel,pval);
       semGive(sm_oscilloscope_sem);
-      return rc;
+      if (!rc)
+	return FALSE;
     }
   }
 
