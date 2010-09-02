@@ -100,7 +100,7 @@ enum ConfigFile {
 #define MAX_BYTES_MESSAGES      10000
 #define MAX_N_MESSAGES          100
 
-#define OSC_BUFFER_SIZE 1000
+#define OSC_BUFFER_SIZE 10000
 #define OSC_SM_BUFFER_SIZE (4*OSC_BUFFER_SIZE)
 
 

@@ -213,13 +213,17 @@ osc_display(void)
   double offy = 0.05;
   double offy_extra = 0.1;
   double tick_length = 0.1;
-  int    its;
+  int    its=0;
+  int    ivs=0;
   double tstart=0,tend=1;
+  double tend_ivs=0;
   int    count = 0;
   double last_ts = 0;
   int    last_c = 0;
   char   string[40];
   double aux;
+  double dist = 1.e10;
+  double last_dist = 1.e10;
 
   GLfloat  colors[][4]={
     {(float)0.0,(float)1.0,(float)1.0,(float)1.0},   // cyan
@@ -293,7 +297,36 @@ osc_display(void)
     its = i; // store this index
   }
 
-  // search for "periods_window_AD" number of complete periods backwards
+  // find "D2A_vision" to try to sync the vision servo in trigger
+  for (i=1; i<=osc_data[0].n_active; ++i) {
+    if (strcmp("D2A_vision",osc_data[0].names[i])==0) {
+      ivs = i;
+      break;
+    }
+  }
+
+  // search for "periods_window_AD" number of complete periods backwards, and
+  // if vision servo exists, try to find a trigger point the closest to the vision
+  // servo such that the trigger image is more coherent
+
+  // first find last vision_servo minimum
+  if (ivs) {
+    tend_ivs = 0;
+    for (i=0; i < osc_data[0].n_data[ivs]; ++i) {
+      
+      c = osc_data[0].current_index[ivs]-i;
+      if (c < 1)
+	c += MAX_OSC_DATA;
+      
+      if (osc_data[0].data[ivs][c][2] == 1.0) {
+	tend_ivs = osc_data[0].data[ivs][c][1];
+	break;
+      }
+    }
+    if (tend_ivs == 0) // nothing found
+      ivs = FALSE;
+  }
+
   count  = 0;
   for (i=0; i < osc_data[0].n_data[its]; ++i) {
 
@@ -303,13 +336,32 @@ osc_display(void)
 
     if (osc_data[0].data[its][c][2] == 0.0 && count == 0) {
       tend = osc_data[0].data[its][c][1];
-      ++count;
+      count = 1;
+      if (ivs)
+	last_dist = fabs(tend_ivs - tend);
     } else if (osc_data[0].data[its][c][2] == 0.0 && count == periods_window_AD) {
+      if (ivs) {
+	dist = fabs(tend_ivs - osc_data[0].data[its][c][1]);
+	if (dist < last_dist) { // change tend and count
+	  tend = osc_data[0].data[its][c][1];
+	  last_dist = dist;
+	  count = 1;
+	  continue;
+	}
+      }
       tstart = osc_data[0].data[its][c][1];
       ++count;
       break;
     } else if (osc_data[0].data[its][c][2] == 0.0) {
       ++count;
+      if (ivs) {
+	dist = fabs(tend_ivs - osc_data[0].data[its][c][1]);
+	if (dist < last_dist) { // change tend and count
+	  tend = osc_data[0].data[its][c][1];
+	  last_dist = dist;
+	  count = 1;
+	}
+      }
     }
     
   }
@@ -542,7 +594,9 @@ receiveOscilloscopeData(void)
   semGive(sm_oscilloscope_sem);
 
   // update the oscilloscope window
-  if (count > 0)
+  if (pause_flag || stand_alone_flag)
+    return;
+  else if (count > 0)
     glutPostWindowRedisplay(openGLId_osc);
   
 }

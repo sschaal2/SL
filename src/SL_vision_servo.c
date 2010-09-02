@@ -245,7 +245,7 @@ run_vision_servo(void)
    * this allows to overwrite the blobs, e.g., by simulated information
    */
   
-  setOsc(d2a_cv,35.0);
+  setOsc(d2a_cv,0.0);
   /* reset the blob status if there is no hardware */
   if (no_hardware_flag) {
     for (i=1; i<=max_blobs; ++i) {

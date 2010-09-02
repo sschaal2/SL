@@ -32,6 +32,7 @@ if (clmcplot_mode || playback_mode || userGraphics_mode) {
 //-------------------------------------------------------------------------
 // check for pause and stand-alone mode
 if (pause_flag || stand_alone_flag) {
+  receiveOscilloscopeData(); // need to keep on emptying the buffer
   usleep(10000);
   return;
 }

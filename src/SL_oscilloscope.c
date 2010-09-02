@@ -233,6 +233,7 @@ addEntryOscBuffer(char *name, double v, double ts, int pID)
 
   if (++n_osc_entries > OSC_BUFFER_SIZE) {
     n_osc_entries = OSC_BUFFER_SIZE;
+    printf("addEntryOscBuffer: ring buffer overun\n");
   }
 
 }
@@ -499,7 +500,7 @@ oscMenu(void)
     
   } else if (aux == 3) {
     
-    if (get_int("Number of Periods in AD Plot [-]?\0",periods_ad,&itemp))
+    if (get_int("Number of Periods in AD Plot?\0",periods_ad,&itemp))
       if (itemp > 0) {
 	updateOscPeriodsAD(itemp);
 	periods_ad = itemp;
