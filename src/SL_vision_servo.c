@@ -193,6 +193,7 @@ init_vision_servo()
   vision_servo_initialized = TRUE;
 
   /* set oscilloscope to start value */  
+  initOsc();
   setOsc(d2a_cv,0.0);
   
 }

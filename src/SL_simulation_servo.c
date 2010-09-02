@@ -31,6 +31,7 @@
 #include "SL_man.h"
 #include "SL_kinematics.h"
 #include "SL_dynamics.h"
+#include "SL_oscilloscope.h"
 
 #define TIME_OUT_NS  1000000000
 
@@ -133,6 +134,9 @@ init_simulation_servo(void)
 
   // data collection
   initDataCollection();
+
+  // oscilloscope
+  initOsc();
 
   servo_enabled = TRUE;
 

@@ -113,6 +113,7 @@ OBJS_GL_SERVO = \
 	SL_openGL_servo.o \
 	SL_openGL_servo_unix.o \
 	SL_openGL.o \
+	SL_openGL_oscilloscope.o \
 	SL_objects.o \
 	SL_userGraphics.o 
 
@@ -120,6 +121,7 @@ SRCS_GL_SERVO = \
 	SL_openGL_servo.c \
 	SL_openGL_servo_unix.c \
 	SL_openGL.c \
+	SL_openGL_oscilloscope.c \
 	SL_objects.c \
 	SL_userGraphics.c 
 

@@ -61,7 +61,55 @@ static char          osc_vars_name[100];               //<! file name for osc va
 static void oscMenu(void);
 static int  readOscVarsScript( char *fn, int flag );
 static void updateOscTimeWindow(double w);
+static void updateOscPeriodsAD(int w);
 
+
+/*!****************************************************************************
+******************************************************************************
+\note  initOsc
+\date  Aug. 2010
+
+\remarks
+
+initializes the oscilloscope processing
+
+*****************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+*****************************************************************************/
+void
+initOsc(void)
+{
+
+  int    rc;
+  char   string[40];
+  char   fname[100];
+  FILE  *fp;
+
+  if (read_parameter_pool_int(config_files[PARAMETERPOOL],"osc_enabled", &rc))
+    osc_enabled = macro_sign(abs(rc));
+  
+  if (osc_enabled) {
+
+    addToMan("oscMenu","interactively change oscilloscope settings",oscMenu);
+
+    sprintf(osc_vars_name,"%s_default.osc",servo_name);
+
+    // make sure that the default exists
+    sprintf(fname,"%s%s",PREFS,osc_vars_name);
+    fp = fopen(fname,"a");
+    fclose(fp);
+
+    sprintf(string,"osc_vars_%s_file",servo_name);
+    if (read_parameter_pool_string(config_files[PARAMETERPOOL],string,fname))
+      strcpy(osc_vars_name,fname);
+
+    readOscVarsScript(osc_vars_name,FALSE);
+  }
+
+}
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -89,26 +137,8 @@ setOsc(int channel, double pval)
   int    rc;
   double ts;
   char   string[40];
-  char   fname[100];
-  static int firsttime = TRUE;
 
-  if (firsttime) {
-    firsttime = FALSE;
-    if (read_parameter_pool_int(config_files[PARAMETERPOOL],"osc_enabled", &rc))
-      osc_enabled = macro_sign(abs(rc));
-
-    if (osc_enabled) {
-      addToMan("oscMenu","interactively change oscilloscope settings",oscMenu);
-      sprintf(osc_vars_name,"%s_default.osc",servo_name);
-      sprintf(string,"osc_vars_%s_file",servo_name);
-      if (read_parameter_pool_string(config_files[PARAMETERPOOL],string,fname))
-	strcpy(osc_vars_name,fname);
-      readOscVarsScript(osc_vars_name,FALSE);
-    }
-
-  }
-
-  // if the user provide a special oscilloscope function
+  // if the user provide a special oscilloscope function --------------------
   if (d2a_function != NULL) {
     if (semTake(sm_oscilloscope_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
       return FALSE;
@@ -120,11 +150,10 @@ setOsc(int channel, double pval)
     }
   }
 
+
+  // the graphics oscillscope -----------------------------------------------
   if (!osc_enabled)
     return TRUE;
-
-  // the graphics oscilloscope is the default -- just add the data
-  // in the appropriate structure in memory
 
 #ifdef __XENO__
   struct timespec t;
@@ -413,7 +442,9 @@ oscMenu(void)
 {
   int aux = 2;
   static double time_window=5.0;
+  static int    periods_ad=2.0;
   double temp;
+  int    itemp;
   static char  fname[100] = "default.script";
 
   if (!osc_enabled)
@@ -422,16 +453,20 @@ oscMenu(void)
   if (read_parameter_pool_double(config_files[PARAMETERPOOL],"osc_time_window_vars", &temp))
     time_window = temp;
 
+  if (read_parameter_pool_int(config_files[PARAMETERPOOL],"osc_periods_ad", &itemp))
+    periods_ad = itemp;
+
   AGAIN:
   
   printf("\n\n\nCHANGE OSCILLOSCOPE SETTINGS:\n\n");
   printf("        Time Window of Plots            ---> %d\n",1);
   printf("        Read Oscilloscope Variables     ---> %d\n",2);
+  printf("        Number of Periods in AD Plot    ---> %d\n",3);
   printf("        Quit                            ---> q\n");
   printf("\n");
   if (!get_int("        ----> Input",aux,&aux)) return;
   
-  if (aux > 2 || aux < 1) {
+  if (aux > 3 || aux < 1) {
     
     goto AGAIN;
     
@@ -462,6 +497,13 @@ oscMenu(void)
 
     strcpy(osc_vars_name,fname);
     
+  } else if (aux == 3) {
+    
+    if (get_int("Number of Periods in AD Plot [-]?\0",periods_ad,&itemp))
+      if (itemp > 0) {
+	updateOscPeriodsAD(itemp);
+	periods_ad = itemp;
+      }
   }
 
   goto AGAIN;
@@ -496,6 +538,38 @@ updateOscTimeWindow(double w)
   memcpy(cbuf,(void *)&(buf[1]),sizeof(float));
     
   sendMessageOpenGLServo("updateOscTimeWindow",(void *)cbuf,sizeof(float));
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  updateOscPeriodsAD
+\date  Aug 2010
+   
+\remarks 
+
+sends messages to openGL servo to update the periods displayed in the
+oscilloscope AD pot
+
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     w : number of periods
+
+ ******************************************************************************/
+static void 
+updateOscPeriodsAD(int w) 
+{
+  int i,j;
+  int buf[1+1];
+  unsigned char cbuf[sizeof(int)];
+
+  buf[1] = w;
+
+  memcpy(cbuf,(void *)&(buf[1]),sizeof(int));
+    
+  sendMessageOpenGLServo("updateOscPeriodsAD",(void *)cbuf,sizeof(int));
 
 }
 

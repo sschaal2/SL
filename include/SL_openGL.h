@@ -106,7 +106,7 @@ extern "C" {
   void       resetCometDisplay(void);
   void       displayCoord(void);
   void       receiveOscilloscopeData(void);
-
+  int        initOscWindow(void);
   
   /* exported variables */
   extern int solid;

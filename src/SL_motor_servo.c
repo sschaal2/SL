@@ -198,6 +198,7 @@ init_motor_servo(void)
   motor_servo_initialized = TRUE;
 
   /* set oscilloscope to start value */
+  initOsc();
   setOsc(d2a_cm,0.0);
 
   scd();

@@ -293,6 +293,7 @@ init_ros_servo(void)
   ros_servo_initialized = TRUE;
 
   // set oscilloscope to start value
+  initOsc();
   setOsc(d2a_cr,0.0);
 
   scd();

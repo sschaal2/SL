@@ -21,18 +21,11 @@ extern "C" {
 #endif
   
   // global functions 
-  int
-  setOsc(int channel, double pval);
-
-  void
-  setD2AFunction(int (*fptr)(int,double));
-
-  void
-  addEntryOscBuffer(char *name, double v, double ts, int cID);
-
-  void 
-  sendOscilloscopeData(void);
-
+  void       initOsc(void);
+  int        setOsc(int channel, double pval);
+  void       setD2AFunction(int (*fptr)(int,double));
+  void       addEntryOscBuffer(char *name, double v, double ts, int cID);
+  void       sendOscilloscopeData(void);
 
   // external variables
 

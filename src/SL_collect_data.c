@@ -137,6 +137,8 @@ initCollectData( int freq )
   /* read the default script which has the default settings */
 
   sprintf(string,"%sdefault_script",PREFS);
+
+  // now open for read
   in = fopen(string,"r");
 
   if (in == NULL) {

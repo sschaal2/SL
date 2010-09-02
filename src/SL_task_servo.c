@@ -466,6 +466,7 @@ init_task_servo(void)
   task_servo_initialized = TRUE;
 
   /* set oscilloscope to start value */
+  initOsc();
   setOsc(d2a_ct,0.0);
 
   scd();

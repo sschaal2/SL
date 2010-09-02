@@ -472,6 +472,16 @@ checkForMessages(void)
       time_window_vars = data.w;
       
     // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"updateOscPeriodsAD") == 0) { 
+      extern int periods_window_AD;
+      struct {
+	int w;
+      } data;
+      
+      memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
+      periods_window_AD = data.w;
+      
+    // ---------------------------------------------------------------------------
     } else if (strcmp(name,"resetCometDisplay") == 0) { 
 
       resetCometDisplay();
