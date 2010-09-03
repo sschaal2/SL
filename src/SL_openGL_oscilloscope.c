@@ -318,7 +318,7 @@ osc_display(void)
       if (c < 1)
 	c += MAX_OSC_DATA;
       
-      if (osc_data[0].data[ivs][c][2] == 1.0) {
+      if (osc_data[0].data[ivs][c][2] == 0.0) {
 	tend_ivs = osc_data[0].data[ivs][c][1];
 	break;
       }
