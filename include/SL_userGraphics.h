@@ -29,7 +29,6 @@ extern "C" {
   void runUserGraphics(void);
   int  checkForUserGraphics(void);
 
-  extern char user_display_function_name[];
   extern int  user_graphics_update;
 
 #ifdef __cplusplus

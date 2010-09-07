@@ -39,21 +39,22 @@
 #define TIME_OUT_NS  1000000000
 
 typedef struct userGraphicsEntry {
-  char abr[20];                  //!< keyword for this graphics program
-  char exp[1000];                //!< explanation
-  void (*func)(void *buf);      //!< function pointer
-  int  n_bytes;                  //!< number of valid bytes in buf
-  char *nptr;                    //!< next pointer
+  char abr[20];                               //!< keyword for this graphics program
+  char exp[1000];                             //!< explanation
+  void (*func)(void *buf);                    //!< function pointer
+  int  n_bytes;                               //!< number of valid bytes in buf
+  unsigned char *buf;                         //!< memory for data buffer
+  int  active;                                //!< TRUE/FALSE for displaying this graphics
+  int  user_graphics_update;                  //!< TRUE if buf was updated
+  char *nptr;                                 //!< next pointer
 } UserGraphicsEntry;
 
 // global variables
-char user_display_function_name[100] = "none";
 int  user_graphics_update = FALSE;
 
 // local variables
-static UserGraphicsEntry ugraphs;
+static UserGraphicsEntry *ugraphs = NULL;
 static int user_graphics_initialized = FALSE;
-static unsigned char buf[MAX_BYTES_USER_GRAPHICS];
 
 // local functions
 static void initializeUserGraphics(void);
@@ -87,9 +88,9 @@ addToUserGraphics(char *abr, char *string, void (*fptr)(void *), int n_bytes)
   int i;
   UserGraphicsEntry *ptr;
 
-  if (!user_graphics_initialized) {
+
+  if (!user_graphics_initialized) 
     initializeUserGraphics();
-  }
 
   if (n_bytes > MAX_BYTES_USER_GRAPHICS) {
     printf("Error: Buffer Size Exceeded: Max. User Graphics Buffer = %d bytes\n",
@@ -97,28 +98,48 @@ addToUserGraphics(char *abr, char *string, void (*fptr)(void *), int n_bytes)
     return;
   }
 
-  ptr = &ugraphs;
-
   // check for duplicate entries
-  do {
+  ptr = ugraphs;
+  
+  while ( ptr != NULL ) {
+
     if (strcmp(ptr->abr,abr)==0) {
+      
       // update the function pointer and explantory string */
       ptr->func = fptr;
       strcpy(ptr->exp,string);
+      
+      // the user graphics is inactive until it receives data
+      ptr->active = FALSE;
+      ptr->user_graphics_update = FALSE;
+      
+      // update the memory buffer
+      free(ptr->buf);
+      ptr->buf = my_calloc(ptr->n_bytes,sizeof(unsigned char),MY_STOP);
+      
       return;
     }
     if (ptr->nptr == NULL)
       break;
     else
       ptr = (UserGraphicsEntry *)ptr->nptr;
-  } while (TRUE);
-  
-  ptr->nptr = (char *) my_calloc(1,sizeof(UserGraphicsEntry),MY_STOP);
-  ptr = (UserGraphicsEntry *)ptr->nptr;
+  }
+
+  // a new entry is created
+  if (ugraphs == NULL) {
+    ugraphs = (UserGraphicsEntry *) my_calloc(1,sizeof(UserGraphicsEntry),MY_STOP);
+    ptr = ugraphs;    
+  } else {
+    ptr->nptr = my_calloc(1,sizeof(UserGraphicsEntry),MY_STOP);
+    ptr = (UserGraphicsEntry *)ptr->nptr;
+  }
   strcpy(ptr->abr,abr);
   strcpy(ptr->exp,string);
   ptr->func = fptr;
   ptr->n_bytes = n_bytes;
+  ptr->active = FALSE;
+  ptr->user_graphics_update = FALSE;
+  ptr->buf = my_calloc(ptr->n_bytes,sizeof(unsigned char),MY_STOP);
   ptr->nptr = NULL;
 
 }
@@ -129,12 +150,12 @@ addToUserGraphics(char *abr, char *string, void (*fptr)(void *), int n_bytes)
    
 \remarks 
 
-      initializes the user graphics with a default entry
+initializes the user graphics with a default entry
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
-   none
+ none
 
  ******************************************************************************/
 static void
@@ -144,19 +165,15 @@ initializeUserGraphics(void)
   if (user_graphics_initialized)
     return;
 
-  strcpy(ugraphs.abr,"none");
-  sprintf(ugraphs.exp,"use no user graphics");
-  ugraphs.nptr = NULL;
-  ugraphs.func = NULL;
-  ugraphs.n_bytes = 0;
   user_graphics_initialized=TRUE;
 
   // a simple tool to display existing user graphics functions
   addToMan("listUserGraphics","list all user graphics entries",listUserGraphics);
-  addToMan("clearUserGraphics","clears the current user graphics entries",clearUserGraphics);
+  addToMan("clearUserGraphics","clears all active user graphics entries",clearUserGraphics);
 
   // add some generally hand display function
   addToUserGraphics("ball","Display a 6cm diameter ball",displayBall,N_CART*sizeof(float));
+
 
 }
 
@@ -185,10 +202,13 @@ listUserGraphics(void)
   if (!user_graphics_initialized)
     initializeUserGraphics();
 
-  ptr = &ugraphs;
+  ptr = ugraphs;
 
   while (ptr != NULL) {
-    printf("%20s -- %s\n",ptr->abr,ptr->exp);
+    if (ptr->active)
+      printf("%20s -- %s (TRUE)\n",ptr->abr,ptr->exp);
+    else 
+      printf("%20s -- %s (FALSE)\n",ptr->abr,ptr->exp);
     ptr = (UserGraphicsEntry *)ptr->nptr;
   }
   
@@ -216,14 +236,13 @@ checkForUserGraphics(void)
   int i,j;
   char name[20];
   UserGraphicsEntry *ptr;
-  
+
   if (!user_graphics_initialized)
     initializeUserGraphics();
   
-  // check whether user graphics is read
+  // check whether user graphics is ready
   if (semTake(sm_user_graphics_ready_sem,NO_WAIT) == ERROR)
     return FALSE;
-  //printf("Got ready signal!\n");
 
   // receive the user graphics data
   if (semTake(sm_user_graphics_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
@@ -235,30 +254,27 @@ checkForUserGraphics(void)
   strcpy(name,sm_user_graphics->name);
 
   // check whether we have an approriate function with this name
-  ptr = &ugraphs;
-  do {
-    if (strcmp(ptr->abr,name)==0)
-      break;
-    if (ptr->nptr == NULL) {
-      printf("Couldn't find user graphics >%s<\n",name);
+  ptr = ugraphs;
+  while (ptr != NULL)  {
+
+    if (strcmp(ptr->abr,name)==0) {
+      // user graphics was successfully identified -- copy remaining shared
+      // memory
+      memcpy(ptr->buf,sm_user_graphics->buf,ptr->n_bytes);
+      
       semGive(sm_user_graphics_sem);
-      return FALSE;
-    } else
-      ptr = (UserGraphicsEntry *)ptr->nptr;
+      ptr->user_graphics_update = TRUE;
+      ptr->active = TRUE;
+      return TRUE;
+    }
+    ptr = (UserGraphicsEntry *)ptr->nptr;
   } while (TRUE);
 
-  // user graphics was successfully identified -- copy remaining shared
-  // memory
-  memcpy(buf,sm_user_graphics->buf,ptr->n_bytes);
-        
+  // only happens if entry not found
+  printf("Couldn't find user graphics >%s<\n",name);
   semGive(sm_user_graphics_sem);
-  user_graphics_update = TRUE;
 
-  // activate the display function
-  user_display_function = ptr->func;
-  strcpy(user_display_function_name,ptr->abr);
-
-  return TRUE;
+  return FALSE;
 }
 
 /*!*****************************************************************************
@@ -280,11 +296,21 @@ void
 runUserGraphics(void)
 {
 
+  UserGraphicsEntry *ptr;
+
   if (!user_graphics_initialized)
     initializeUserGraphics();
 
-  if (user_display_function != NULL)
-    (*user_display_function)(buf);
+  ptr = ugraphs;
+  while (ptr != NULL) {
+    if (ptr->active) {
+      user_graphics_update = ptr->user_graphics_update;
+      (*ptr->func)(ptr->buf);
+      ptr->user_graphics_update = FALSE;
+    }
+    ptr = (UserGraphicsEntry *)ptr->nptr;
+  }
+
 }
 
 /*!*****************************************************************************
@@ -299,7 +325,7 @@ runUserGraphics(void)
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
- \param[in]     b : the general array of bytes
+ \param[in]      b      : the general array of bytes
 
  ******************************************************************************/
 static void
@@ -331,7 +357,7 @@ displayBall(void *b)
    
 \remarks 
 
-     set the current user graphics to the null pointer
+sets all user graphics's status to FALSE
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -342,8 +368,15 @@ displayBall(void *b)
 static void 
 clearUserGraphics(void)
 {
-  user_display_function = NULL;
-  strcpy(user_display_function_name,"none");
+
+  UserGraphicsEntry *ptr;
+
+  ptr = ugraphs;
+  while (ptr != NULL) {
+    ptr->active = FALSE;
+    ptr = (UserGraphicsEntry *)ptr->nptr;
+  }
+
 }
 
 

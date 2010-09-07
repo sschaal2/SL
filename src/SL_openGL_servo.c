@@ -295,7 +295,6 @@ status(void)
   printf("            Pause Flag             = %d\n",pause_flag);
   printf("            Window Update Rate     = %5.2f\n",window_update_rate);
   printf("            Stand Alone Flag       = %d\n",stand_alone_flag);
-  printf("            User Graphics          = %s\n",user_display_function_name);
 #ifdef __XENO__
   extern long count_xenomai_mode_switches;
   extern int  delay_ns;
