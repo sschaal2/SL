@@ -45,8 +45,11 @@ typedef struct smlist /*!< structure to maintain shared memory list */
 #define MAX_SM
 static int sm_ids_list[1000];
 
-/* semaphore linked list */
+// semaphore linked list 
 SM_PTR   smlist = NULL;
+
+//! user function to be called on exit
+static void (*user_signal_handler)(void) = NULL;  //!< function pointer
 
 // local functions
 static STATUS       
@@ -524,11 +527,38 @@ removeSharedMemory(int dummy)
     
     sptr = (SM_PTR) sptr->nptr;
   }
+
+  // execute user function
+  if (user_signal_handler != NULL)
+    (*user_signal_handler)();
   
   printf("done\n");
   
   exit(-1);
   
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+ \note  setUserSignalHandler
+ \date  Nov 2007
+ 
+ \remarks 
+
+ adds a user defined function for signal handling
+  
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+ 
+ \param[in]   fptr: function pointer to void func(void) function
+ 
+ ******************************************************************************/
+void
+setUserSignalHanlder(void(*fptr)(void))
+{
+
+  user_signal_handler = fptr;
+
 }
 
 /*!*****************************************************************************
