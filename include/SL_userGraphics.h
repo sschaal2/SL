@@ -24,10 +24,11 @@
 extern "C" {
 #endif
 
-  void listUserGraphics(void);
   void addToUserGraphics(char *abr, char *string, void (*fptr)(void *),int n_bytes);
   void runUserGraphics(void);
   int  checkForUserGraphics(void);
+  void clearUserGraphics(void);
+  void initUserGraph(void);
 
   extern int  user_graphics_update;
 

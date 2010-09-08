@@ -26,7 +26,7 @@
 #include "SL_shared_memory.h"
 #include "SL_man.h"
 #include "string.h"
-#include "SL_openGL_servo.h"
+#include "SL_userGraphics.h"
 
 // openGL includes
 #ifdef powerpc
@@ -54,15 +54,10 @@ int  user_graphics_update = FALSE;
 
 // local variables
 static UserGraphicsEntry *ugraphs = NULL;
-static int user_graphics_initialized = FALSE;
 
 // local functions
-static void initializeUserGraphics(void);
-static void  (*user_display_function) (void *) = NULL;
 static void displayBall(void *b);
 static void listUserGraphics(void);
-static void clearUserGraphics(void);
-
 
 /*!*****************************************************************************
  *******************************************************************************
@@ -88,9 +83,6 @@ addToUserGraphics(char *abr, char *string, void (*fptr)(void *), int n_bytes)
   int i;
   UserGraphicsEntry *ptr;
 
-
-  if (!user_graphics_initialized) 
-    initializeUserGraphics();
 
   if (n_bytes > MAX_BYTES_USER_GRAPHICS) {
     printf("Error: Buffer Size Exceeded: Max. User Graphics Buffer = %d bytes\n",
@@ -145,7 +137,7 @@ addToUserGraphics(char *abr, char *string, void (*fptr)(void *), int n_bytes)
 }
 /*!*****************************************************************************
  *******************************************************************************
-\note  initializeUserGraphics
+\note  initUserGraph
 \date  Nov. 2007
    
 \remarks 
@@ -158,14 +150,9 @@ initializes the user graphics with a default entry
  none
 
  ******************************************************************************/
-static void
-initializeUserGraphics(void)
+void
+initUserGraph(void)
 {
-
-  if (user_graphics_initialized)
-    return;
-
-  user_graphics_initialized=TRUE;
 
   // a simple tool to display existing user graphics functions
   addToMan("listUserGraphics","list all user graphics entries",listUserGraphics);
@@ -198,9 +185,6 @@ listUserGraphics(void)
 {
   int i;
   UserGraphicsEntry *ptr;
-
-  if (!user_graphics_initialized)
-    initializeUserGraphics();
 
   ptr = ugraphs;
 
@@ -236,9 +220,6 @@ checkForUserGraphics(void)
   int i,j;
   char name[20];
   UserGraphicsEntry *ptr;
-
-  if (!user_graphics_initialized)
-    initializeUserGraphics();
 
   // check whether user graphics is ready
   if (semTake(sm_user_graphics_ready_sem,NO_WAIT) == ERROR)
@@ -308,9 +289,6 @@ runUserGraphics(void)
 
   UserGraphicsEntry *ptr;
 
-  if (!user_graphics_initialized)
-    initializeUserGraphics();
-
   ptr = ugraphs;
   while (ptr != NULL) {
     if (ptr->active) {
@@ -375,7 +353,7 @@ sets all user graphics's status to FALSE
    none
 
  ******************************************************************************/
-static void 
+void 
 clearUserGraphics(void)
 {
 

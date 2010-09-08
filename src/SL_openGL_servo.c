@@ -106,7 +106,8 @@ init_openGL_servo(int argc, char** argv)
     return FALSE;
 
   // initialize user specific graphics
-  if (!initUserGraphics()) 
+  initUserGraph();               // general initialization
+  if (!initUserGraphics())       // user specific intialization
     return FALSE;
 
   // start the main loop

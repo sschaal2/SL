@@ -47,6 +47,7 @@ extern "C" {
   void reset(void);
   void dss(void);
   void disable_simulation_servo(void);
+  int  initUserSimulation(void);
 
 
 #ifdef __cplusplus

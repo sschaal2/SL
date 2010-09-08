@@ -32,6 +32,7 @@
 #include "SL_kinematics.h"
 #include "SL_dynamics.h"
 #include "SL_oscilloscope.h"
+#include "SL_userSimulation.h"
 
 #define TIME_OUT_NS  1000000000
 
@@ -137,6 +138,11 @@ init_simulation_servo(void)
 
   // oscilloscope
   initOsc();
+
+  // initialize user specific simulations
+  initUserSim();                // general initialization
+  if (!initUserSimulation())    // user specific intialization
+    return FALSE;
 
   servo_enabled = TRUE;
 

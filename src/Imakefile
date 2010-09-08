@@ -61,6 +61,7 @@ INSTALL_HEADERS = \
 		  ../include/SL_terrains.h \
 		  ../include/SL_unix_common.h \
 		  ../include/SL_userGraphics.h \
+		  ../include/SL_userSimulation.h \
 		  ../include/SL_user_common.h \
 		  ../include/SL_user_display_core.h \
 		  ../include/SL_user_idle_core.h \
