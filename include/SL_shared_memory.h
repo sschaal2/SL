@@ -134,7 +134,10 @@ typedef struct smBaseOrient {
 
 typedef struct smUserGraphics {
   SEM_ID          sm_sem;
-  char            name[20];
+  int             n_entries;
+  int             n_bytes_used;
+  char            name[MAX_N_MESSAGES+1][20];
+  int             moff[MAX_N_MESSAGES+1];
   unsigned char   buf[MAX_BYTES_USER_GRAPHICS];
 } smUserGraphics;
 

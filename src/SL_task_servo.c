@@ -1487,11 +1487,55 @@ sendUserGraphics(char *name, void *buf, int n_bytes)
     return FALSE;
   }
 
-  // send the name of user graphics
-  strcpy(sm_user_graphics->name,name);
+  // first, check whether there is an older graphics object with the same
+  // name -- it will be overwritten, as only the latest graphics objects
+  // matters for visualization
+  for (i=1; i<=sm_user_graphics->n_entries; ++i) {
+    if (strcmp(name,sm_user_graphics->name[i]) == 0) {
 
-  // send the data
-  memcpy(sm_user_graphics->buf,buf,n_bytes);
+      // just overwrite the data
+      memcpy(sm_user_graphics->buf+sm_user_graphics->moff[i],buf,n_bytes);
+
+      // give semaphores
+      semGive(sm_user_graphics_sem);
+      semGive(sm_user_graphics_ready_sem);
+
+      return TRUE;
+
+    }
+  }
+
+  // make sure the pointer offset buffer is correct
+  if (sm_user_graphics->n_entries == 0) {
+    sm_user_graphics->moff[1] = 0;
+    sm_user_graphics->n_bytes_used = 0;
+  }
+
+  // check whether there is space for the graphics object
+  if (sm_user_graphics->n_entries >= MAX_N_MESSAGES) {
+    printf("User graphics buffer exhausted in sendUserGraphics\n");
+    semGive(sm_user_graphics_sem);
+    return FALSE;
+  }
+  
+  if (MAX_BYTES_USER_GRAPHICS-sm_user_graphics->n_bytes_used < n_bytes) {
+    printf("User Graphics memory buffer exhausted in sendUserGraphics\n");
+    semGive(sm_user_graphics_sem);
+    return FALSE;
+  }
+  
+  // update the logistics
+  ++sm_user_graphics->n_entries;
+  sm_user_graphics->n_bytes_used += n_bytes;
+  
+  // specify the name and info of this entry
+  strcpy(sm_user_graphics->name[sm_user_graphics->n_entries],name);
+  memcpy(sm_user_graphics->buf+sm_user_graphics->moff[sm_user_graphics->n_entries],buf,n_bytes);
+  
+  // prepare pointer buffer for next entry
+  if (sm_user_graphics->n_entries < MAX_N_MESSAGES)
+    sm_user_graphics->moff[sm_user_graphics->n_entries+1]=
+      sm_user_graphics->moff[sm_user_graphics->n_entries]+n_bytes;
 
   // give semaphores
   semGive(sm_user_graphics_sem);

@@ -239,7 +239,7 @@ checkForUserGraphics(void)
 
   if (!user_graphics_initialized)
     initializeUserGraphics();
-  
+
   // check whether user graphics is ready
   if (semTake(sm_user_graphics_ready_sem,NO_WAIT) == ERROR)
     return FALSE;
@@ -250,28 +250,38 @@ checkForUserGraphics(void)
     return FALSE;
   }
 
-  // get the name of user graphics
-  strcpy(name,sm_user_graphics->name);
 
-  // check whether we have an approriate function with this name
-  ptr = ugraphs;
-  while (ptr != NULL)  {
+  // loop over all entries
+  for (i=1; i<=sm_user_graphics->n_entries; ++i) {
 
-    if (strcmp(ptr->abr,name)==0) {
-      // user graphics was successfully identified -- copy remaining shared
-      // memory
-      memcpy(ptr->buf,sm_user_graphics->buf,ptr->n_bytes);
+    // get the name of user graphics
+    strcpy(name,sm_user_graphics->name[i]);
+    
+    // check whether we have an approriate function with this name
+    ptr = ugraphs;
+    while (ptr != NULL)  {
       
-      semGive(sm_user_graphics_sem);
-      ptr->user_graphics_update = TRUE;
-      ptr->active = TRUE;
-      return TRUE;
-    }
-    ptr = (UserGraphicsEntry *)ptr->nptr;
-  } while (TRUE);
+      if (strcmp(ptr->abr,name)==0) {
+	// user graphics was successfully identified -- copy remaining shared
+	// memory
 
-  // only happens if entry not found
-  printf("Couldn't find user graphics >%s<\n",name);
+	memcpy(ptr->buf,sm_user_graphics->buf+sm_user_graphics->moff[i],
+	     sizeof(unsigned char)*ptr->n_bytes);
+
+	ptr->user_graphics_update = TRUE;
+	ptr->active = TRUE;
+	break;
+      }
+      ptr = (UserGraphicsEntry *)ptr->nptr;
+    }
+    
+    if (ptr == NULL)
+      printf("Couldn't find user graphics >%s<\n",name);
+
+  }
+
+  sm_user_graphics->n_entries = 0;
+  sm_user_graphics->n_bytes_used = 0;
   semGive(sm_user_graphics_sem);
 
   return FALSE;
