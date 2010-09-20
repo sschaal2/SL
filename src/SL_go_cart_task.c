@@ -402,7 +402,7 @@ go_cart_target_wait(SL_Cstate *ctar,int *stat, double mt)
       special_flag = FALSE;
       return FALSE;
     }
-    taskDelay(1);
+    taskDelay(ns2ticks(10000000)); // wait 10ms
   }
   
   return TRUE;

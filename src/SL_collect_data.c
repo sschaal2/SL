@@ -521,7 +521,7 @@ dscd(int parm)
       printf("servo does not seem to be running! Aborted ....\n");
       return FALSE;
     }
-    taskDelay(1);
+    taskDelay(ns2ticks(10000000)); // wait 10ms
   }
   printf("Start Collect Data NOW!\n");
   beep(1);
@@ -550,7 +550,7 @@ scds(void)
   scd();
   last_draw_time = data_collect_time;
   while (save_data_flag) {
-    taskDelay(1);
+    taskDelay(ns2ticks(10000000)); // wait 10ms
   }
   saveData();
 

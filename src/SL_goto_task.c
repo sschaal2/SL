@@ -432,7 +432,7 @@ go0_wait(void)
       printf("time out in go0_wait\n");
       return FALSE;
     }
-    taskDelay(1);
+    taskDelay(ns2ticks(10000000)); // wait 10ms
   }
   
   return TRUE;
@@ -483,7 +483,7 @@ go_target_wait(SL_DJstate *target)
       printf("time out in go_target_wait\n");
       return FALSE;
     }
-    taskDelay(1);
+    taskDelay(ns2ticks(10000000)); // wait 10ms
   }
   
   return TRUE;

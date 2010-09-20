@@ -456,7 +456,7 @@ monitor_min_max(void)
     if (n_bytes != 0)
       break;
 
-    taskDelay(1);
+    taskDelay(ns2ticks(10000000)); // wait 10ms
 
   }
 
