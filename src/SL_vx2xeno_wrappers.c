@@ -554,7 +554,7 @@ removeSharedMemory(int dummy)
  
  ******************************************************************************/
 void
-setUserSignalHanlder(void(*fptr)(void))
+setUserSignalHandler(void(*fptr)(void))
 {
 
   user_signal_handler = fptr;

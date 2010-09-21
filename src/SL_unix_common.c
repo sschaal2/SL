@@ -180,8 +180,7 @@ checkUserCommand(char *name)
 {
 
   int i,rc,len;
-  char c[100];
-
+  
   // strip trailing white-space:
   len = strlen(name);
   for (i=len-1; i>=0; i--) {
@@ -426,15 +425,53 @@ void
 installSignalHandlers(void)
 
 {
-
+  int i;
   // install signal handler for shared memory objects 
-  signal(SIGABRT,removeSharedMemory);
+  /*  signal(SIGABRT,removeSharedMemory);
   signal(SIGFPE,removeSharedMemory);
   signal(SIGILL,removeSharedMemory);
   //signal(SIGSEGV,removeSharedMemory);
   signal(SIGINT,removeSharedMemory);
-  signal(SIGTERM,removeSharedMemory);
+  signal(SIGTERM,removeSharedMemory);*/
+ 
+
+  // DBG, catch all but the signals which are normally ignored, 
+  // + XCPU... xeno context switches...
+  for(i=1; i<_NSIG; i++ ) {
+    if(i == SIGCHLD ||
+       i == SIGCONT ||
+       i == SIGURG  ||
+       i == SIGWINCH ||
+       i == SIGSEGV || // want core dump
+       i == SIGXCPU   // CPU time limt
+       ) { 
+    } else {
+      signal(i,removeSharedMemory); }
+  }
   atexit(removeSharedMemoryAtExit);
+
+  // DBG
+  
+ 
+  /*
+  signal(SIGHUP,removeSharedMemory);
+  signal(SIGQUIT,removeSharedMemory);
+  signal(SIGBUS,removeSharedMemory);
+  signal(SIGTRAP,removeSharedMemory);
+  signal(SIGABRT,removeSharedMemory);
+  signal(SIGFPE,removeSharedMemory);
+  signal(SIGIOT,removeSharedMemory);
+
+  signal(SIGABRT,removeSharedMemory);
+
+  signal(SIGSTOP,removeSharedMemory);
+
+  signal(SIGCHLD,removeSharedMemory);
+  */
+  
+
+
+  
 
 }
 

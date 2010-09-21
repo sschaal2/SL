@@ -158,7 +158,7 @@ extern "C" {
   /* needed to remove shared memory objects with signal() */
   void removeSharedMemory(int dummy);
   void removeSharedMemoryAtExit(void);
-  void setUserSignalHanlder(void(*fptr)(void));
+  void setUserSignalHandler(void(*fptr)(void));
 
 
   /* some other fake functions */
