@@ -1,15 +1,15 @@
 /*!=============================================================================
   ==============================================================================
 
-  \file    SL_for_dynamics_body.h
+  \file    SL_forDynArt_body.h
 
   \author  Stefan Schaal
-  \date    Nov. 2009
+  \date    Sept 2010
 
   ==============================================================================
   \remarks
 
-  the forward dynamics function
+  the articulated body forward dynamics function
 
   Note: this file was converted to a header file as it requires to include
         robot specific header files, such that it cannot be added to a SL
@@ -31,10 +31,16 @@
 
 
 /* global variables */ 
-Matrix rbdInertiaMatrix;
-Vector rbdCplusGVector;
 
 /* local variables */
+#include "ForDynArt_declare.h"
+
+static SL_Jstate  *state;
+static SL_endeff  *eff;
+static SL_Cstate  *basec;
+static SL_quat    *baseo;
+static SL_uext    *uex;
+
 
 /* global functions */
 
@@ -44,12 +50,13 @@ Vector rbdCplusGVector;
 
 /*!*****************************************************************************
  *******************************************************************************
-\note  SL_ForwardDynamics
-\date  June 1999
+\note  SL_ForDynArt
+\date  Sept 2010
    
 \remarks 
 
-        computes the forward dynamics accelerations
+computes the forward dynamics accelerations from the articulate body inertia
+method
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -64,59 +71,32 @@ Vector rbdCplusGVector;
  \param[in]     endeff  : the endeffector parameters
 
  ******************************************************************************/
-#include "ForDyn_declare.h"
-
-static SL_Jstate  *state;
-static SL_endeff  *eff;
-static SL_Cstate  *basec;
-static SL_quat    *baseo;
-static SL_uext    *uex;
-
 void 
-SL_ForwardDynamics(SL_Jstate *lstate,SL_Cstate *cbase,
-		   SL_quat *obase, SL_uext *ux, SL_endeff *leff)
-
+SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
+	     SL_quat *obase, SL_uext *ux, SL_endeff *leff)
 {
   int i,j;
-  static int firsttime = TRUE; 
-  static double **Hmat; 
-  static double  *cvec; 
-  static double  *ucvec; 
   double fbase[2*N_CART+1];  
   
-  /* this makes the arguments global variables */ 
+  // this makes the arguments global variables 
   state  = lstate;
   eff    = leff;
   basec  = cbase;
   baseo  = obase;
   uex    = ux;
   
-  if (firsttime) {
-    firsttime = FALSE;
-    rbdInertiaMatrix = Hmat = my_matrix(1,N_DOFS+6,1,N_DOFS+6);
-    rbdCplusGVector  = cvec = my_vector(1,N_DOFS+6);
-    ucvec   = my_vector(1,N_DOFS+6);
-    for (i=1; i<=N_DOFS+6; ++i) {
-      cvec[i]=0.0;
-      ucvec[i]=0.0;
-      for (j=1; j<=N_DOFS+6; ++j)
-	 Hmat[i][j] = 0.0;
-    } 
-  }
-  
-  /* subtract the friction term temporarily */
+  // subtract the friction term temporarily 
   for (i=1; i<=N_DOFS; ++i) {
     state[i].u -= links[i].vis*state[i].thd;
   }
 
-#include "ForDyn_math.h"
+#include "ForDynArt_math.h"
 
-  /* add back the friction term */
+  // add back the friction term
   for (i=1; i<=N_DOFS; ++i) {
     state[i].u += links[i].vis*state[i].thd;
   }
 
 } 
 
-
-#include "ForDyn_functions.h"
+#include "ForDynArt_functions.h"

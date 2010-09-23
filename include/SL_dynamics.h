@@ -26,6 +26,13 @@ extern "C" {
   int  init_dynamics(void);
   void setDefaultEndeffector(void);
   
+  void SL_ForDyn(SL_Jstate *lstate,SL_Cstate *cbase,
+		 SL_quat *obase, SL_uext *ux, SL_endeff *leff);
+  void SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
+		    SL_quat *obase, SL_uext *ux, SL_endeff *leff);
+  void SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
+		     SL_quat *obase, SL_uext *ux, SL_endeff *leff,
+		     Matrix *rbdM, Vector *rbdCG);
   void SL_ForwardDynamics(SL_Jstate *lstate,SL_Cstate *cbase,
 			  SL_quat *obase, SL_uext *ux, SL_endeff *leff);
   void SL_InverseDynamics(SL_Jstate *cstate,SL_DJstate *state,SL_endeff *endeff);

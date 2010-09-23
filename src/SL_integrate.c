@@ -74,7 +74,7 @@ SL_IntegrateEuler(SL_Jstate *state, SL_Cstate *cbase,
   if (flag) {
 
     // compute the accelerations
-    SL_ForwardDynamics(state, cbase, obase, ux, leff);
+    SL_ForDyn(state, cbase, obase, ux, leff);
 
   }
 
@@ -198,7 +198,7 @@ SL_IntegrateRK(SL_Jstate *state, SL_Cstate *cbase,
     fr1[i] = state[i];
   cs1 = *cbase;
   os1 = *obase;
-  SL_ForwardDynamics(fr1,  &cs1, &os1, ux, leff);
+  SL_ForDyn(fr1,  &cs1, &os1, ux, leff);
 
   // integrate fr1 forward by dt/2 and call this fr2
   for (i=1; i<=ndofs; ++i)
@@ -208,7 +208,7 @@ SL_IntegrateRK(SL_Jstate *state, SL_Cstate *cbase,
   SL_IntegrateEuler(fr2,  &cs2, &os2, ux, leff, dt/2.,ndofs,FALSE);
 
   // evaluate accelerations at fr2, called k2/h in NR
-  SL_ForwardDynamics(fr2,  &cs2, &os2, ux, leff);
+  SL_ForDyn(fr2,  &cs2, &os2, ux, leff);
 
   // now integrate forward fr1 based on k2/h information
   for (i=1; i<=ndofs; ++i)
@@ -226,7 +226,7 @@ SL_IntegrateRK(SL_Jstate *state, SL_Cstate *cbase,
   SL_IntegrateEuler(fr3,  &cs3, &os3, ux, leff, dt/2.,ndofs,FALSE);
 
   // evaluate accelerations at fr3, called k3 in NR
-  SL_ForwardDynamics(fr3,  &cs3, &os3, ux, leff);
+  SL_ForDyn(fr3,  &cs3, &os3, ux, leff);
 
   // now integrate forward fr1 based on this information
   for (i=1; i<=ndofs; ++i)
@@ -244,7 +244,7 @@ SL_IntegrateRK(SL_Jstate *state, SL_Cstate *cbase,
   SL_IntegrateEuler(fr4,  &cs4, &os4, ux, leff, dt,ndofs,FALSE);
 
   // evaluate accelerations at fr4, called k4 in NR
-  SL_ForwardDynamics(fr4, &cs4, &os4, ux, leff);
+  SL_ForDyn(fr4, &cs4, &os4, ux, leff);
 
   /*
   for (i=1; i<=n_dofs; ++i) {

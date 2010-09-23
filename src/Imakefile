@@ -36,7 +36,8 @@ INSTALL_HEADERS = \
 		  ../include/SL_controller.h \
 		  ../include/SL_dynamics.h \
 		  ../include/SL_filters.h \
-		  ../include/SL_for_dynamics_body.h \
+		  ../include/SL_forDynComp_body.h \
+		  ../include/SL_forDynArt_body.h \
 		  ../include/SL_integrate.h \
 		  ../include/SL_invDynArt_body.h \
 		  ../include/SL_invDynNE_body.h \
