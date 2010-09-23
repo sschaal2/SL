@@ -19,64 +19,19 @@
 
   ============================================================================*/
 
-/* system headers */
-#include "SL_system_headers.h"
-
-
-/* private includes */
-#include "utility.h"
-#include "SL.h"
-#include "SL_user.h"
-#include "SL_common.h"
-#include "mdefs.h"
-#include "SL_dynamics.h"
-
 /* global variables */
-int    freeze_base               = FALSE;
-double freeze_base_pos[N_CART+1] = {0.0,0.0,0.0,0.0};
-double freeze_base_quat[N_QUAT+1] = {0.0,1.0,0.0,0.0,0.0};
 
 /* local variables */
+#include "InvDyn_declare.h"
+
+static SL_DJstate state[N_DOFS+1];
+static SL_endeff *eff; 
 
 /* global functions */
 
 /* local functions */
-
 /* external variables */
 
-
-/*!*****************************************************************************
- *******************************************************************************
-\note  init_dynamics
-\date  June 1999
-\remarks 
-
-initializes all necessary things
-
- *******************************************************************************
- Function Parameters: [in]=input,[out]=output
-
-none
-
- ******************************************************************************/
-int
-init_dynamics( void )
-
-{
-  int i, j,n;
-  FILE *in;
-  char string[100];
-
-  /* read link parameters */
-  if (!read_link_parameters(config_files[LINKPARAMETERS]))
-    return FALSE;
-
-  /* the the default endeffector parameters */
-  setDefaultEndeffector();
-
-  return TRUE;
-  
-}    
 
 /*!*****************************************************************************
  *******************************************************************************
@@ -95,11 +50,6 @@ init_dynamics( void )
  \param[in]     endeff  : the endeffector parameters
 
  ******************************************************************************/
-#include "InvDyn_declare.h"
-
-static SL_DJstate state[N_DOFS+1];
-static SL_endeff *eff; 
-
 void 
 SL_InverseDynamics(SL_Jstate *cstate,SL_DJstate *lstate,SL_endeff *leff)
 

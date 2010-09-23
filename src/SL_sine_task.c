@@ -199,7 +199,8 @@ run_sine_task(void)
 
 
   if (invdyn)
-    SL_InverseDynamics(joint_state,joint_des_state,endeff);
+    //SL_InverseDynamics(joint_state,joint_des_state,endeff);
+    SL_InvDynNE(joint_state,joint_des_state,endeff,&base_state,&base_orient);
 
   return TRUE;
 

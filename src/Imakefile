@@ -40,7 +40,7 @@ INSTALL_HEADERS = \
 		  ../include/SL_integrate.h \
 		  ../include/SL_inv_dynamics_art_body.h \
 		  ../include/SL_inv_dynamics_body.h \
-		  ../include/SL_invdyn_servo.h \
+		  ../include/SL_invDynNE_body.h \
 		  ../include/SL_kinematics.h \
 		  ../include/SL_kinematics_body.h \
 		  ../include/SL_man.h \

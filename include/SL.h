@@ -387,17 +387,6 @@ extern "C" {
   int   init_commands(void);
   void  initContacts(void);
 
-
-
-  void 
-  SL_ForwardDynamics(SL_Jstate *lstate,SL_Cstate *cbase,
-		     SL_quat *obase, SL_uext *ux, SL_endeff *leff);
-  void 
-  SL_InverseDynamics(SL_Jstate *cstate,SL_DJstate *state,SL_endeff *endeff);
-  void 
-  SL_InverseDynamicsArt(SL_Jstate *cstate, SL_DJstate *lstate, SL_Cstate *cbase,
-			SL_quat *obase, SL_uext *ux, SL_endeff *leff);
-
 #ifdef __cplusplus
 }
 #endif

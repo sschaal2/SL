@@ -598,9 +598,8 @@ reset(void)
   
   bzero((char *)&(joint_sim_state[1]),sizeof(SL_Jstate)*n_dofs);
   bzero((void *)ucontact,sizeof(SL_uext)*(n_dofs+1));
-  for (i=1; i<=n_dofs; ++i) {
+  for (i=1; i<=n_dofs; ++i)
     joint_sim_state[i].th = joint_default_state[i].th;
-  }
   bzero((void *)&base_state,sizeof(SL_Cstate));
   bzero((void *)&base_orient,sizeof(SL_quat));
 

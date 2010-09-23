@@ -25,6 +25,7 @@
 #include "SL_task_servo.h"
 #include "SL_man.h"
 #include "SL_common.h"
+#include "SL_dynamics.h"
 
 /* local variables */
 static SL_DJstate *joint_goto_state;

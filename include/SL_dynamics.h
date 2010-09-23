@@ -31,9 +31,20 @@ extern double freeze_base_quat[];
 extern "C" {
 #endif
 
-int  init_dynamics(void);
-void setDefaultEndeffector(void);
+  int  init_dynamics(void);
+  void setDefaultEndeffector(void);
+  
+  void SL_ForwardDynamics(SL_Jstate *lstate,SL_Cstate *cbase,
+			  SL_quat *obase, SL_uext *ux, SL_endeff *leff);
+  void SL_InverseDynamics(SL_Jstate *cstate,SL_DJstate *state,SL_endeff *endeff);
+  void SL_InverseDynamicsArt(SL_Jstate *cstate, SL_DJstate *lstate, SL_Cstate *cbase,
+			     SL_quat *obase, SL_uext *ux, SL_endeff *leff);
+  void SL_InvDynNE(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
+		   SL_Cstate *cbase, SL_quat *obase);
+  void SL_InvDynNEBase(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
+		       SL_Cstate *cbase, SL_quat *obase, double *fbase);
 
+  
 #ifdef __cplusplus
 }
 #endif

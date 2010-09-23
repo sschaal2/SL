@@ -55,12 +55,12 @@ Vector rbdCplusGVector;
  Function Parameters: [in]=input,[out]=output
 
  \param[in,out] state   : the state containing th, thd, thdd, and receiving the
-                  appropriate u
+                          appropriate u
  \param[in,out] cbase   : the position state of the base
  \param[in,out] obase   : the orientational state of the base
  \param[in]     ux      : the external forces acting on each joint, 
-                  in world coordinates, e.g., as computed from contact 
-                  forces
+                          in world coordinates, e.g., as computed from contact 
+                          forces
  \param[in]     endeff  : the endeffector parameters
 
  ******************************************************************************/
@@ -82,7 +82,7 @@ SL_ForwardDynamics(SL_Jstate *lstate,SL_Cstate *cbase,
   static double **Hmat; 
   static double  *cvec; 
   static double  *ucvec; 
-  
+  double fbase[2*N_CART+1];  
   
   /* this makes the arguments global variables */ 
   state  = lstate;
