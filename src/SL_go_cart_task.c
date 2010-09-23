@@ -314,7 +314,7 @@ run_goto_cart_task(void)
   }
 
   /* compute inverse dynamics */
-  SL_InverseDynamics(joint_state,joint_des_state,endeff);
+  SL_InvDyn(joint_state,joint_des_state,endeff,&base_state,&base_orient);
 
   return TRUE;
 

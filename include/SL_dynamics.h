@@ -16,16 +16,8 @@
 #ifndef _SL_dynamics_
 #define _SL_dynamics_
 
-/* external variables */
-
-extern Matrix rbdInertiaMatrix;
-extern Vector rbdCplusGVector;
-
-extern int    freeze_base;
-extern double freeze_base_pos[];
-extern double freeze_base_quat[];
-
 /* shared functions */
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -39,10 +31,25 @@ extern "C" {
   void SL_InverseDynamics(SL_Jstate *cstate,SL_DJstate *state,SL_endeff *endeff);
   void SL_InverseDynamicsArt(SL_Jstate *cstate, SL_DJstate *lstate, SL_Cstate *cbase,
 			     SL_quat *obase, SL_uext *ux, SL_endeff *leff);
+
+  void SL_InvDyn(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
+		 SL_Cstate *cbase, SL_quat *obase);
   void SL_InvDynNE(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
 		   SL_Cstate *cbase, SL_quat *obase);
+  void SL_InvDynArt(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
+		    SL_Cstate *cbase, SL_quat *obase);
   void SL_InvDynNEBase(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
 		       SL_Cstate *cbase, SL_quat *obase, double *fbase);
+
+  // external variables 
+  
+  extern Matrix rbdInertiaMatrix;
+  extern Vector rbdCplusGVector;
+  
+  extern int    freeze_base;
+  extern double freeze_base_pos[];
+  extern double freeze_base_quat[];
+  extern const int floating_base_flag;
 
   
 #ifdef __cplusplus

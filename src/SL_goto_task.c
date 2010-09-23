@@ -521,7 +521,7 @@ go_target_wait_ID(SL_DJstate *target)
     target[i].thdd = 0.0;
   }
 
-  SL_InverseDynamics(NULL,target,endeff);
+  SL_InvDyn(NULL,target,endeff,&base_state,&base_orient);
 
   return go_target_wait(target);
   
