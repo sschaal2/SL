@@ -2217,8 +2217,8 @@ createTerrainDisplayList(ObjectPtr ptr, double *rgb)
     return;
 
   // get min and max of the terrain board
-  sprintf(fname,"%s.asc",ptr->name); 
-  if (!getContactTerrainMinMax(fname,&x_min,&x_max,&y_min,&y_max))
+  strcpy(fname,ptr->name);
+  if (!getContactTerrainMinMax(ptr->name,&x_min,&x_max,&y_min,&y_max))
     return;
 
   // create a display list for this terrain

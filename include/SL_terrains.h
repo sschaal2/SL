@@ -22,6 +22,7 @@ typedef struct {         //!< terrain board structure
   int       status;      //!< TRUE or FALSE for active or inactive
   int       ID;          //!< terrain identifier
   char      tfname[100]; //!< terrain file associated with this terrain
+  char      tfnasc[100]; //!< terrain file name with .asc appended
   SL_Cstate pos;         //!< origin of terrain in world coordinates (from Vicon)
   SL_quat   orient;      //!< terrain orientation as unit quaternion (from Vicon)
   double    dxorg_local; //!< x-offset of Z(1,1) relative to local origin on board

@@ -663,8 +663,7 @@ setTerrainInfo(int ID, int tID, char *tfname, double *pos, double *orient,
 int
 getTerrainInfo(double x, double y, TerrainInfo *tinfo)
 {
-  return 
-    getTerrainInfoSwitched(x,y,FALSE,FALSE,tinfo);
+  return getTerrainInfoSwitched(x,y,FALSE,FALSE,tinfo);
 }
 
 /*!*****************************************************************************
@@ -898,7 +897,7 @@ getContactTerrainInfo(double x, double y, char *tfname, double *z, double *norm,
     // determine index into terrain matrix
     m = rint((x - t->c_dxorg)/t->dx) + 1;
     n = rint((y - t->c_dyorg)/t->dy) + 1;
-    
+
     if (m >= 1 && m <= t->c_nx && n >=1 && n <=t->c_ny) {
 
       *z = t->c_z[m][n];

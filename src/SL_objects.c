@@ -964,8 +964,7 @@ checkContacts(void)
 
 	
       case TERRAIN: //---------------------------------------------------------------
-	sprintf(tfname,"%s.asc",optr->name); 
-	if (!getContactTerrainInfo(x[1], x[2], tfname, &z, n, &no_go))
+	if (!getContactTerrainInfo(x[1], x[2], optr->name, &z, n, &no_go))
 	  break;
 
 	if (x[3] < z) {
@@ -1370,6 +1369,10 @@ readObjects(char *cfname)
 	     &cparms[26],&cparms[27],&cparms[28],&cparms[29],&cparms[30]);
     cparms[0] = i;
 
+    if (objtype == TERRAIN) { // terrains use .asc names
+      sprintf(name2,"%s.asc",name);
+      strcpy(name,name2);
+    }
     optr = addObject(name,objtype,contact,rgb,pos,rot,scale,cparms,oparms);
     
     /* if there is a floor, initialize the gound level for the terrains */
@@ -1381,13 +1384,12 @@ readObjects(char *cfname)
     
     // for terrains we need to add the terrain and create a display list for this terrain
     if (objtype == TERRAIN) {
-      sprintf(fname,"%s.asc",name); 
       if ((ID=getNextTerrainID())) { 
 	SL_quat q;
 	
 	eulerToQuat(rot,&q);
 	// Note: oparms[1] = reg_rad oparms[2]=reg_down oparms[3]=reg_crad oparms[4]=disp_grid_delta
-	setTerrainInfo(ID,ID,fname,pos,q.q,
+	setTerrainInfo(ID,ID,name,pos,q.q,
 		       (int)rint(oparms[1]),(int)rint(oparms[2]),(int)rint(oparms[3]));
 	
       } else {
