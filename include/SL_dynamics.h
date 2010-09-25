@@ -47,6 +47,8 @@ extern "C" {
 		    SL_Cstate *cbase, SL_quat *obase);
   void SL_InvDynNEBase(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
 		       SL_Cstate *cbase, SL_quat *obase, double *fbase);
+  void test_NEvsForComp( void );
+
 
   // external variables 
   extern int    freeze_base;

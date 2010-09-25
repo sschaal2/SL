@@ -241,3 +241,88 @@ SL_ForDyn(SL_Jstate *lstate,SL_Cstate *cbase,
     SL_ForDynArt(lstate, cbase, obase, ux, leff);
 
 }
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  test_NEvsForComp
+\date  Sept 2010
+\remarks 
+
+a test function that checks the compatiblity of Newton Euler Inv.Dyn. with
+Composite Inetia For.Dy. The result should have zero difference. This is done
+for the floating base case.
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+void
+test_NEvsForComp( void )
+{
+  int i,j;
+  SL_Jstate jts[n_dofs+1];
+  SL_DJstate djts[n_dofs+1];
+  SL_Cstate bs,bs2;
+  SL_quat   bo,bo2;
+  SL_uext   ux[n_dofs+1];
+  double    fbase[N_CART*2+1];
+
+  MY_MATRIX(rbdM,1,n_dofs+6,1,n_dofs+6);
+  MY_VECTOR(rbdCG,1,n_dofs+6);
+
+  bzero((void *)jts,sizeof(SL_Jstate)*n_dofs+1);
+  bzero((void *)djts,sizeof(SL_DJstate)*n_dofs+1);
+  bzero((void *)ux,sizeof(SL_uext)*n_dofs+1);
+  bzero((void *)&bs,sizeof(bs));
+  bzero((void *)&bo,sizeof(bo));
+  bo.q[_Q0_] = 1.0;
+
+  // create a random state
+  for (i=1; i<=n_dofs; ++i) {
+    djts[i].th = jts[i].th = gaussian(0,1.0);
+    djts[i].thd = jts[i].thd = gaussian(0,1.0);
+    djts[i].thdd = jts[i].thdd = gaussian(0,1.0);
+  }
+
+  for (i=1; i<=N_CART; ++i) {
+    bs.x[i] = gaussian(0,1.0);
+    bs.xd[i] = gaussian(0,1.0);
+    bs.xdd[i] = gaussian(0,1.0);
+  }
+
+  bs2 = bs;
+  bo2 = bo;
+
+  // NE inverse dynamics
+  SL_InvDynNEBase(NULL, djts, endeff, &bs, &bo, fbase);
+
+  for (i=1; i<=n_dofs; ++i) // need to subtract viscous force which NE adds automatically
+    djts[i].uff -= djts[i].thd*links[i].vis;
+
+  // Comp.Inertia forward dynamics
+  SL_ForDynComp(jts, &bs2, &bo2, ux, endeff, rbdM, rbdCG);
+
+  // from the RBD matrix and the C+G vector, we can compute the total
+  // (unconstraint) floating base inverse dynamics command
+  for (i=1; i<=n_dofs+2*N_CART; ++i) {
+    for (j=1; j<=n_dofs; ++j)
+      rbdCG[i] += rbdM[i][j] * djts[j].thdd;
+    for (j=1; j<=N_CART; ++j)
+      rbdCG[i] += rbdM[i][j+n_dofs] * bs.xdd[j];
+    for (j=1; j<=N_CART; ++j)
+      rbdCG[i] += rbdM[i][j+N_CART+n_dofs] * bo.add[j];
+  }
+  
+  // print out
+  for (i=1; i<=n_dofs; ++i) {
+    printf("%d: NE=% 6.3f Comp=% 6.3f (% 6.3f)\n",i,djts[i].uff,rbdCG[i],djts[i].uff-rbdCG[i]);
+  }
+
+  for (i=1; i<=2*N_CART; ++i) {
+    printf("%d: NE=% 6.3f Comp=% 6.3f (% 6.3f)\n",i+n_dofs,fbase[i],rbdCG[i+n_dofs],fbase[i]-rbdCG[i+n_dofs]);
+  }
+  
+
+}
