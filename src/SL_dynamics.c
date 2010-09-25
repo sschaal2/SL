@@ -23,6 +23,7 @@
 #include "SL_common.h"
 #include "SL_dynamics.h"
 #include "utility.h"
+#include "utility_macros.h"
 
 // global variables
 int    freeze_base               = FALSE;
@@ -231,11 +232,11 @@ SL_ForDyn(SL_Jstate *lstate,SL_Cstate *cbase,
 	  SL_quat *obase, SL_uext *ux, SL_endeff *leff)
 
 {
-  Matrix rbdM;
-  Vector rbdCG;
+  MY_MATRIX(rbdM,1,n_dofs+6,1,n_dofs+6);
+  MY_VECTOR(rbdCG,1,n_dofs+6);
 
   if (forward_dynamics_comp_flag)
-    SL_ForDynComp(lstate, cbase, obase, ux, leff, &rbdM, &rbdCG);
+    SL_ForDynComp(lstate, cbase, obase, ux, leff, rbdM, rbdCG);
   else 
     SL_ForDynArt(lstate, cbase, obase, ux, leff);
 

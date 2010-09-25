@@ -31,8 +31,6 @@
 
 
 /* global variables */ 
-Matrix rbdInertiaMatrix;
-Vector rbdCplusGVector;
 
 /* local variables */
 #include "ForDynComp_declare.h"
@@ -78,14 +76,14 @@ RBD Coriolis/Centripedal and Gravity vector
 void 
 SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
 	      SL_quat *obase, SL_uext *ux, SL_endeff *leff,
-	      Matrix *rbdM, Vector *rbdCG)
+	      Matrix rbdM, Vector rbdCG)
 
 {
   int i,j;
   static int firsttime = TRUE; 
-  static double **Hmat; 
-  static double  *cvec; 
-  static double  *ucvec; 
+  static Matrix Hmat; 
+  static Vector cvec; 
+  static Vector ucvec; 
   double fbase[2*N_CART+1];  
   
   /* this makes the arguments global variables */ 
@@ -97,8 +95,8 @@ SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
   
   if (firsttime) {
     firsttime = FALSE;
-    rbdInertiaMatrix = Hmat = my_matrix(1,N_DOFS+6,1,N_DOFS+6);
-    rbdCplusGVector  = cvec = my_vector(1,N_DOFS+6);
+    Hmat = my_matrix(1,N_DOFS+6,1,N_DOFS+6);
+    cvec = my_vector(1,N_DOFS+6);
     ucvec   = my_vector(1,N_DOFS+6);
     for (i=1; i<=N_DOFS+6; ++i) {
       cvec[i]=0.0;
@@ -120,9 +118,8 @@ SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
     state[i].u += links[i].vis*state[i].thd;
   }
 
-  *rbdM  = rbdInertiaMatrix;
-  *rbdCG = rbdCplusGVector;
-
+  mat_equal_size(Hmat,N_DOFS+6,N_DOFS+6,rbdM);
+  vec_equal_size(cvec,N_DOFS+6,rbdCG);
 } 
 
 

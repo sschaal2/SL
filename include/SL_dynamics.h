@@ -32,7 +32,7 @@ extern "C" {
 		    SL_quat *obase, SL_uext *ux, SL_endeff *leff);
   void SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
 		     SL_quat *obase, SL_uext *ux, SL_endeff *leff,
-		     Matrix *rbdM, Vector *rbdCG);
+		     Matrix rbdM, Vector rbdCG);
   void SL_ForwardDynamics(SL_Jstate *lstate,SL_Cstate *cbase,
 			  SL_quat *obase, SL_uext *ux, SL_endeff *leff);
   void SL_InverseDynamics(SL_Jstate *cstate,SL_DJstate *state,SL_endeff *endeff);
@@ -49,10 +49,6 @@ extern "C" {
 		       SL_Cstate *cbase, SL_quat *obase, double *fbase);
 
   // external variables 
-  
-  extern Matrix rbdInertiaMatrix;
-  extern Vector rbdCplusGVector;
-  
   extern int    freeze_base;
   extern double freeze_base_pos[];
   extern double freeze_base_quat[];

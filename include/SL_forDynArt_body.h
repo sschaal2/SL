@@ -84,7 +84,7 @@ SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
   basec  = cbase;
   baseo  = obase;
   uex    = ux;
-  
+
   // subtract the friction term temporarily 
   for (i=1; i<=N_DOFS; ++i) {
     state[i].u -= links[i].vis*state[i].thd;
