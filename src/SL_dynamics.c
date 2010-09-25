@@ -292,6 +292,11 @@ test_NEvsForComp( void )
     bs.xdd[i] = gaussian(0,1.0);
   }
 
+  for (i=1; i<=N_CART; ++i) {
+    bs.ad[i] = gaussian(0,1.0);
+    bs.add[i] = gaussian(0,1.0);
+  }
+
   bs2 = bs;
   bo2 = bo;
 
