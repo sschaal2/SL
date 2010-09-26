@@ -69,8 +69,8 @@ RBD Coriolis/Centripedal and Gravity vector
                           in world coordinates, e.g., as computed from contact 
                           forces
  \param[in]     endeff  : the endeffector parameters
- \param[out]    rbdM    : point to RBD Inertia Matrix
- \param[out]    rbdCG   : point to RBD C plus G vector
+ \param[out]    rbdM    : point to RBD Inertia Matrix (pass NULL to not use)
+ \param[out]    rbdCG   : point to RBD C plus G vector (pass NULL to not use)
 
  ******************************************************************************/
 void 
@@ -118,8 +118,11 @@ SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
     state[i].u += links[i].vis*state[i].thd;
   }
 
-  mat_equal_size(Hmat,N_DOFS+6,N_DOFS+6,rbdM);
-  vec_equal_size(cvec,N_DOFS+6,rbdCG);
+  if (rbdM != NULL)
+    mat_equal_size(Hmat,N_DOFS+6,N_DOFS+6,rbdM);
+
+  if (rbdCG != NULL)
+    vec_equal_size(cvec,N_DOFS+6,rbdCG);
 } 
 
 

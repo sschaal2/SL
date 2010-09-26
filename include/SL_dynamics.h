@@ -48,6 +48,7 @@ extern "C" {
   void SL_InvDynNEBase(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
 		       SL_Cstate *cbase, SL_quat *obase, double *fbase);
   void test_NEvsForComp( void );
+  void test_ForArtvsForComp( void );
 
 
   // external variables 

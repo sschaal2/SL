@@ -268,6 +268,7 @@ test_NEvsForComp( void )
   SL_quat   bo,bo2;
   SL_uext   ux[n_dofs+1];
   double    fbase[N_CART*2+1];
+  double    aux;
 
   MY_MATRIX(rbdM,1,n_dofs+6,1,n_dofs+6);
   MY_VECTOR(rbdCG,1,n_dofs+6);
@@ -293,9 +294,20 @@ test_NEvsForComp( void )
   }
 
   for (i=1; i<=N_CART; ++i) {
-    bs.ad[i] = gaussian(0,1.0);
-    bs.add[i] = gaussian(0,1.0);
+    //bo.ad[i] = gaussian(0,1.0);
+    bo.add[i] = gaussian(0,1.0);
   }
+
+  aux = 0.0;
+  for (i=1; i<=N_QUAT; ++i) {
+    bo.q[i] =  gaussian(0,1.0);
+    aux += sqr(bo.q[i]);
+  }
+  aux = sqrt(aux);
+
+  for (i=1; i<=N_QUAT; ++i)
+    bo.q[i] /= aux;
+
 
   bs2 = bs;
   bo2 = bo;
@@ -329,5 +341,86 @@ test_NEvsForComp( void )
     printf("%d: NE=% 6.3f Comp=% 6.3f (% 6.3f)\n",i+n_dofs,fbase[i],rbdCG[i+n_dofs],fbase[i]-rbdCG[i+n_dofs]);
   }
   
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  test_ForArtvsForComp
+\date  Sept 2010
+\remarks 
+
+a test function that checks the compatiblity of Articulated Body Inertia 
+forward ynamics  with Composite Inertia For.Dyn. The result should have zero 
+difference. This is done for the floating base case.
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+void
+test_ForArtvsForComp( void )
+{
+  int i,j;
+  SL_Jstate jts[n_dofs+1],jts2[n_dofs+1];
+  SL_Cstate bs,bs2;
+  SL_quat   bo,bo2;
+  SL_uext   ux[n_dofs+1];
+  double    aux;
+
+  bzero((void *)jts,sizeof(SL_Jstate)*n_dofs+1);
+  bzero((void *)jts2,sizeof(SL_Jstate)*n_dofs+1);
+  bzero((void *)ux,sizeof(SL_uext)*n_dofs+1);
+  bzero((void *)&bs,sizeof(bs));
+  bzero((void *)&bo,sizeof(bo));
+  bo.q[_Q0_] = 1.0;
+
+  // create a random state
+  for (i=1; i<=n_dofs; ++i) {
+    jts[i].th = jts2[i].th = gaussian(0,1.0);
+    jts[i].thd = jts2[i].thd = gaussian(0,1.0);
+    jts[i].u = jts2[i].u = gaussian(0,1.0);
+  }
+
+  for (i=1; i<=N_CART; ++i) {
+    bs.x[i] = gaussian(0,1.0);
+    bs.xd[i] = gaussian(0,1.0);
+  }
+
+  for (i=1; i<=N_CART; ++i)
+    bo.ad[i] = gaussian(0,1.0);
+
+  aux = 0.0;
+  for (i=1; i<=N_QUAT; ++i) {
+    bo.q[i] =  gaussian(0,1.0);
+    aux += sqr(bo.q[i]);
+  }
+  aux = sqrt(aux);
+
+  for (i=1; i<=N_QUAT; ++i)
+    bo.q[i] /= aux;
+
+  bs2 = bs;
+  bo2 = bo;
+
+  // Comp.Inertia forward dynamics
+  SL_ForDynArt(jts, &bs, &bo, ux, endeff);
+
+  // Comp.Inertia forward dynamics
+  SL_ForDynComp(jts2, &bs2, &bo2, ux, endeff, NULL, NULL);
+
+  
+  // print out
+  for (i=1; i<=n_dofs; ++i) 
+    printf("%d: Art=% 6.3f Comp=% 6.3f (% 6.3f)\n",i,jts[i].thdd,jts2[i].thdd,jts[i].thdd-jts2[i].thdd);
+
+
+  for (i=1; i<=N_CART; ++i) 
+    printf("%d: Art=% 6.3f Comp=% 6.3f (% 6.3f)\n",i+n_dofs,bs.xdd[i],bs2.xdd[i],bs.xdd[i]-bs2.xdd[i]);
+
+  for (i=1; i<=N_CART; ++i) 
+    printf("%d: Art=% 6.3f Comp=% 6.3f (% 6.3f)\n",i+N_CART+n_dofs,bo.add[i],bo2.add[i],bo.add[i]-bo2.add[i]);
 
 }
