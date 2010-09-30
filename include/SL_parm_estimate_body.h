@@ -84,6 +84,9 @@ static int        got_all_constraint_data = FALSE;
 static int        got_all_contact_force_data = FALSE;
 static int        use_floating_base = FALSE;
 static int        constraint_estimation_type = PROJECTION;
+static int        vis_flag = TRUE;
+static int        coul_flag = TRUE;
+static int        spring_flag = TRUE;
 
 #define LLSB(x)	((x) & 0xff)		/*!< 32bit word byte/word swap macros */
 #define LNLSB(x) (((x) >> 8) & 0xff)
@@ -253,6 +256,15 @@ main(int argc, char **argv)
     exit(-1);
 
   if (!get_int("Filter data?",filt_data,&filt_data))
+    exit(-1);
+
+  if (!get_int("Estimation viscous friction?",vis_flag,&vis_flag))
+    exit(-1);
+
+  if (!get_int("Estimation coulomb friction?",coul_flag,&coul_flag))
+    exit(-1);
+
+  if (!get_int("Estimation spring term?",spring_flag,&spring_flag))
     exit(-1);
 
   if (write_data)
@@ -964,16 +976,20 @@ add_to_regression(void)
     for (j=1; j<=N_DOFS; ++j) {
       
       /* viscous friction */
-      Kp[j][j*N_RBD_PARMS+VIS] = state[j].thd;
+      if (vis_flag)
+	Kp[j][j*N_RBD_PARMS+VIS] = state[j].thd;
       
       /* coulomb friction */
-      Kp[j][j*N_RBD_PARMS+COUL] = COULOMB_FUNCTION(state[j].thd);
+      if (coul_flag)
+	Kp[j][j*N_RBD_PARMS+COUL] = COULOMB_FUNCTION(state[j].thd);
 
       /* stiffness due to spring terms */
-      Kp[j][j*N_RBD_PARMS+STIFF] = state[j].th;
+      if (spring_flag)
+	Kp[j][j*N_RBD_PARMS+STIFF] = state[j].th;
 
       /* constant offset of spring  */
-      Kp[j][j*N_RBD_PARMS+CONS] = 1.0;
+      if (spring_flag)
+	Kp[j][j*N_RBD_PARMS+CONS] = 1.0;
 
     }
 
