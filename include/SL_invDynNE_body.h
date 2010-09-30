@@ -209,7 +209,10 @@ SL_InvDynNEGeneral(SL_Jstate *cstate,SL_DJstate *lstate,SL_endeff *leff,
 
   // add the friction term
   for (i=1; i<=N_DOFS; ++i) {
-    state[i].uff += links[i].vis*state[i].thd;
+    SL_Jstate  jt;
+    jt.th = state[i].th;
+    jt.thd = state[i].thd;
+    state[i].uff += compute_independent_joint_forces(jt,links[i]);
     if (i > N_DOFS-N_DOFS_EST_SKIP)
       state[i].uff = 0.0;
     lstate[i].uff = state[i].uff;

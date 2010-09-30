@@ -57,6 +57,7 @@ init_dynamics( void )
   char   string[100];
   double quat[N_QUAT+1];
   double pos[N_CART+1];
+  double euler[N_CART+1];
   double aux;
 
   // read link parameters
@@ -84,6 +85,11 @@ init_dynamics( void )
 
     for (i=1; i<=N_QUAT; ++i) 
       freeze_base_quat[i] = base_orient.q[i] = quat[i]/(aux + 1.e-10);
+  } else if (read_parameter_pool_double_array(config_files[PARAMETERPOOL],"init_base_euler",N_CART,euler)) {
+    SL_quat qtmp;
+    eulerToQuat(euler, &qtmp);
+    for (i=1; i<=N_QUAT; ++i) 
+      freeze_base_quat[i] = base_orient.q[i] = qtmp.q[i];
   }
 
   if (read_parameter_pool_int(config_files[PARAMETERPOOL],"use_comp_inertia_fordyn",&n)) {
@@ -240,6 +246,41 @@ SL_ForDyn(SL_Jstate *lstate,SL_Cstate *cbase,
   else 
     SL_ForDynArt(lstate, cbase, obase, ux, leff);
 
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  compute_independent_joint_forces
+\date  Sept 2010
+   
+\remarks 
+
+computes the generalized joint forces due to friction and spring terms, i.e., 
+the sum of all forces that act per joint independently of all others. The sign
+of the terms is as if they were on the LEFT side of the RBD equations:
+
+M qdd + C qd + G + f = u
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in] state       : the joint state of the robot
+ \param[in] li          : the link parameters for this joint
+
+ returns the generalized joint force for this joint due friction and spring terms
+
+ ******************************************************************************/
+double
+compute_independent_joint_forces(SL_Jstate state, SL_link li)
+{
+  double f=0;
+
+  f = state.thd*li.vis + 
+    COULOMB_FUNCTION(state.thd)*li.coul +
+    state.th*li.stiff +
+    li.cons;
+  
+  return f;
 }
 
 /*!*****************************************************************************

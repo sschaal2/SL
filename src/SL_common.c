@@ -21,6 +21,7 @@
 /* private includes */
 #include "SL.h"
 #include "SL_common.h"
+#include "SL_dynamics.h"
 #include "utility.h"
 #include "SL_man.h"
 
@@ -637,18 +638,24 @@ read_link_parameters(char *fname) {
 	return FALSE;
       }
     } else {
-      rc=fscanf(in,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
-	     &(links[i].m),
-	     &(links[i].mcm[_X_]),
-	     &(links[i].mcm[_Y_]),
-	     &(links[i].mcm[_Z_]),
-	     &(links[i].inertia[_X_][_X_]),
-	     &(links[i].inertia[_X_][_Y_]),
-	     &(links[i].inertia[_X_][_Z_]),
-	     &(links[i].inertia[_Y_][_Y_]),
-	     &(links[i].inertia[_Y_][_Z_]),
-	     &(links[i].inertia[_Z_][_Z_]),
-	     &(links[i].vis));
+      rc=fscanf(in,"%lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf %lf",
+		&(links[i].m),
+		&(links[i].mcm[_X_]),
+		&(links[i].mcm[_Y_]),
+		&(links[i].mcm[_Z_]),
+		&(links[i].inertia[_X_][_X_]),
+		&(links[i].inertia[_X_][_Y_]),
+		&(links[i].inertia[_X_][_Z_]),
+		&(links[i].inertia[_Y_][_Y_]),
+		&(links[i].inertia[_Y_][_Z_]),
+		&(links[i].inertia[_Z_][_Z_]),
+		&(links[i].vis),
+		&(links[i].coul),
+		&(links[i].stiff),
+		&(links[i].cons));
+      if (rc != N_RBD_PARMS) {
+	printf("Link Parameter for link >%s< have %d parameters, but should have %d -- maybe coul, stiff, and cons are missing? Missing parameters are zeroed!\n",joint_names[i],rc,N_RBD_PARMS);
+      }
       for (j= _X_; j<= _Z_; ++j)
 	for (n=j; n<= _Z_; ++n)
 	  links[i].inertia[n][j]=links[i].inertia[j][n];

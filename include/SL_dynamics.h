@@ -16,8 +16,30 @@
 #ifndef _SL_dynamics_
 #define _SL_dynamics_
 
-/* shared functions */
+#define COULOMB_FUNCTION(thd) (tanh(thd*10.0))
 
+enum RBDParms {
+  MASS = 1,
+  MCMX,
+  MCMY,
+  MCMZ,
+  I11,
+  I12,
+  I13,
+  I22,
+  I23,
+  I33,
+  VIS,
+  COUL,
+  STIFF,
+  CONS,
+
+  N_RBDParms
+};
+
+#define N_RBD_PARMS (N_RBDParms-1)
+
+/* shared functions */
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,6 +71,8 @@ extern "C" {
 		       SL_Cstate *cbase, SL_quat *obase, double *fbase);
   void test_NEvsForComp( void );
   void test_ForArtvsForComp( void );
+  double compute_independent_joint_forces(SL_Jstate state, SL_link li);
+
 
 
   // external variables 

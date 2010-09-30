@@ -87,14 +87,14 @@ SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
 
   // subtract the friction term temporarily 
   for (i=1; i<=N_DOFS; ++i) {
-    state[i].u -= links[i].vis*state[i].thd;
+    state[i].u -= compute_independent_joint_forces(state[i],links[i]);
   }
 
 #include "ForDynArt_math.h"
 
   // add back the friction term
   for (i=1; i<=N_DOFS; ++i) {
-    state[i].u += links[i].vis*state[i].thd;
+    state[i].u += compute_independent_joint_forces(state[i],links[i]);
   }
 
 } 

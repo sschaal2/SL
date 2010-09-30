@@ -32,12 +32,13 @@
 #include "utility_macros.h"
 #include "statistics.h"
 #include "mdefs.h"
-#include "PE_declare.h"
 #include "SL_dynamics.h"
 #include "SL_kinematics.h"
+#include "PE_declare.h"
 
 #define DOWN_SAMPLE_DEFAULT  5
 #define DEBUG        FALSE
+
 
 enum ConstraintEstType {
   PROJECTION = 1,
@@ -72,7 +73,7 @@ static SL_DJstate invdyn_state[N_DOFS+1];
 static SL_Cstate  basec[1]; 
 static SL_quat    baseo[1]; 
 static int        get_mse=2;
-static int        use_commands = FALSE;
+static int        use_commands = TRUE;
 static FILE      *datafp=NULL;
 static int        write_data = FALSE;
 static int        down_sample = DOWN_SAMPLE_DEFAULT;
@@ -153,10 +154,10 @@ main(int argc, char **argv)
 
   /* some handy matrices: note that these matrices need to be big enough
      to include the dummy DOFs */
-  ATA      = my_matrix(1,(N_DOFS+1)*11,1,(N_DOFS+1)*11);
-  ATb      = my_vector(1,(N_DOFS+1)*11);
-  beta     = my_vector(1,(N_DOFS+1)*11);
-  beta_old = my_vector(1,(N_DOFS+1)*11);
+  ATA      = my_matrix(1,(N_DOFS+1)*N_RBD_PARMS,1,(N_DOFS+1)*N_RBD_PARMS);
+  ATb      = my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
+  beta     = my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
+  beta_old = my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
 
   /* initialize the dynamics calculations */
   if (!init_dynamics())
@@ -183,12 +184,12 @@ main(int argc, char **argv)
     sse[i]=0;
 
   for (i=0; i<=N_DOFS_EST; ++i)
-    for (j=1; j<=11; ++j)
+    for (j=1; j<=N_RBD_PARMS; ++j)
       for (n=1; n<=6; ++n)
 	A[i][n][j]=0.0;
 
   for (i=1; i<=N_DOFS_EST+2*N_CART; ++i)
-    for (j=1; j<=11*(N_DOFS_EST+1); ++j)
+    for (j=1; j<=N_RBD_PARMS*(N_DOFS_EST+1); ++j)
       K[i][j]=0.0;
 
   /* compute the parameter estimation matrices to make sure that the program can
@@ -197,17 +198,20 @@ main(int argc, char **argv)
 
   /* copy the current RBD parameters into the beta_old vector */
   for (i=0; i<=N_DOFS; ++i) {
-    beta_old[i*11+1] = links[i].m;
-    beta_old[i*11+2] = links[i].mcm[_X_];
-    beta_old[i*11+3] = links[i].mcm[_Y_];
-    beta_old[i*11+4] = links[i].mcm[_Z_];
-    beta_old[i*11+5] = links[i].inertia[1][1];
-    beta_old[i*11+6] = links[i].inertia[1][2];
-    beta_old[i*11+7] = links[i].inertia[1][3];
-    beta_old[i*11+8] = links[i].inertia[2][2];
-    beta_old[i*11+9] = links[i].inertia[2][3];
-    beta_old[i*11+10]= links[i].inertia[3][3];
-    beta_old[i*11+11]= links[i].vis;
+    beta_old[i*N_RBD_PARMS+1] = links[i].m;
+    beta_old[i*N_RBD_PARMS+2] = links[i].mcm[_X_];
+    beta_old[i*N_RBD_PARMS+3] = links[i].mcm[_Y_];
+    beta_old[i*N_RBD_PARMS+4] = links[i].mcm[_Z_];
+    beta_old[i*N_RBD_PARMS+5] = links[i].inertia[1][1];
+    beta_old[i*N_RBD_PARMS+6] = links[i].inertia[1][2];
+    beta_old[i*N_RBD_PARMS+7] = links[i].inertia[1][3];
+    beta_old[i*N_RBD_PARMS+8] = links[i].inertia[2][2];
+    beta_old[i*N_RBD_PARMS+9] = links[i].inertia[2][3];
+    beta_old[i*N_RBD_PARMS+10]= links[i].inertia[3][3];
+    beta_old[i*N_RBD_PARMS+11]= links[i].vis;
+    beta_old[i*N_RBD_PARMS+12]= links[i].coul;
+    beta_old[i*N_RBD_PARMS+13]= links[i].stiff;
+    beta_old[i*N_RBD_PARMS+13]= links[i].cons;
   }
 
   /* calculate MSE */
@@ -733,7 +737,7 @@ add_to_regression(void)
   MY_MATRIX(Qu,1,N_DOFS+2*N_CART,1,N_DOFS+2*N_CART);
   MY_MATRIX(R,1,N_DOFS+2*N_CART,1,N_DOFS+2*N_CART);
   MY_VECTOR(sv,1,N_DOFS+2*N_CART);
-  MY_MATRIX(Kp,1,N_DOFS+2*N_CART,1,(N_DOFS+1)*11);
+  MY_MATRIX(Kp,1,N_DOFS+2*N_CART,1,(N_DOFS+1)*N_RBD_PARMS);
   MY_VECTOR(Yp,1,N_DOFS+2*N_CART);
   MY_VECTOR(cf,1,N_CART*2*N_ENDEFFS);
 
@@ -807,11 +811,23 @@ add_to_regression(void)
     /* compute the parameter estimation matrices */
     do_math(endeff);
 
-    /* add viscous friction terms in the K-matrix: according to the model, viscous friction
-       acts only idenpendently on each DOF */
+#if 0    
+    /* add parameters that only act only independenty: this has been moved to after the projection */
+    for (j=1; j<=N_DOFS; ++j) {
+      
+      /* viscous friction */
+      Kp[map[j]][map[j]*N_RBD_PARMS+VIS] = state[j].thd;
+      
+      /* coulomb friction */
+      Kp[map[j]][map[j]*N_RBD_PARMS+COUL] = COULOMB_FUNCTION(state[j].thd);
 
-    for (j=1; j<=N_DOFS; ++j) 
-      K[map[j]][(map[j]+1)*11] = state[j].thd;
+      /* stiffness due to spring terms */
+      Kp[map[j]][map[j]*N_RBD_PARMS+STIFF] = state[j].th;
+
+      /* constant offset of spring  */
+      Kp[map[j]][map[j]*N_RBD_PARMS+CONS] = 1.0;
+    }
+#endif
 
     /* ======================================================================================== */
     /* zero main regression matrices */
@@ -835,9 +851,9 @@ add_to_regression(void)
 	// run the K matrix through this projection and remap
 	for (j=1; j<=nr_K; ++j) {
 	  for (m=0; m<=N_DOFS; ++m) {
-	    for (r=1; r<=11; ++r ) {
+	    for (r=1; r<=N_RBD_PARMS; ++r ) {
 	      
-	      Kp[j][m*11+r] = 0.0;
+	      Kp[j][m*N_RBD_PARMS+r] = 0.0;
 	      
 	      for (n=1; n<=N_DOFS+2*N_CART; ++n) {
 		int map_n;
@@ -847,7 +863,7 @@ add_to_regression(void)
 		else
 		  map_n = map[n];
 		
-		Kp[j][m*11+r] += Qu[n][j]*K[map_n][map[m]*11+r];
+		Kp[j][m*N_RBD_PARMS+r] += Qu[n][j]*K[map_n][map[m]*N_RBD_PARMS+r];
 	      }
 	    }
 	  }
@@ -886,8 +902,8 @@ add_to_regression(void)
 	    map_j = map[j];
 	  
 	  for (m=0; m<=N_DOFS; ++m)
-	    for (r=1; r<=11; ++r)
-	      Kp[j][m*11+r] = K[map_j][map[m]*11+r];
+	    for (r=1; r<=N_RBD_PARMS; ++r)
+	      Kp[j][m*N_RBD_PARMS+r] = K[map_j][map[m]*N_RBD_PARMS+r];
 	  
 	  Yp[j] = Y[map_j] + Yc[j];
 
@@ -910,8 +926,8 @@ add_to_regression(void)
 	  map_j = N_DOFS_EST+j;
 	  
 	  for (m=0; m<=N_DOFS; ++m)
-	    for (r=1; r<=11; ++r)
-	      Kp[j][m*11+r] = K[map_j][map[m]*11+r];
+	    for (r=1; r<=N_RBD_PARMS; ++r)
+	      Kp[j][m*N_RBD_PARMS+r] = K[map_j][map[m]*N_RBD_PARMS+r];
 	  
 	  Yp[j] = Y[map_j] + Yc[j];
 
@@ -933,12 +949,32 @@ add_to_regression(void)
 	  map_j = map[j];
 
 	for (m=0; m<=N_DOFS; ++m)
-	  for (r=1; r<=11; ++r)
-	    Kp[j][m*11+r] = K[map_j][map[m]*11+r];
+	  for (r=1; r<=N_RBD_PARMS; ++r)
+	    Kp[j][m*N_RBD_PARMS+r] = K[map_j][map[m]*N_RBD_PARMS+r];
 
 	Yp[j] = Y[map_j];
 
       }
+    }
+
+
+    /* add parameters that only act only independenty on one joint: this is done AFTER projection as 
+       these per-joint forces should not be projected */
+    
+    for (j=1; j<=N_DOFS; ++j) {
+      
+      /* viscous friction */
+      Kp[j][j*N_RBD_PARMS+VIS] = state[j].thd;
+      
+      /* coulomb friction */
+      Kp[j][j*N_RBD_PARMS+COUL] = COULOMB_FUNCTION(state[j].thd);
+
+      /* stiffness due to spring terms */
+      Kp[j][j*N_RBD_PARMS+STIFF] = state[j].th;
+
+      /* constant offset of spring  */
+      Kp[j][j*N_RBD_PARMS+CONS] = 1.0;
+
     }
 
     if (count == 1 && 0) {
@@ -946,15 +982,13 @@ add_to_regression(void)
       print_mat_size("Jc",Jc,n_cons,N_DOFS+6);
       print_mat("Q",Q);
       print_mat_size("Qu",Qu,N_DOFS+6,nr_K);
-      print_mat_size("Kp",Kp,nr_K,(N_DOFS+1)*11);
+      print_mat_size("Kp",Kp,nr_K,(N_DOFS+1)*N_RBD_PARMS);
       print_vec("beta_old",beta_old);
-    }
+      getchar();
 
-    /*
-    {
       FILE *fp = fopen("mist","w");
       for (j=1; j<=N_DOFS_EST+6; ++j) {
-	for (m=1; m<=(N_DOFS_EST+1)*11; ++m) {
+	for (m=1; m<=(N_DOFS_EST+1)*N_RBD_PARMS; ++m) {
 	  fprintf(fp,"% 5.2f ",K[j][m]);
       }
 	fprintf(fp,"\n");
@@ -963,7 +997,7 @@ add_to_regression(void)
       fclose(fp);
       getchar();
     }
-    */
+
 
     /* predict the outcome with old parameters and update sse */
     if (get_mse != 0) {
@@ -973,7 +1007,7 @@ add_to_regression(void)
 
       for (j=1; j<=nr_K; ++j) {
 	pred[j] = 0.0;
-	for (m=1; m<=(N_DOFS+1)*11; ++m)
+	for (m=1; m<=(N_DOFS+1)*N_RBD_PARMS; ++m)
 	  pred[j] += Kp[j][m]*beta_old[m];
       }
 
@@ -990,11 +1024,11 @@ add_to_regression(void)
     /* add data to regression -------------------------------- */
     for (j=1; j<=nr_K; ++j) { // these are the # rows in the K matrix
       
-      for (m=1; m<=(N_DOFS+1)*11; ++m)
-	for (n=m; n<=(N_DOFS+1)*11; ++n)
+      for (m=1; m<=(N_DOFS+1)*N_RBD_PARMS; ++m)
+	for (n=m; n<=(N_DOFS+1)*N_RBD_PARMS; ++n)
 	  ATA[m][n] += Kp[j][m]*Kp[j][n];
       
-      for (m=1; m<=(N_DOFS+1)*11; ++m) {
+      for (m=1; m<=(N_DOFS+1)*N_RBD_PARMS; ++m) {
 	ATb[m] += Kp[j][m]*Yp[j];
 	aux = Kp[j][m];
 	if (write_data) {
@@ -1023,8 +1057,8 @@ add_to_regression(void)
   }
       
   /* ATA is symmetric */
-  for (m=1; m<=(N_DOFS+1)*11; ++m) {
-    for (n=m; n<=(N_DOFS+1)*11; ++n) {
+  for (m=1; m<=(N_DOFS+1)*N_RBD_PARMS; ++m) {
+    for (n=m; n<=(N_DOFS+1)*N_RBD_PARMS; ++n) {
       ATA[n][m] = ATA[m][n];
     }
   }
@@ -1115,7 +1149,7 @@ regress_parameters(void)
 
   printf("\nStarting SVD ...");
   
-  correct_command_svd(ATA, ATb, svdr, svdt, beta, (N_DOFS+1-N_DOFS_EST_SKIP)*11);
+  correct_command_svd(ATA, ATb, svdr, svdt, beta, (N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS);
   
   printf("done\n");
 
@@ -1133,8 +1167,8 @@ regress_parameters(void)
     for (j=strlen(joint_names[i]); j<5; j++)
      fprintf(fp," ");
 
-    for (m=1; m<=11; ++m) {
-      fprintf(fp,"%9f ",beta[i*11+m]);
+    for (m=1; m<=N_RBD_PARMS; ++m) {
+      fprintf(fp,"%9f ",beta[i*N_RBD_PARMS+m]);
     }
     fprintf(fp,"\n");
   }

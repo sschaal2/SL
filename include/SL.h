@@ -245,6 +245,9 @@ typedef struct { /*!< Link parameters */
   double   mcm[N_CART+1]; /*!< Center of mass multiplied with the mass */
   double   inertia[N_CART+1][N_CART+1];  /*!< Moment of inertia */
   double   vis;           /*!< viscous friction term */
+  double   coul;          /*!< coulomb friction */
+  double   stiff;         /*!< spring stiffness */
+  double   cons;          /*!< constant term */
 } SL_link;
 
 typedef struct { /*!< Link parameters */
