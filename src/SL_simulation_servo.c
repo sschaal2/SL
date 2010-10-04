@@ -177,6 +177,7 @@ run_simulation_servo(void)
   static double last_time = 0;
   static double current_time = 0;
 
+
   // advance the simulation servo
   ++simulation_servo_calls;
   simulation_servo_time += 1./(double)simulation_servo_rate;
@@ -264,7 +265,6 @@ run_simulation_servo(void)
       joint_sim_state[i].u += delta * k - joint_sim_state[i].thd * kd;
     }
   }
-
 
   // general numerical integration: integration runs at higher rate
   dt = 1./(double)(simulation_servo_rate)/(double)n_integration;
