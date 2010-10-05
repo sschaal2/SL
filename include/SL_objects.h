@@ -67,6 +67,10 @@ typedef struct Contact {
   int        n_connected_links;                /*!< number of connected links */
   int        connected_links[MAX_CONNECTED+1]; /*!< list of connected links (only used for link end points, not intermediate points */
   int        force_condition[MAX_CONNECTED+1]; /*!< what force conditions are permitted */
+  // these options are only used for special point contacts 
+  int        point_contact_flag;               /*!< indicates that this is a special point contact in local coordinates with norm vector */
+  double     local_point_pos[N_CART+1];        /*!< position of point contact in local coordinates */
+  double     local_point_norm[N_CART+1];       /*!< normal vector of point contact in local coordinates */
 						  
 } Contact, *ContactPtr;
 
@@ -106,6 +110,7 @@ extern "C" {
   ObjectPtr  getObjPtrByName(char *name);
 
   int        read_extra_contact_points(char *fname);
+  void       computeContactPoint(ContactPtr cptr, double *x);
 
 
 

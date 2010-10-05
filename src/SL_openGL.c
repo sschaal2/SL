@@ -91,6 +91,7 @@ static void  displayCheckerBoard(void);
 static void  initCometDisplay(int n_steps);
 static void  toggleCometDisplay(void);
 static void  toggleCoordDisplay(void);
+static void  toggleContactDisplay(void);
 
 // global variables 
 int        solid = TRUE;
@@ -217,6 +218,9 @@ initGraphics(int *argc, char*** argv)
 
   // coordinate display toggle
   addToMan("coordDisplay","draws local coordinate systems",toggleCoordDisplay);
+
+  // contact point display toggle
+  addToMan("contactDisplay","draws all active contact points",toggleContactDisplay);
 
   return TRUE;
 
@@ -1505,6 +1509,35 @@ changeWindowUpdateRate(double rate)
 
 /*!*****************************************************************************
 *******************************************************************************
+\note  toggleContactDisplay
+\date  May 2010
+   
+\remarks 
+
+allows switching on/off the diplay of contact points
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+******************************************************************************/
+static int contactDisplay = FALSE;
+static void 
+toggleContactDisplay(void)
+{
+  int n;
+  double aux;
+  
+  if(contactDisplay==TRUE) {
+    contactDisplay=FALSE;
+  } else {
+    contactDisplay=TRUE;
+  }
+}
+
+/*!*****************************************************************************
+*******************************************************************************
 \note  drawContacts
 \date  June 1999
    
@@ -1522,6 +1555,7 @@ drawContacts(double fscale)
 {
   int i,j;
   GLfloat   color_point[4]={(float)1.0,(float)0.35,(float)0.35,(float)1.0};
+  GLfloat   color_point_passive[4]={(float)0.35,(float)0.35,(float)1.0,(float)1.0};
   double    x[N_CART+1];
   static int    firsttime = TRUE;
   static double radius = 0.01;
@@ -1540,19 +1574,21 @@ drawContacts(double fscale)
   for (i=0; i<=n_contacts; ++i) { /* loop over all contact points */
 
     // check whether there is an active contact
-    if (!contacts[i].active || !contacts[i].status)
+    if (!contacts[i].active || (!contacts[i].status && !contactDisplay))
       continue;
 
     // compute the point of contact
-    for (j=1; j<=N_CART; ++j)
-      x[j] = 
-	link_pos_sim[contacts[i].id_start][j] * contacts[i].fraction_start + 
-	link_pos_sim[contacts[i].id_end][j] * contacts[i].fraction_end;
+    computeContactPoint(&(contacts[i]),x);
+
 
     // draw a blob at the point of contact
     glPushMatrix();
     glTranslated((GLdouble)x[_X_],(GLdouble)x[_Y_],(GLdouble)x[_Z_]);
-    glColor4fv(color_point);
+    if (!contacts[i].status)
+      glColor4fv(color_point_passive);
+    else
+      glColor4fv(color_point);
+
     if (solid)
       glutSolidSphere(radius,10,10);
     else

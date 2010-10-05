@@ -95,8 +95,8 @@ where_utility(int start, int n_dofs)
 
   for (i=start; i<=start+n_dofs-1; ++i) {
 
-    printf("%5s: th=% 5.3f  thd=% 6.3f  load=% 6.2f  u=% 6.2f  ff=% 6.2f\n",
-	   joint_names[i],
+    printf("%2d: %5s: th=% 5.3f  thd=% 6.3f  load=% 6.2f  u=% 6.2f  ff=% 6.2f\n",
+	   i,joint_names[i],
 	   joint_state[i].th,
 	   joint_state[i].thd,
 	   joint_state[i].load,
@@ -358,8 +358,8 @@ lwhere(void)
 
   for (i=0; i<=n_links; ++i) {
 
-    printf("%10s: x=% 5.3f (% 5.3f)   y=% 5.3f  (% 5.3f)   z=% 5.3f (% 5.3f)\n",
-	   link_names[i],
+    printf("%2d: %20s: x=% 5.3f (% 5.3f)   y=% 5.3f  (% 5.3f)   z=% 5.3f (% 5.3f)\n",
+	   i,link_names[i],
 	   link_pos[i][_X_],link_pos_des[i][_X_],
 	   link_pos[i][_Y_],link_pos_des[i][_Y_],
 	   link_pos[i][_Z_],link_pos_des[i][_Z_]);
@@ -2636,6 +2636,7 @@ count_extra_contact_points(char *fname) {
   char   fcond1[100],fcond2[100];
   int    n_checks;
   int    active;
+  double dum[2*N_CART+1];
 
   // open file and strip comments 
   sprintf(string,"%s%s",CONFIG,fname);
@@ -2656,6 +2657,8 @@ count_extra_contact_points(char *fname) {
 	printf("Parsing error in count_extra_contact_points in SL_common.c (rc=%d)\n",rc);
       break;
     }
+    if (strcmp("POINT_CONTACT",name2)==0)
+      rc = fscanf(in,"%lf %lf %lf %lf %lf %lf",&(dum[1]),&(dum[2]),&(dum[3]),&(dum[4]),&(dum[5]),&(dum[6]));
   }
 
   fclose(in);
