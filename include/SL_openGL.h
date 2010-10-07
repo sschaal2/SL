@@ -49,7 +49,7 @@ typedef struct OpenGLWindow {
   int    show_me;          /*!< request to show */
   int    draw_axis;        /*!< TRUE/FALSE */
   int    follow_basis;     /*!< TRUE/FALSE */
-  double fovea;            /*!< fovea angle in degrees */
+  double fovea;            /*!< fovea angle vertical (image y) in degrees */
   /*!<  view variables for the window based on gluLookAt */
   GLdouble eye[N_CART+1];
   GLdouble center[N_CART+1];

@@ -716,7 +716,6 @@ createWindow(OpenGLWPtr wptr)
     glutIdleFunc(wptr->idle);
   else
     glutIdleFunc(idle);
-  	
 
   /* The same display function is now used for all simulations, just that
      it calls a window specific display function inside */
@@ -2548,29 +2547,40 @@ displayCheckerBoard(void )
 
   // initialization
   if(firsttime) {
+    OpenGLWPtr ptr = first_window_ptr;
+    int        openGLId;
 	  
     if(initCheckerBoard() == FALSE) {
       printf("DisplayCheckerBoard>> ERROR: could not initialize checker board.\n");
       return;
     }
-	  
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-	  
-    glGenTextures(1, &texName);
-    glBindTexture(GL_TEXTURE_2D, texName);
-	  
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	  
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth, checkImageHeight, 
-		 0, GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
 
+    openGLId = glutGetWindow();
+
+    while (ptr != NULL) {   // this needs to be executed for every window
+      glutSetWindow(ptr->openGLId);
+      ptr = (OpenGLWPtr) ptr->next_wptr;
+	  
+      glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+      
+      glGenTextures(1, &texName);
+      glBindTexture(GL_TEXTURE_2D, texName);
+      
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+      glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+      
+      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, checkImageWidth, checkImageHeight, 
+		 0, GL_RGBA, GL_UNSIGNED_BYTE, checkImage);
+    } 
+
+    glutSetWindow(openGLId);
+	
     firsttime=FALSE;
   }
 
-	
+
   glPushMatrix();
   glEnable(GL_BLEND);
 	
@@ -2801,6 +2811,10 @@ updateComet(void)
   if (!comet_display_initialized || !cometDisplay || openGL_servo_calls < 1)
     return;
 
+  // advance the index
+  if (++current_index_comet_buffer > n_steps_comet)
+    current_index_comet_buffer = 1;
+
   // first add the lastest information to the comet_display_list
   for (i=1; i<=n_endeffs; ++i) 
     if (comet_display_list[i]) 
@@ -2814,6 +2828,7 @@ updateComet(void)
 	
   if (++n_elements_comet_buffer > n_steps_comet)
     n_elements_comet_buffer = n_steps_comet;
+
 
 }
 
@@ -2876,9 +2891,6 @@ displayComet(void)
 
   }
 
-  // advance the index
-  if (++current_index_comet_buffer > n_steps_comet)
-    current_index_comet_buffer = 1;
 
 }
 

@@ -446,7 +446,8 @@ where_misc(void)
 
   for (i=1; i<=n_misc_sensors; ++i) {
 
-    printf("%20s = % 5.3f\n",
+    printf("%3d: %20s = % 5.3f\n",
+	   i,
 	   misc_sensor_names[i],
 	   misc_sensor[i]);
   }
