@@ -1396,9 +1396,10 @@ toggleHideWindow(OpenGLWPtr ptr)
   pthread_mutex_lock( &mutex1 );
 
   if (ptr->hide) {
-    ptr->hide    = FALSE;
-    ptr->show_me = TRUE;
-    printf("Show Window %s [%d]\n",ptr->name,ptr->ID);
+    printf("Click Icon >%s< To Make Window Visible\n",ptr->name);
+    //ptr->hide    = FALSE;
+    //ptr->show_me = TRUE;
+    //printf("Show Window %s [%d]\n",ptr->name,ptr->ID);
   } else {
     ptr->hide_me = TRUE;
     printf("Hide Window %s [%d]\n",ptr->name,ptr->ID);
