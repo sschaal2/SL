@@ -904,6 +904,7 @@ SLGenericDisplay(void)
     ptr->x = glutGet(GLUT_WINDOW_X);
     ptr->y = glutGet(GLUT_WINDOW_Y);
     glutIconifyWindow();
+    ptr->hide = TRUE;
     pthread_mutex_unlock( &mutex1 );
     return;
   }
