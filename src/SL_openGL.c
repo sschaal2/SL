@@ -92,6 +92,8 @@ static void  initCometDisplay(int n_steps);
 static void  toggleCometDisplay(void);
 static void  toggleCoordDisplay(void);
 static void  toggleContactDisplay(void);
+static void  updateWindowHide(int status);
+
 
 // global variables 
 int        solid = TRUE;
@@ -720,6 +722,7 @@ createWindow(OpenGLWPtr wptr)
   /* The same display function is now used for all simulations, just that
      it calls a window specific display function inside */
   glutDisplayFunc(SLGenericDisplay);
+  glutWindowStatusFunc(updateWindowHide);
   if (wptr->display == NULL)
     wptr->display = scene_display;
   
@@ -896,12 +899,11 @@ SLGenericDisplay(void)
   }
 
   if (ptr->hide_me) {
-    ptr->hide = TRUE;
     ptr->hide_me = FALSE;
     // remember the window position
     ptr->x = glutGet(GLUT_WINDOW_X);
     ptr->y = glutGet(GLUT_WINDOW_Y);
-    glutHideWindow();
+    glutIconifyWindow();
     pthread_mutex_unlock( &mutex1 );
     return;
   }
@@ -979,7 +981,37 @@ SLGenericDisplay(void)
 
 }
 
+/*!*****************************************************************************
+*******************************************************************************
+\note  udpateWindowHide
+\date  Oct 2010
 
+adjusts the hide status of the current window, such that openGL stops
+rendering when the window is hidden
+
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in]  status: status provided by openGL
+
+
+******************************************************************************/
+static void
+updateWindowHide(int status)
+{
+  OpenGLWPtr ptr;
+
+  ptr = whichGLWindow();
+  if (ptr == NULL)
+    return;
+
+  if (status == GLUT_FULLY_COVERED || status == GLUT_HIDDEN)
+    ptr->hide = TRUE;
+  else
+    ptr->hide = FALSE;
+
+}
  
 /*!*****************************************************************************
 *******************************************************************************
@@ -1427,11 +1459,9 @@ followBaseByName(char *name, int follow)
 {
   OpenGLWPtr ptr = first_window_ptr;
   int i;
-  char c[100];
 
   while (ptr != NULL) {
-    sprintf(c,"%d",ptr->openGLId);
-    if (strcmp(name,c)==0) {
+    if (strcmp(name,ptr->name)==0) {
       followBaseByPtr(ptr,follow);
       return;
     }
@@ -2332,21 +2362,24 @@ interface
 *******************************************************************************
 Function Parameters: [in]=input,[out]=output
 
-\param[in]     name  : name of the window
+\param[in]     IDname  : name of the window as the SL ID number of the window
 
 ******************************************************************************/
 static int
-checkWindowHide(char *name)
+checkWindowHide(char *IDname)
 
 {
   int i,rc;
   OpenGLWPtr ptr = first_window_ptr;
-  char c[100];
+  int ID;
+
+  rc = sscanf(IDname,"%d",&ID);
+  if (rc != 1)
+    return FALSE;
 
   /* check whether command is for window hide status */
   while (ptr != NULL) {
-    sprintf(c,"%d",ptr->ID);
-    if (c[0]==name[0]) {
+    if (ID == ptr->ID) {
       toggleHideWindow(ptr);
       return TRUE;
     }

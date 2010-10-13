@@ -591,8 +591,8 @@ init_sm_object(char *smname, size_t structsize, size_t datasize,
     *semptr = semBSmCreate (semn,parent_process_id,SEM_Q_FIFO, SEM_FULL);
     if (*semptr == (SEM_ID) (-1)) {
 #endif
-      printf("Couldn't create shared semaphore for object %s -- sem_id=%d\n",
-	     semn,(int)*semptr);
+      printf("Couldn't create shared semaphore for object %s -- sem_id=%ld\n",
+	     semn,(long)*semptr);
       return FALSE;
     }
     
