@@ -391,6 +391,10 @@ osc_display(void)
   glRasterPos2d(-0.0,-2*offy);
   glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
 
+  sprintf(string,"%5.1f Hz",((double)periods_window_AD)/(tend-tstart));
+  glRasterPos2d(0.5,-2*offy);
+  glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
+
   sprintf(string,"0.0");
   glRasterPos2d(1.0,-2*offy);
   glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
