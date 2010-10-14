@@ -208,6 +208,8 @@ osc_display(void)
   int i,j,c,r;
   static int firsttime = TRUE;
   static int listID = 999;
+  static double freq_AD = 0;
+  static double start_time_AD = 0;
   double offx_left = 0.15;
   double offx_right = 0.1;
   double offy = 0.05;
@@ -387,11 +389,13 @@ osc_display(void)
 
   glColor4f (1.0,1.0,1.0,1.0);      
 
-  sprintf(string,"%3.1e",-(tend-tstart));
+  start_time_AD = -(tend-tstart) * 0.01 + 0.99*start_time_AD;
+  sprintf(string,"%3.1e",start_time_AD);
   glRasterPos2d(-0.0,-2*offy);
   glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
 
-  sprintf(string,"%5.1f Hz",((double)periods_window_AD)/(tend-tstart));
+  freq_AD = ((double)periods_window_AD)/(tend-tstart)*0.01 + 0.99*freq_AD;
+  sprintf(string,"%5.1f Hz",freq_AD);
   glRasterPos2d(0.5,-2*offy);
   glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
 

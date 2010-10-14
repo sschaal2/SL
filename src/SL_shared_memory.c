@@ -132,6 +132,9 @@ SEM_ID             sm_ros_state_sem;
 smOscilloscope    *sm_oscilloscope;
 SEM_ID             sm_oscilloscope_sem;
 
+/* local variables */
+static int         n_bytes_sm_allocated = 0;
+
 /* local functions */
 static int init_sm_object(char *smname, size_t structsize, size_t datasize, 
 			  SEM_ID *semptr, void **structptr);
@@ -525,6 +528,8 @@ init_shared_memory(void)
   addToMan("showSem","displays all semaphores in the system",printAllSem);
 #endif
 
+  printf("Total Shared Memory Allocated = %d Bytes\n",n_bytes_sm_allocated);
+
   return TRUE;
 
 }
@@ -621,6 +626,9 @@ init_sm_object(char *smname, size_t structsize, size_t datasize,
 	   smn,
 	   (unsigned long) smObjLocalToGlobal((void*)*structptr),
 	   (unsigned long) *structptr);
+
+  // keep statistics of allocated shared memory
+  n_bytes_sm_allocated += datasize + structsize;
   
   return TRUE;
   
