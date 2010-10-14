@@ -158,7 +158,7 @@ none
 int
 init_shared_memory(void)
 {
-  int    j,i,n;
+  int    j,i,n,rc;
   STATUS error;
   char   string[100];
   char   name[100];
@@ -437,14 +437,20 @@ init_shared_memory(void)
     return FALSE;
   }
   /********************************************************************/
-  if (init_sm_object("smOscilloscope", 
-		     sizeof(smOscilloscope),
-		     sizeof(SL_oscEntry)*(OSC_SM_BUFFER_SIZE+1),
-		     &sm_oscilloscope_sem,
-		     (void **)&sm_oscilloscope)) {
-    ;
-  } else {
-    return FALSE;
+  rc = TRUE;
+  if (read_parameter_pool_int(config_files[PARAMETERPOOL],"osc_enabled", &rc))
+    rc = macro_sign(abs(rc));
+
+  if (rc) {
+    if (init_sm_object("smOscilloscope", 
+		       sizeof(smOscilloscope),
+		       sizeof(SL_oscEntry)*(OSC_SM_BUFFER_SIZE+1),
+		       &sm_oscilloscope_sem,
+		       (void **)&sm_oscilloscope)) {
+      ;
+    } else {
+      return FALSE;
+    }
   }
 
   /********************************************************************/
