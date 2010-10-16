@@ -136,22 +136,24 @@ SRCS_GL_SERVO = \
 OBJS_VISION_SERVO = \
 	SL_vision_servo.o \
 	SL_vision_servo_xeno.o \
-	SL_vision_proc.o \
-	SL_collect_data.o \
-	SL_shared_memory.o \
-	SL_common.o \
-	SL_filters.o \
-	SL_man.o 
+	SL_vision_proc.o
 
 SRCS_VISION_SERVO = \
 	SL_vision_servo.c \
 	SL_vision_servo_xeno.c \
-	SL_vision_proc.c \
-	SL_collect_data.c \
-	SL_shared_memory.c \
-	SL_common.c \
-	SL_filters.c \
-	SL_man.c 
+	SL_vision_proc.c
+
+/* ------------------------------------------------------------------------*/
+
+OBJS_ROS_SERVO = \
+	SL_ros_servo.o \
+	SL_ros_servo_unix.o
+
+SRCS_ROS_SERVO = \
+	SL_ros_servo.c \
+	SL_ros_servo_unix.c
+
+/* ------------------------------------------------------------------------*/
 
 SOURCES = $(SRCS_SL_COMMON) $(SRCS_TASK_SERVO) $(SRCS_MOTOR_SERVO) $(SRCS_SIM_SERVO) $(SRCS_GL_SERVO) $(SRCS_VISION_SERVO)
 
