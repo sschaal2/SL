@@ -422,7 +422,6 @@ Function Parameters: [in]=input,[out]=output
 none
 
 ******************************************************************************/
-void printMist(int dummy) {printf("mist\n");}
 void
 installSignalHandlers(void)
 
@@ -435,7 +434,7 @@ installSignalHandlers(void)
   //signal(SIGSEGV,removeSharedMemory);
   signal(SIGINT,removeSharedMemory);
   signal(SIGTERM,removeSharedMemory);
-  signal(SIGWINCH,printMist);
+  signal(SIGWINCH,SIG_IGN); // needed for Xenomai to avoid xterm crash
   atexit(removeSharedMemoryAtExit);
 
 }
