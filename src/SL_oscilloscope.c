@@ -219,6 +219,9 @@ Function Parameters: [in]=input,[out]=output
 void
 addEntryOscBuffer(char *name, double v, double ts, int pID)
 {
+  static int count_overruns = 0;
+  static int count_overrun_messages = 0;
+  static int overrun_message_disabled = FALSE;
 
   if (!osc_enabled) 
     return;
@@ -233,7 +236,17 @@ addEntryOscBuffer(char *name, double v, double ts, int pID)
 
   if (++n_osc_entries > OSC_BUFFER_SIZE) {
     n_osc_entries = OSC_BUFFER_SIZE;
-    printf("addEntryOscBuffer: ring buffer overun\n");
+    if (++count_overruns % 1000 == 1) {
+      if (++count_overrun_messages > 10) {
+	printf("addEntryOscBuffer: too many buffer overuns --- print outs are stopped\n");
+      } else {
+	printf("addEntryOscBuffer: ring buffer overuns = %d\n",count_overruns);
+      }
+    }
+  } else {
+    count_overruns = 0;
+    count_overrun_messages = 0;
+    overrun_message_disabled = FALSE;
   }
 
 }
