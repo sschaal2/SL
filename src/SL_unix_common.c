@@ -422,6 +422,7 @@ Function Parameters: [in]=input,[out]=output
 none
 
 ******************************************************************************/
+void printMist(int dummy) {printf("mist\n");}
 void
 installSignalHandlers(void)
 
@@ -434,6 +435,7 @@ installSignalHandlers(void)
   //signal(SIGSEGV,removeSharedMemory);
   signal(SIGINT,removeSharedMemory);
   signal(SIGTERM,removeSharedMemory);
+  signal(SIGWINCH,printMist);
   atexit(removeSharedMemoryAtExit);
 
 }

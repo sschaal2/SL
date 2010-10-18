@@ -74,7 +74,6 @@ main(int argc, char**argv)
   int  rc;
   char name[100];
 
-
   // initialize xenomai specific variables and real-time environment
   initXeno();
 
