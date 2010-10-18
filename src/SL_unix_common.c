@@ -434,6 +434,7 @@ installSignalHandlers(void)
   //signal(SIGSEGV,removeSharedMemory);
   signal(SIGINT,removeSharedMemory);
   signal(SIGTERM,removeSharedMemory);
+  signal(SIGWINCH,SIG_IGN); // needed for Xenomai to avoid xterm crash
   atexit(removeSharedMemoryAtExit);
 
 }
