@@ -288,6 +288,7 @@ initializeReadLine()
 {
   rl_attempted_completion_function = sl_completion;
   rl_catch_signals = 0;
+  rl_catch_sigwinch = 0;
 }
 
 /*!*****************************************************************************
@@ -434,7 +435,6 @@ installSignalHandlers(void)
   //signal(SIGSEGV,removeSharedMemory);
   signal(SIGINT,removeSharedMemory);
   signal(SIGTERM,removeSharedMemory);
-  signal(SIGWINCH,SIG_IGN); // needed for Xenomai to avoid xterm crash
   atexit(removeSharedMemoryAtExit);
 
 }
