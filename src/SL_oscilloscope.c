@@ -244,10 +244,6 @@ addEntryOscBuffer(char *name, double v, double ts, int pID)
 	printf("addEntryOscBuffer: ring buffer overuns = %d\n",count_overruns);
       }
     }
-  } else {
-    count_overruns = 0;
-    count_overrun_messages = 0;
-    overrun_message_disabled = FALSE;
   }
 
 }
