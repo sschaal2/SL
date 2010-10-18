@@ -537,3 +537,65 @@ read_sensor_filters(char *fname) {
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  init_joint_state_filters
+\date  Oct. 2010
+\remarks 
+
+sets the history of the joint_state filters from a provided joint state.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     js : the joint state with all the values for filter initialization
+
+ ******************************************************************************/
+void
+init_joint_state_filters(SL_Jstate *js)
+{
+  int i,j;
+
+  for (i=1; i<=n_dofs; ++i) {
+    for (j=0; j<=FILTER_ORDER; ++j) {
+      fth[i].raw[j]    = js[i].th;
+      fth[i].filt[j]   = js[i].th;
+      fthd[i].raw[j]   = js[i].thd;
+      fthd[i].filt[j]  = js[i].thd;
+      fthdd[i].raw[j]  = js[i].thdd;
+      fthdd[i].filt[j] = js[i].thdd;
+      fload[i].raw[j]  = js[i].load;
+      fload[i].filt[j] = js[i].load;
+    }
+  }
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  init_misc_sensor_filters
+\date  Oct. 2010
+\remarks 
+
+sets the history of the misc_sensor filters from a provided misc sensor array
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     ms : the misc sensor state
+
+ ******************************************************************************/
+void
+init_misc_sensor_filters(double *ms)
+{
+  int i,j;
+
+  for (i=1; i<=n_dofs; ++i) {
+    for (j=0; j<=FILTER_ORDER; ++j) {
+      fmisc_sensor[i].raw[j]  = ms[i];
+      fmisc_sensor[i].filt[j] = ms[i];
+    }
+  }
+
+}
+
