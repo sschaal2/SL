@@ -147,11 +147,12 @@ SRCS_VISION_SERVO = \
 
 OBJS_ROS_SERVO = \
 	SL_ros_servo.o \
-	SL_ros_servo_unix.o
+	SL_ros_servo_xeno.o
 
 SRCS_ROS_SERVO = \
 	SL_ros_servo.c \
-	SL_ros_servo_unix.c
+	SL_ros_servo_xeno.c
+
 
 /* ------------------------------------------------------------------------*/
 
@@ -159,11 +160,20 @@ SOURCES = $(SRCS_SL_COMMON) $(SRCS_TASK_SERVO) $(SRCS_MOTOR_SERVO) $(SRCS_SIM_SE
 
 OBJECTS = $(OBJS_SL_COMMON) $(OBJS_TASK_SERVO) $(OBJS_MOTOR_SERVO) $(OBJS_SIM_SERVO) $(OBJS_GL_SERVO) $(OBJS_VISION_SERVO)
 
+ifdef ROS_ROOT
+      SOURCES += $(SRCS_ROS_SERVO)
+      OBJECTS += $(OBJS_ROS_SERVO)
+endif
+
 LibraryListTarget(SLcommon,$(OBJS_SL_COMMON))
 LibraryListTarget(SLtask,$(OBJS_TASK_SERVO))
 LibraryListTarget(SLmotor,$(OBJS_MOTOR_SERVO))
 LibraryListTarget(SLsimulation,$(OBJS_SIM_SERVO))
 LibraryListTarget(SLopenGL,$(OBJS_GL_SERVO))
 LibraryListTarget(SLvision,$(OBJS_VISION_SERVO))
+
+ifdef ROS_ROOT
+      LibraryListTarget(SLros,$(OBJS_ROS_SERVO))
+endif
 
 NormalObjRule( $(OBJECTS) )

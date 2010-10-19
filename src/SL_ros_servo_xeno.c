@@ -25,6 +25,7 @@
 #include "SL_collect_data.h"
 #include "SL_shared_memory.h"
 #include "SL_unix_common.h"
+#include "SL_xeno_common.h"
 #include "SL_man.h"
 
 #define TIME_OUT_NS  1000000000
@@ -80,8 +81,7 @@ main(int argc, char**argv)
   installSignalHandlers();
 
   // initializes the servo
-  if (!init_ros_servo())
-    return FALSE;
+  init_ros_servo();
 
   // get the servo parameters
   sprintf(name,"%s_servo",servo_name);
@@ -109,7 +109,7 @@ main(int argc, char**argv)
     }
 
     // spawn command line interface thread
-    spawnCommandLineThread(initial_user_command);
+    spawnCommandLineThread(NULL);
 
     // signal that this process is initialized
     semGive(sm_init_process_ready_sem);
@@ -131,7 +131,7 @@ main(int argc, char**argv)
   }
 
 
-  printf("ROS Servo Error Count = %d\n",task_servo_errors);
+  printf("ROS Servo Error Count = %d\n",ros_servo_errors);
 
   return TRUE;
 
@@ -172,7 +172,7 @@ ros_servo(void *dummy)
     // wait to take semaphore 
     if (semTake(sm_ros_servo_sem,WAIT_FOREVER) == ERROR) {
       printf("semTake Time Out -- Servo Terminated\n");
-      return FALSE;
+      return;
     }
 
     // lock out the keyboard interaction 
