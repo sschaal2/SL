@@ -19,23 +19,26 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-int init_sensor_processing(void);
-int read_sensors(void);
-int send_commands(void);
-int process_sensors(void);
-
-int  init_user_sensor_processing(void);
-int  read_user_sensors(SL_Jstate *raw, double *misc_raw);
-int  send_user_commands(SL_Jstate *com);
-int  user_kill(void);
-int  user_power_status(void);
-void userCheckForMessage(char *name, int k);
-void user_controller(double *u, double *uf);
-
-extern double          **joint_lin_rot;
-extern double           *pos_polar;
-extern double           *load_polar;
-
+  int init_sensor_processing(void);
+  int read_sensors(void);
+  int send_commands(void);
+  int process_sensors(void);
+  
+  int  init_user_sensor_processing(void);
+  int  read_user_sensors(SL_Jstate *raw, double *misc_raw);
+  int  send_user_commands(SL_Jstate *com);
+  int  user_kill(void);
+  int  user_power_status(void);
+  void userCheckForMessage(char *name, int k);
+  void user_controller(double *u, double *uf);
+  void init_joint_state_filters(SL_Jstate *js);
+  void init_misc_sensor_filters(double *ms);
+   
+  
+  extern double          **joint_lin_rot;
+  extern double           *pos_polar;
+  extern double           *load_polar;
+  
 #ifdef __cplusplus
 }
 #endif
