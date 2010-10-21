@@ -22,7 +22,7 @@
 ****************************************************************************/
 
 ifdef ROS_ROOT
-ROS_PACKAGES = roscpp rosrt sensor_msgs geometry_msgs
+ROS_PACKAGES = roscpp sensor_msgs geometry_msgs
 
 INCLUDE_ROS = $(shell for i in $(ROS_PACKAGES); do rospack cflags-only-I $$i | sed 's/\([^ ]*\)/-I\1/g'; done | sed -e ':a;N;$!ba;s/\n/ /g')
 LIB_INCLUDE_ROS = $(shell for i in $(ROS_PACKAGES); do rospack libs-only-L $$i | sed 's/\([^ ]*\)/-L\1/g'; done | sed -e ':a;N;$!ba;s/\n/ /g')
