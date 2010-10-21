@@ -24,13 +24,16 @@
 #include "SL_ros_servo.h"
 #include "SL_collect_data.h"
 #include "SL_shared_memory.h"
-#include "SL_unix_common.h"
 #include "SL_xeno_common.h"
+#include "SL_unix_common.h"
 #include "SL_man.h"
 
 #define TIME_OUT_NS  1000000000
 
 // local variables
+
+extern "C" {
+
 static RT_TASK servo_ptr;
 static int     use_spawn = TRUE;
 static int     servo_priority = 10;
@@ -38,12 +41,16 @@ static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
 
 // global variables
-int     delay_ns = FALSE;
+char initial_user_command[100]="";
+int delay_ns = FALSE;
 
 // global functions 
 
 // local functions
 static  void ros_servo(void *dummy);
+
+}
+
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -67,7 +74,6 @@ main(int argc, char**argv)
   int  rc;
   char name[100];
 
-
   // initialize xenomai specific variables and real-time environment
   initXeno();
 
@@ -81,7 +87,8 @@ main(int argc, char**argv)
   installSignalHandlers();
 
   // initializes the servo
-  init_ros_servo();
+  if (!init_ros_servo())
+    return FALSE;
 
   // get the servo parameters
   sprintf(name,"%s_servo",servo_name);
@@ -109,7 +116,7 @@ main(int argc, char**argv)
     }
 
     // spawn command line interface thread
-    spawnCommandLineThread(NULL);
+    spawnCommandLineThread(initial_user_command);
 
     // signal that this process is initialized
     semGive(sm_init_process_ready_sem);
@@ -130,9 +137,7 @@ main(int argc, char**argv)
 
   }
 
-
-  printf("ROS Servo Error Count = %d\n",ros_servo_errors);
-
+  printf("ROS Servo Error Count = %d\n", ros_servo_errors);
   return TRUE;
 
 }
@@ -168,13 +173,13 @@ ros_servo(void *dummy)
     // force delay ticks if user wishes
     if (delay_ns > 0)
       taskDelay(ns2ticks(delay_ns));
-
+		
     // wait to take semaphore 
     if (semTake(sm_ros_servo_sem,WAIT_FOREVER) == ERROR) {
       printf("semTake Time Out -- Servo Terminated\n");
       return;
     }
-
+		
     // lock out the keyboard interaction 
     pthread_mutex_lock( &mutex1 );
 
