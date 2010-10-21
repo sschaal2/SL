@@ -16,7 +16,6 @@
   ============================================================================*/
 
 #include "SL_ros_communicator.h"
-#include <assert.h>
 
 // SL general includes of system headers
 #include "SL_system_headers.h"
@@ -44,7 +43,6 @@ double servo_time=0;
 int    servo_enabled;
 int    ros_servo_rate;
 
-int delay_ns = 0;
 sl2ros::SL_ros_communicator ros_communicator_;
 
 /* local variables */
@@ -294,7 +292,11 @@ init_ros_servo(void)
   addToMan("status","displays information about the servo",status);
   addToMan("drs","disables the ros servo",drs);
 
-  assert(ros_communicator_.initialize());
+  if(!ros_communicator_.initialize())
+		{
+			printf("ERROR: could not initialize ros communication\n");
+			return;
+		}
 
   // if all worked out, we mark the servo as ready to go
   ros_servo_initialized = TRUE;
