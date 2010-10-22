@@ -92,9 +92,6 @@ init_ros_servo(void)
   // initialize kinematics
   init_kinematics();
 
-  // initializes user specific issues
-  init_user_ros();
-
   // add variables to data collection
   ros_servo_rate=servo_base_rate/task_servo_ratio;
   initCollectData(ros_servo_rate);
@@ -293,10 +290,13 @@ init_ros_servo(void)
   addToMan((char *)"drs",(char *)"disables the ros servo",drs);
 
   if(!ros_communicator_.initialize())
-		{
-			printf("ERROR: could not initialize ros communication\n");
-			return;
-		}
+  {
+    printf("ERROR: could not initialize ros communication\n");
+    return;
+  }
+
+  // initializes user specific issues
+  init_user_ros();
 
   // if all worked out, we mark the servo as ready to go
   ros_servo_initialized = TRUE;
