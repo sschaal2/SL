@@ -103,194 +103,194 @@ init_ros_servo(void)
     printf("%d...",i);
     fflush(stdout);
     sprintf(string,"%s_th",joint_names[i]);
-    addVarToCollect((char *)&(joint_state[i].th),string,"rad", DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_state[i].th),string,(char *)"rad", DOUBLE,FALSE);
     sprintf(string,"%s_thd",joint_names[i]);
-    addVarToCollect((char *)&(joint_state[i].thd),string,"rad/s", DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_state[i].thd),string,(char *)"rad/s", DOUBLE,FALSE);
     sprintf(string,"%s_thdd",joint_names[i]);
-    addVarToCollect((char *)&(joint_state[i].thdd),string,"rad/s^2", DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_state[i].thdd),string,(char *)"rad/s^2", DOUBLE,FALSE);
     sprintf(string,"%s_u",joint_names[i]);
-    addVarToCollect((char *)&(joint_state[i].u),string,"Nm", DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_state[i].u),string,(char *)"Nm", DOUBLE,FALSE);
     sprintf(string,"%s_ufb",joint_names[i]);
-    addVarToCollect((char *)&(joint_state[i].ufb),string,"Nm", DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_state[i].ufb),string,(char *)"Nm", DOUBLE,FALSE);
     sprintf(string,"%s_load",joint_names[i]);
-    addVarToCollect((char *)&(joint_state[i].load),string,"Nm", DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_state[i].load),string,(char *)"Nm", DOUBLE,FALSE);
     sprintf(string,"%s_des_th",joint_names[i]);
-    addVarToCollect((char *)&(joint_des_state[i].th),string,"rad",DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_des_state[i].th),string,(char *)"rad",DOUBLE,FALSE);
     sprintf(string,"%s_des_thd",joint_names[i]);
-    addVarToCollect((char *)&(joint_des_state[i].thd),string,"rad/s",DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_des_state[i].thd),string,(char *)"rad/s",DOUBLE,FALSE);
     sprintf(string,"%s_des_thdd",joint_names[i]);
-    addVarToCollect((char *)&(joint_des_state[i].thdd),string,"rad/s^2",DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_des_state[i].thdd),string,(char *)"rad/s^2",DOUBLE,FALSE);
     sprintf(string,"%s_uff",joint_names[i]);
-    addVarToCollect((char *)&(joint_des_state[i].uff),string,"Nm",DOUBLE,FALSE);
+    addVarToCollect((char *)&(joint_des_state[i].uff),string,(char *)"Nm",DOUBLE,FALSE);
   }
 
   // Cartesian variables
   for (i=1; i<=n_endeffs; ++i) {
 
     sprintf(string,"%s_x",cart_names[i]);
-    addVarToCollect((char *)&(cart_state[i].x[_X_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_state[i].x[_X_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_y",cart_names[i]);
-    addVarToCollect((char *)&(cart_state[i].x[_Y_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_state[i].x[_Y_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_z",cart_names[i]);
-    addVarToCollect((char *)&(cart_state[i].x[_Z_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_state[i].x[_Z_]),string,(char *)"m",DOUBLE,FALSE);
 
     sprintf(string,"%s_xd",cart_names[i]);
-    addVarToCollect((char *)&(cart_state[i].xd[_X_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_state[i].xd[_X_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_yd",cart_names[i]);
-    addVarToCollect((char *)&(cart_state[i].xd[_Y_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_state[i].xd[_Y_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_zd",cart_names[i]);
-    addVarToCollect((char *)&(cart_state[i].xd[_Z_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_state[i].xd[_Z_]),string,(char *)"m",DOUBLE,FALSE);
 
     sprintf(string,"%s_xdd",cart_names[i]);
-    addVarToCollect((char *)&(cart_state[i].xdd[_X_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_state[i].xdd[_X_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_ydd",cart_names[i]);
-    addVarToCollect((char *)&(cart_state[i].xdd[_Y_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_state[i].xdd[_Y_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_zdd",cart_names[i]);
-    addVarToCollect((char *)&(cart_state[i].xdd[_Z_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_state[i].xdd[_Z_]),string,(char *)"m",DOUBLE,FALSE);
 
     sprintf(string,"%s_ad",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].ad[_X_]),string,"rad/s",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].ad[_X_]),string,(char *)"rad/s",DOUBLE,FALSE);
     sprintf(string,"%s_bd",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].ad[_Y_]),string,"rad/s",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].ad[_Y_]),string,(char *)"rad/s",DOUBLE,FALSE);
     sprintf(string,"%s_gd",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].ad[_Z_]),string,"rad/s",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].ad[_Z_]),string,(char *)"rad/s",DOUBLE,FALSE);
 
     sprintf(string,"%s_add",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].add[_X_]),string,"rad/s2",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].add[_X_]),string,(char *)"rad/s2",DOUBLE,FALSE);
     sprintf(string,"%s_bdd",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].add[_Y_]),string,"rad/s2",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].add[_Y_]),string,(char *)"rad/s2",DOUBLE,FALSE);
     sprintf(string,"%s_gdd",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].add[_Z_]),string,"rad/s2",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].add[_Z_]),string,(char *)"rad/s2",DOUBLE,FALSE);
 
     sprintf(string,"%s_des_x",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_state[i].x[_X_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_state[i].x[_X_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_des_y",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_state[i].x[_Y_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_state[i].x[_Y_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_des_z",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_state[i].x[_Z_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_state[i].x[_Z_]),string,(char *)"m",DOUBLE,FALSE);
 
     sprintf(string,"%s_des_xd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_state[i].xd[_X_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_state[i].xd[_X_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_des_yd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_state[i].xd[_Y_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_state[i].xd[_Y_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_des_zd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_state[i].xd[_Z_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_state[i].xd[_Z_]),string,(char *)"m",DOUBLE,FALSE);
 
     sprintf(string,"%s_des_xdd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_state[i].xdd[_X_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_state[i].xdd[_X_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_des_ydd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_state[i].xdd[_Y_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_state[i].xdd[_Y_]),string,(char *)"m",DOUBLE,FALSE);
     sprintf(string,"%s_des_zdd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_state[i].xdd[_Z_]),string,"m",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_state[i].xdd[_Z_]),string,(char *)"m",DOUBLE,FALSE);
 
     sprintf(string,"%s_des_ad",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].ad[_X_]),string,"rad/s",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].ad[_X_]),string,(char *)"rad/s",DOUBLE,FALSE);
     sprintf(string,"%s_des_bd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].ad[_Y_]),string,"rad/s",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].ad[_Y_]),string,(char *)"rad/s",DOUBLE,FALSE);
     sprintf(string,"%s_des_gd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].ad[_Z_]),string,"rad/",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].ad[_Z_]),string,(char *)"rad/",DOUBLE,FALSE);
 
     sprintf(string,"%s_q0",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].q[_Q0_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].q[_Q0_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_q1",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].q[_Q1_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].q[_Q1_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_q2",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].q[_Q2_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].q[_Q2_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_q3",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].q[_Q3_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].q[_Q3_]),string,(char *)"-",DOUBLE,FALSE);
 
     sprintf(string,"%s_q0d",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].qd[_Q0_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].qd[_Q0_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_q1d",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].qd[_Q1_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].qd[_Q1_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_q2d",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].qd[_Q2_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].qd[_Q2_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_q3d",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].qd[_Q3_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].qd[_Q3_]),string,(char *)"-",DOUBLE,FALSE);
 
     sprintf(string,"%s_q0dd",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].qdd[_Q0_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].qdd[_Q0_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_q1dd",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].qdd[_Q1_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].qdd[_Q1_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_q2dd",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].qdd[_Q2_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].qdd[_Q2_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_q3dd",cart_names[i]);
-    addVarToCollect((char *)&(cart_orient[i].qdd[_Q3_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_orient[i].qdd[_Q3_]),string,(char *)"-",DOUBLE,FALSE);
 
     sprintf(string,"%s_des_q0",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].q[_Q0_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].q[_Q0_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_des_q1",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].q[_Q1_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].q[_Q1_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_des_q2",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].q[_Q2_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].q[_Q2_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_des_q3",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].q[_Q3_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].q[_Q3_]),string,(char *)"-",DOUBLE,FALSE);
 
     sprintf(string,"%s_des_q0d",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].qd[_Q0_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].qd[_Q0_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_des_q1d",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].qd[_Q1_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].qd[_Q1_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_des_q2d",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].qd[_Q2_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].qd[_Q2_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_des_q3d",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].qd[_Q3_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].qd[_Q3_]),string,(char *)"-",DOUBLE,FALSE);
 
     sprintf(string,"%s_des_q0dd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].qdd[_Q0_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].qdd[_Q0_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_des_q1dd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].qdd[_Q1_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].qdd[_Q1_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_des_q2dd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].qdd[_Q2_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].qdd[_Q2_]),string,(char *)"-",DOUBLE,FALSE);
     sprintf(string,"%s_des_q3dd",cart_names[i]);
-    addVarToCollect((char *)&(cart_des_orient[i].qdd[_Q3_]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(cart_des_orient[i].qdd[_Q3_]),string,(char *)"-",DOUBLE,FALSE);
 
   }
 
   // misc sensors
   for (i=1; i<=n_misc_sensors; ++i) {
     sprintf(string,"%s",misc_sensor_names[i]);
-    addVarToCollect((char *)&(misc_sensor[i]),string,"-",DOUBLE,FALSE);
+    addVarToCollect((char *)&(misc_sensor[i]),string,(char *)"-",DOUBLE,FALSE);
   }
 
 
   // the state of the base
-  addVarToCollect((char *)&(base_state.x[_X_]),"base_x","m",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_state.x[_Y_]),"base_y","m",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_state.x[_Z_]),"base_z","m",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_state.x[_X_]),(char *)"base_x",(char *)"m",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_state.x[_Y_]),(char *)"base_y",(char *)"m",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_state.x[_Z_]),(char *)"base_z",(char *)"m",DOUBLE,FALSE);
   
-  addVarToCollect((char *)&(base_state.xd[_X_]),"base_xd","m",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_state.xd[_Y_]),"base_yd","m",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_state.xd[_Z_]),"base_zd","m",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_state.xd[_X_]),(char *)"base_xd",(char *)"m",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_state.xd[_Y_]),(char *)"base_yd",(char *)"m",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_state.xd[_Z_]),(char *)"base_zd",(char *)"m",DOUBLE,FALSE);
   
-  addVarToCollect((char *)&(base_state.xdd[_X_]),"base_xdd","m",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_state.xdd[_Y_]),"base_ydd","m",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_state.xdd[_Z_]),"base_zdd","m",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_state.xdd[_X_]),(char *)"base_xdd",(char *)"m",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_state.xdd[_Y_]),(char *)"base_ydd",(char *)"m",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_state.xdd[_Z_]),(char *)"base_zdd",(char *)"m",DOUBLE,FALSE);
   
-  addVarToCollect((char *)&(base_orient.q[_Q0_]),"base_q0","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.q[_Q1_]),"base_q1","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.q[_Q2_]),"base_q2","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.q[_Q3_]),"base_q3","-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.q[_Q0_]),(char *)"base_q0",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.q[_Q1_]),(char *)"base_q1",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.q[_Q2_]),(char *)"base_q2",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.q[_Q3_]),(char *)"base_q3",(char *)"-",DOUBLE,FALSE);
 
-  addVarToCollect((char *)&(base_orient.qd[_Q0_]),"base_qd0","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.qd[_Q1_]),"base_qd1","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.qd[_Q2_]),"base_qd2","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.qd[_Q3_]),"base_qd3","-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.qd[_Q0_]),(char *)"base_qd0",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.qd[_Q1_]),(char *)"base_qd1",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.qd[_Q2_]),(char *)"base_qd2",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.qd[_Q3_]),(char *)"base_qd3",(char *)"-",DOUBLE,FALSE);
 
-  addVarToCollect((char *)&(base_orient.ad[_A_]),"base_ad","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.ad[_B_]),"base_bd","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.ad[_G_]),"base_gd","-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.ad[_A_]),(char *)"base_ad",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.ad[_B_]),(char *)"base_bd",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.ad[_G_]),(char *)"base_gd",(char *)"-",DOUBLE,FALSE);
 
-  addVarToCollect((char *)&(base_orient.add[_A_]),"base_add","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.add[_B_]),"base_bdd","-",DOUBLE,FALSE);
-  addVarToCollect((char *)&(base_orient.add[_G_]),"base_gdd","-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.add[_A_]),(char *)"base_add",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.add[_B_]),(char *)"base_bdd",(char *)"-",DOUBLE,FALSE);
+  addVarToCollect((char *)&(base_orient.add[_G_]),(char *)"base_gdd",(char *)"-",DOUBLE,FALSE);
 
   printf("done\n");
 
   updateDataCollectScript();
 
   // add to man pages
-  addToMan("status","displays information about the servo",status);
-  addToMan("drs","disables the ros servo",drs);
+  addToMan((char *)"status",(char *)"displays information about the servo",status);
+  addToMan((char *)"drs",(char *)"disables the ros servo",drs);
 
   if(!ros_communicator_.initialize())
 		{

@@ -21,27 +21,15 @@
 
 ****************************************************************************/
  
-ifdef ROS_ROOT
-ROS_PACKAGES = roscpp sensor_msgs geometry_msgs
-
-INCLUDE_ROS = $(shell for i in $(ROS_PACKAGES); do rospack cflags-only-I $$i | sed 's/\([^ ]*\)/-I\1/g'; done | sed -e ':a;N;$!ba;s/\n/ /g')
-LIB_INCLUDE_ROS = $(shell for i in $(ROS_PACKAGES); do rospack libs-only-L $$i | sed 's/\([^ ]*\)/-L\1/g'; done | sed -e ':a;N;$!ba;s/\n/ /g')
-LIB_ROS = $(shell for i in $(ROS_PACKAGES); do rospack libs-only-l $$i | sed 's/\([^ ]*\)/-l\1/g'; done | sed -e ':a;N;$!ba;s/\n/ /g')
-LIB_OTHER_ROS = $(shell for i in $(ROS_PACKAGES); do rospack libs-only-other $$i; done | sed -e ':a;N;$!ba;s/\n/ /g')
-
-LIB_ROS_DEPENDS = $(LIB_INCLUDE_ROS) $(LIB_ROS) $(LIB_OTHER_ROS)
-endif
-
 INCLUDES               = -I../src -I../include -I$(MY_INCLUDES)  \
                          -I$(SARCOSDTSHOME)/include -I../math \
-                         -I/usr/local/glut/include \
-                          $(INCLUDE_ROS)
+                         -I/usr/local/glut/include
 
 CFLAGS                 = $(OPTIMIZE_CC_FLAGS) $(INCLUDES) -D$(MACHTYPE)
 SRCDIR                 = ../src
 LIBDIR                 = $(MY_LIBDIR)/$(MACHTYPE)
 HEADERDIR              = $(MY_INCLUDES)
-LIBRARIES              = -L$(MY_LIBDIR)/$(MACHTYPE) $(LIB_ROS_DEPENDS)
+LIBRARIES              = -L$(MY_LIBDIR)/$(MACHTYPE)
 BINDIR                 = $(MY_BINDIR)/$(MACHTYPE)
 
 /* ------------------------------------------------------------------------*/
@@ -163,16 +151,16 @@ SRCS_ROS_SERVO = \
 	SL_ros_servo_unix.cpp \
 	SL_ros_communicator.cpp
 
+ROS_PACKAGES = roscpp sensor_msgs geometry_msgs
+
 /* ------------------------------------------------------------------------*/
 
 SOURCES = $(SRCS_SL_COMMON) $(SRCS_TASK_SERVO) $(SRCS_MOTOR_SERVO) $(SRCS_SIM_SERVO) $(SRCS_GL_SERVO) $(SRCS_VISION_SERVO)
 
 OBJECTS = $(OBJS_SL_COMMON) $(OBJS_TASK_SERVO) $(OBJS_MOTOR_SERVO) $(OBJS_SIM_SERVO) $(OBJS_GL_SERVO) $(OBJS_VISION_SERVO)
 
-ifdef ROS_ROOT
-      ROS_SOURCES = $(SRCS_ROS_SERVO)
-      ROS_OBJECTS = $(OBJS_ROS_SERVO)
-endif
+ROS_SOURCES = $(SRCS_ROS_SERVO)
+ROS_OBJECTS = $(OBJS_ROS_SERVO)
 
 /* ------------------------------------------------------------------------*/
 
@@ -184,8 +172,11 @@ LibraryListTarget(SLopenGL,$(OBJS_GL_SERVO))
 LibraryListTarget(SLvision,$(OBJS_VISION_SERVO))
 
 ifdef ROS_ROOT
-      LibraryListTarget(SLros,$(OBJS_ROS_SERVO))
+  LibraryListTarget(SLros,$(OBJS_ROS_SERVO))
 endif
 
 NormalObjRule( $(OBJECTS) )
-NormalCPPObjRule( $(ROS_OBJECTS) )
+
+ifdef ROS_ROOT
+  NormalObjRuleCppRos( $(ROS_OBJECTS),$(ROS_PACKAGES) )
+endif
