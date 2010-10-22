@@ -427,6 +427,9 @@ readOscVarsScript( char *fn, int flag )
   if (flag)
     printf("\nRead %d valid names from file >%s< .\n\n",count,fname);
 
+  // send a reset message to openGL
+  addEntryOscBuffer("osc_var_reset", 0.0, 0.0, 0);
+
   return TRUE;
 
 }
