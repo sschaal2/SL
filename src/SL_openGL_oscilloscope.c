@@ -227,6 +227,7 @@ osc_display(void)
   double dist = 1.e10;
   double last_dist = 1.e10;
 
+
   GLfloat  colors[][4]={
     {(float)0.0,(float)1.0,(float)1.0,(float)1.0},   // cyan
     {(float)0.5,(float)0.5,(float)1.0,(float)1.0},   // blue
@@ -454,10 +455,16 @@ osc_display(void)
 
   for (r=1; r<=n_oscilloscope_plots; ++r) {
 
-    for (j=1; j<=osc_data[r].n_active; ++j) {
 
-      tend = osc_data[r].data[j][osc_data[r].current_index[j]][1];
-      tstart = tend - time_window_vars;
+    // determine start and end time from all the trajectories
+    tend = -1.e10;
+    for (j=1; j<=osc_data[r].n_active; ++j) {
+      if (osc_data[r].data[j][osc_data[r].current_index[j]][1] > tend)
+	tend = osc_data[r].data[j][osc_data[r].current_index[j]][1];
+    }
+    tstart = tend - time_window_vars;
+
+    for (j=1; j<=osc_data[r].n_active; ++j) {
 
       glPushMatrix();
 
@@ -506,7 +513,6 @@ osc_display(void)
       
     }
 
-
   }
 
   glPushMatrix();
@@ -526,6 +532,9 @@ osc_display(void)
   glPopMatrix();
 
   glutSwapBuffers();
+
+
+
 
 }
 
@@ -628,12 +637,28 @@ Function Parameters: [in]=input,[out]=output
 static void 
 addOscData(SL_oscEntry entry)
 {
-  int i,j,c;
+  int i,j,c,r;
   int pID;
   int tID = 0;
 
   if (entry.plotID < 0 || entry.plotID > n_oscilloscope_plots)
     return;
+
+  // catch rese messages
+  if (strcmp(entry.name,"osc_var_reset")==0) {
+
+    for (r=1; r<=n_oscilloscope_plots; ++r) {
+      for (j=1; j<=MAX_VARS_PER_PLOT; ++j) {
+	osc_data[r].current_index[j] = 1;
+	osc_data[r].n_data[j] = 0;
+      }
+      osc_data[r].max = -1.e10;
+      osc_data[r].min =  1.e10;
+      osc_data[r].n_active = 0;
+    }    
+
+    return;
+  }
 
   pID = entry.plotID;
 
