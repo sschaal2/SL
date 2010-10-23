@@ -44,6 +44,8 @@ static int init_goto_task(void);
 static int run_goto_task(void);
 static int change_goto_task(void);
 static void sim_go(void);
+static int calculate_min_jerk_next_step (SL_DJstate *state, SL_DJstate *goal,double tau);
+
  
 /*!*****************************************************************************
  *******************************************************************************
@@ -179,6 +181,11 @@ init_goto_task(void)
 
   }
 
+  /* ensure that the goal state has zero vel and zero acc */
+  for (i=1; i<=n_dofs; ++i) 
+    joint_goto_state[i].thd = joint_goto_state[i].thdd = 0.0;
+
+
   n_steps = 0;
   n_goto_steps = max_range/goto_speed*task_servo_rate;
   if (n_goto_steps == 0) {
@@ -242,13 +249,19 @@ static int
 run_goto_task(void)
 {
   int j, i;
+  double time_to_go;
 
+  time_to_go = (n_goto_steps - n_steps)/((double) task_servo_rate);
 
-  for (i=1; i<=n_dofs; ++i) {
-    joint_des_state[i].th   += joint_increment[i].th;
-    joint_des_state[i].thd   = 0.0;
-    joint_des_state[i].uff  += joint_increment[i].uff;
+  // kinematics follow min merk
+  if (!calculate_min_jerk_next_step (joint_des_state, joint_goto_state,time_to_go)) {
+    setTaskByName(NO_TASK);
+    return TRUE;
   }
+
+  // uff is just ramped to the desired value
+  for (i=1; i<=n_dofs; ++i)
+    joint_des_state[i].uff  += joint_increment[i].uff;
 
   if (++n_steps >= n_goto_steps) 
     setTaskByName(NO_TASK);
@@ -527,5 +540,78 @@ go_target_wait_ID(SL_DJstate *target)
   
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  calculate_min_jerk_next_step
+\date  August 1994
+   
+\remarks 
 
+Given the time to go, the desired state is updated according to the min jerk
+formula.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in,out]      state : the current state
+ \param[in]           goal : the desired state
+ \param[in]            tau : the desired movement duration until the goal is
+
+ ******************************************************************************/
+static int 
+calculate_min_jerk_next_step (SL_DJstate *state, SL_DJstate *goal,double tau)
+
+{
+  double t1,t2,t3,t4,t5;
+  double tau1,tau2,tau3,tau4,tau5;
+  int    i,j;
+  double delta_t;
+
+  delta_t = 1./((double)task_servo_rate);
+
+  if (delta_t > tau || delta_t <= 0) {
+    return FALSE;
+  }
+
+  t1 = delta_t;
+  t2 = t1 * delta_t;
+  t3 = t2 * delta_t;
+  t4 = t3 * delta_t;
+  t5 = t4 * delta_t;
+
+  tau1 = tau;
+  tau2 = tau1 * tau;
+  tau3 = tau2 * tau;
+  tau4 = tau3 * tau;
+  tau5 = tau4 * tau;
+
+  for (j=1; j<=n_dofs; ++j) {
+	
+    /* calculate the constants */
+    const double dist   = goal[j].th - state[j].th;
+    const double p1     = goal[j].th;
+    const double p0     = state[j].th;
+    const double a1t2   = goal[j].thdd;
+    const double a0t2   = state[j].thdd;
+    const double v1t1   = goal[j].thd;
+    const double v0t1   = state[j].thd;
+    
+    const double c1 = 6.*dist/tau5 + (a1t2 - a0t2)/(2.*tau3) - 
+      3.*(v0t1 + v1t1)/tau4;
+    const double c2 = -15.*dist/tau4 + (3.*a0t2 - 2.*a1t2)/(2.*tau2) +
+      (8.*v0t1 + 7.*v1t1)/tau3; 
+    const double c3 = 10.*dist/tau3+ (a1t2 - 3.*a0t2)/(2.*tau) -
+      (6.*v0t1 + 4.*v1t1)/tau2; 
+    const double c4 = state[j].thdd/2.;
+    const double c5 = state[j].thd;
+    const double c6 = state[j].th;
+    
+    state[j].th   = c1*t5 + c2*t4 + c3*t3 + c4*t2 + c5*t1 + c6;
+    state[j].thd  = 5.*c1*t4 + 4*c2*t3 + 3*c3*t2 + 2*c4*t1 + c5;
+    state[j].thdd = 20.*c1*t3 + 12.*c2*t2 + 6.*c3*t1 + 2.*c4;
+    
+  }
+  
+  return TRUE;
+}
 
