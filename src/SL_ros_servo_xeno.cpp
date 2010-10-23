@@ -87,8 +87,7 @@ main(int argc, char**argv)
   installSignalHandlers();
 
   // initializes the servo
-  if (!init_ros_servo())
-    return FALSE;
+  init_ros_servo();
 
   // get the servo parameters
   sprintf(name,"%s_servo",servo_name);

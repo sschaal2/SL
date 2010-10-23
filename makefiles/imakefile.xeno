@@ -148,12 +148,12 @@ SRCS_VISION_SERVO = \
 
 OBJS_ROS_SERVO = \
 	SL_ros_servo.o \
-	SL_ros_servo_unix.o \
+	SL_ros_servo_xeno.o \
 	SL_ros_communicator.o
 
 SRCS_ROS_SERVO = \
 	SL_ros_servo.cpp \
-	SL_ros_servo_unix.cpp \
+	SL_ros_servo_xeno.cpp \
 	SL_ros_communicator.cpp
 
 ROS_PACKAGES = roscpp sensor_msgs geometry_msgs
