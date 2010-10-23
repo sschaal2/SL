@@ -183,5 +183,5 @@ endif
 NormalObjRule( $(OBJECTS) )
 
 ifdef ROS_ROOT
-  NormalCPPObjRule( $(ROS_OBJECTS) )
+  NormalObjRuleCppRos( $(ROS_OBJECTS),$(ROS_PACKAGES) )
 endif
