@@ -38,6 +38,8 @@ static SL_DJstate   *target;
 static double        task_time;
 static double        speed=1.0;
 static int           invdyn = TRUE;
+static double        trans_mult;
+static double        trans_period;
 
 /* global variables */
 
@@ -126,12 +128,24 @@ init_sine_task(void)
   if (!read_sine_script())
     return FALSE;
 
+  /* transient multiplier: ramps up the amplitude in one period to 
+     avoid discontinuous motor commands */
+  trans_mult = 0.0;
+
+  /* what is the longest period? this is what we use to ramp up trans_mult to one */
+  trans_period = 0.0;
+  for (i=1; i<=n_dofs; ++i) 
+    for (j=1; j<=n_sine[i]; ++j)
+      if (freq[i][j] > 0)
+	if (1./freq[i][j] > trans_period)
+	  trans_period = 1./freq[i][j];
+
   /* go to a save posture */
   bzero((char *)&(target[1]),n_dofs*sizeof(target[1]));
   for (i=1; i<=n_dofs; ++i) {
     target[i].th  = off[i];
     for (j=1; j<=n_sine[i]; ++j) {
-      target[i].th  += amp[i][j]*sin(phase[i][j]);
+      target[i].th  += trans_mult*amp[i][j]*sin(phase[i][j]);
     }
   }
 
@@ -182,6 +196,10 @@ run_sine_task(void)
 
   task_time += 1./(double)task_servo_rate;
 
+  trans_mult = task_time/trans_period;
+  if (trans_mult > 1.0)
+    trans_mult = 1.0;
+
   for (i=1; i<=n_dofs; ++i) {
     joint_des_state[i].th  = off[i];
     joint_des_state[i].thd = 0.0;
@@ -189,10 +207,10 @@ run_sine_task(void)
     joint_des_state[i].uff = 0.0;
     for (j=1; j<=n_sine[i]; ++j) {
       joint_des_state[i].th += 
-	amp[i][j] * sin(2.*PI*speed*freq[i][j]*task_time+phase[i][j]);
-      joint_des_state[i].thd += amp[i][j] * 2.*PI*speed*freq[i][j] * 
+	trans_mult*amp[i][j] * sin(2.*PI*speed*freq[i][j]*task_time+phase[i][j]);
+      joint_des_state[i].thd += trans_mult*amp[i][j] * 2.*PI*speed*freq[i][j] * 
 	cos(2.*PI*speed*freq[i][j]*task_time+phase[i][j]);
-      joint_des_state[i].thdd += -amp[i][j] * sqr(2.*PI*speed*freq[i][j]) * 
+      joint_des_state[i].thdd += -trans_mult*amp[i][j] * sqr(2.*PI*speed*freq[i][j]) * 
 	sin(2.*PI*speed*freq[i][j]*task_time+phase[i][j]);
     }
   }
