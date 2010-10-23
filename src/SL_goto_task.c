@@ -195,7 +195,7 @@ init_goto_task(void)
     }
     if (n_goto_steps == 0) {
       special_posture_flag = FALSE;
-      return TRUE;
+      return FALSE;
     } 
   }
   
@@ -256,6 +256,7 @@ run_goto_task(void)
   // kinematics follow min merk
   if (!calculate_min_jerk_next_step (joint_des_state, joint_goto_state,time_to_go)) {
     setTaskByName(NO_TASK);
+    printf("This should never happen\n");
     return TRUE;
   }
 
