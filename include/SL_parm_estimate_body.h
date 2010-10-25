@@ -1514,8 +1514,10 @@ project_parameters_predict(double *vb, double *bp, double *b_m_bp)
     // zero out prediction for those parameters where beta is zero -- those should not 
     // affect the cost
     for (j=i*N_RBD_PARMS+1; j<=(i+1)*N_RBD_PARMS; ++j) {
-      if (fabs(beta[j]) < 1.e-6)
+      if (fabs(beta[j]) < 1.e-6) {
+	printf("i=%d j=%d l=%d\n",i,j,j-i*N_RBD_PARMS);
 	bp[j] = 0;
+      }
     }
 
     if (b_m_bp != NULL)

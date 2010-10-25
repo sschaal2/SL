@@ -139,6 +139,7 @@ receive_sim_state(void)
   
   int i;
   double aux;
+  static int firsttime = TRUE;
 
   // joint state
   if (semTake(sm_joint_sim_state_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
@@ -165,10 +166,14 @@ receive_sim_state(void)
 
   } 
 
-  sm_base_state_data[1] = sm_base_state->state[1];
-  
-  cSL_Cstate(&base_state-1, sm_base_state_data, 1, FLOAT2DOUBLE);
+  if (firsttime) { // this is a shared memory initialzation
+    cSL_Cstate((&base_state)-1, sm_base_state_data, 1, DOUBLE2FLOAT);
+    sm_base_state->state[1] = sm_base_state_data[1];
+    sm_base_state->ts = openGL_servo_time;
+  }
 
+  sm_base_state_data[1] = sm_base_state->state[1];
+  cSL_Cstate(&base_state-1, sm_base_state_data, 1, FLOAT2DOUBLE);
   semGive(sm_base_state_sem);
 
 
@@ -180,24 +185,17 @@ receive_sim_state(void)
 
   } 
 
-  sm_base_orient_data[1] = sm_base_orient->orient[1];
-  
-  cSL_quat(&base_orient-1, sm_base_orient_data, 1, FLOAT2DOUBLE);
+  if (firsttime) { // this is a shared memory initialzation
+    cSL_quat(&base_orient-1, sm_base_orient_data, 1, DOUBLE2FLOAT);
+    sm_base_orient->orient[1] = sm_base_orient_data[1];
+    sm_base_orient->ts = openGL_servo_time;
+  }
 
+  sm_base_orient_data[1] = sm_base_orient->orient[1];
+  cSL_quat(&base_orient-1, sm_base_orient_data, 1, FLOAT2DOUBLE);
   semGive(sm_base_orient_sem);
 
-  // make sure the base quaterion is normalized
-  aux = 0.0;
-  for (i=1; i<=N_QUAT; ++i)
-    aux += sqr(base_orient.q[i]);
-  aux = sqrt(aux);
-
-  if (aux == 0)
-    base_orient.q[_Q0_] = 1.0;
-  else
-    for (i=1; i<=N_QUAT; ++i)
-      base_orient.q[i] /= aux;
-
+  firsttime = FALSE;
 
   return TRUE;
 }
