@@ -138,6 +138,7 @@ receive_sim_state(void)
 {
   
   int i;
+  double aux;
 
   // joint state
   if (semTake(sm_joint_sim_state_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
@@ -184,6 +185,18 @@ receive_sim_state(void)
   cSL_quat(&base_orient-1, sm_base_orient_data, 1, FLOAT2DOUBLE);
 
   semGive(sm_base_orient_sem);
+
+  // make sure the base quaterion is normalized
+  aux = 0.0;
+  for (i=1; i<=N_QUAT; ++i)
+    aux += sqr(base_orient.q[i]);
+  aux = sqrt(aux);
+
+  if (aux == 0)
+    base_orient.q[_Q0_] = 1.0;
+  else
+    for (i=1; i<=N_QUAT; ++i)
+      base_orient.q[i] /= aux;
 
 
   return TRUE;

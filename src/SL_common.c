@@ -632,7 +632,10 @@ read_link_parameters(char *fname) {
   
   for (i=0; i<= n_dofs; ++i) {
     if (!find_keyword(in, &(joint_names[i][0]))) {
-      if (strcmp(joint_names[i],"dummy") != 0) {
+      if (strcmp(joint_names[i],"dummy") == 0 || strcmp(joint_names[i],"BASE") == 0) {
+	printf("WARNING: Cannot find link parameters for >%s<! Provide a >BASE< link, even for fixed base systems.\n",
+	       joint_names[i]);
+      } else {
 	printf("ERROR: Cannot find link parameters for >%s<!\n",
 	       joint_names[i]);
 	fclose(in);

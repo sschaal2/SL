@@ -51,7 +51,9 @@ static double     sampling_freq;
 static Matrix     ATA;
 static Vector     ATb;
 static Vector     beta;
+static Vector     vbeta;
 static Vector     beta_old;
+static Vector     beta_proj;
 static Matrix     data_pos=NULL;
 static Matrix     data_vel=NULL;
 static Matrix     data_acc=NULL;
@@ -85,8 +87,8 @@ static int        got_all_contact_force_data = FALSE;
 static int        use_floating_base = FALSE;
 static int        constraint_estimation_type = PROJECTION;
 static int        vis_flag = TRUE;
-static int        coul_flag = TRUE;
-static int        spring_flag = TRUE;
+static int        coul_flag = FALSE;
+static int        spring_flag = FALSE;
 
 #define LLSB(x)	((x) & 0xff)		/*!< 32bit word byte/word swap macros */
 #define LNLSB(x) (((x) >> 8) & 0xff)
@@ -112,6 +114,11 @@ static int read_file(char *fname);
 static int filter_data(void);
 static int regress_parameters(void);
 static void do_math(SL_endeff *eff);
+static int project_parameters(void);
+static double project_parameters_opt_func(double *vb);
+static void project_parameters_gradient_func(double *vb, double *grad);
+static void project_parameters_predict(double *vb, double *bp, double *b_m_bp);
+
 
 extern SL_link    links[N_DOFS+1];
  
@@ -160,7 +167,9 @@ main(int argc, char **argv)
   ATA      = my_matrix(1,(N_DOFS+1)*N_RBD_PARMS,1,(N_DOFS+1)*N_RBD_PARMS);
   ATb      = my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
   beta     = my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
+  vbeta    = my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
   beta_old = my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
+  beta_proj= my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
 
   /* initialize the dynamics calculations */
   if (!init_dynamics())
@@ -331,6 +340,9 @@ main(int argc, char **argv)
 
   if (get_mse != 1)
     regress_parameters();
+
+  // create physically consistent parameters
+  project_parameters();
 
   return TRUE;
 	
@@ -1217,5 +1229,300 @@ static void
 do_math(SL_endeff *eff) {
 
 #include "PE_math.h"
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+  \note  project_parameters
+  \date  Oct 2010
+
+  \remarks 
+
+  uses gradient descent to create physically consistant parameters
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+  none
+
+ ******************************************************************************/
+static int 
+project_parameters(void)
+{
+  int j,i,m,n;
+  FILE *fp;
+  int iter;
+  double fret;
+  double aux;
+
+  printf("\nStarting Parameter Projection ...");
+
+  // iterate until convergence with comjugate gradient method
+  
+  // initialize the virtual parameter
+  for (i=0; i<=N_DOFS-N_DOFS_EST_SKIP; ++i) {
+
+    j=i*N_RBD_PARMS;
+
+    vbeta[j+1]  = 1.0;
+    vbeta[j+2]  = 0.0;
+    vbeta[j+3]  = 0.0;
+    vbeta[j+4]  = 0.0;
+    vbeta[j+5]  = 0.01;
+    vbeta[j+6]  = 0.0;
+    vbeta[j+7]  = 0.0;
+    vbeta[j+8]  = 0.01;
+    vbeta[j+9]  = 0.0;
+    vbeta[j+10] = 0.01;
+    vbeta[j+11] = 0.0;
+    vbeta[j+12] = 0.0;
+    vbeta[j+13] = 0.0;
+    vbeta[j+14] = 0.0;
+
+  }
+
+  // for all parameters that are essentiall zero, kill the elements in ATA
+  for (i=1; i<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++i)
+    for (j=1; j<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++j)
+      if (fabs(beta[i]) < 1.e-6 || fabs(beta[j]) < 1.e-6)
+	ATA[i][j] = 0.0;
+
+  // create the frobenious norm of ATA and devide ATA by it, for numerical stabilty
+  aux = 0.0;
+  for (i=1; i<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++i)
+    for (j=1; j<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++j)
+      aux += sqr(ATA[i][j]);
+
+  aux = sqrt(aux);
+
+  // this is done over the entire matrix -- just to not leave some part of the matrix
+  // inconistent (not really needed).
+  for (i=1; i<=N_RBD_PARMS*(N_DOFS+1); ++i)
+    for (j=1; j<=N_RBD_PARMS*(N_DOFS+1); ++j)
+      ATA[i][j] /= aux;
+
+  // perform the optimization
+  iter = 10000;
+  /*
+  my_frprmn(vbeta,(N_DOFS-N_DOFS_EST_SKIP+1)*N_RBD_PARMS,1.e-10,&iter,&fret,
+	    project_parameters_opt_func,
+	    project_parameters_gradient_func);
+  */
+
+  my_dfpmin(vbeta,(N_DOFS-N_DOFS_EST_SKIP+1)*N_RBD_PARMS,1.e-8,&iter,&fret,
+	    project_parameters_opt_func,
+	    project_parameters_gradient_func);
+
+
+  // the final prediction
+  project_parameters_predict(vbeta, beta_proj, NULL);
+  
+  printf("done\n");
+
+  /* write the results to a file */
+  fp = fopen("parameters_proj.est","w");
+  if (fp==NULL) {
+    printf("Couldn't open parameter.est for write\n");
+    exit(-1);
+  }
+
+  for (i=0; i<=N_DOFS; ++i) {
+    fprintf(fp,"%s ",joint_names[i]);
+
+    /* make the file look nice (Jorg, Sun Nov 21 20:31:20 PST 1999) */
+    for (j=strlen(joint_names[i]); j<5; j++)
+     fprintf(fp," ");
+
+    for (m=1; m<=N_RBD_PARMS; ++m) {
+      fprintf(fp,"%9f ",beta_proj[i*N_RBD_PARMS+m]);
+    }
+    fprintf(fp,"\n");
+  }
+
+  fclose(fp);
+
+  return TRUE;
+
+}
+
+static double
+project_parameters_opt_func(double *vb) 
+{
+  MY_VECTOR(bp,1,(N_DOFS+1)*N_RBD_PARMS)
+  MY_VECTOR(b_m_bp,1,(N_DOFS+1)*N_RBD_PARMS)
+
+  // compute the predicted parameters and the difference between true and predicted
+  project_parameters_predict(vb, bp, b_m_bp);
+
+  // compute the optimization function
+  return 0.5*mat_mahal_size(ATA,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,b_m_bp);
+}
+
+static void
+project_parameters_gradient_func(double *vb, double *grad) 
+{
+  int i,j,r;
+  double vm, cmx, cmy, cmz, vI11, vI12, vI13, vI22, vI23, vI33, vvis, vcol, vstiff, vcons;
+  MY_MATRIX(Jo,1,(N_DOFS+1)*N_RBD_PARMS,1,(N_DOFS+1)*N_RBD_PARMS);
+  MY_MATRIX(Jt,1,N_RBD_PARMS,1,N_RBD_PARMS);
+  MY_VECTOR(bp,1,(N_DOFS+1)*N_RBD_PARMS)
+  MY_VECTOR(b_m_bp,1,(N_DOFS+1)*N_RBD_PARMS)
+  MY_VECTOR(temp,1,(N_DOFS+1)*N_RBD_PARMS)
+
+  // compute the predicted parameters and the difference between true and predicted
+  project_parameters_predict(vb, bp, b_m_bp);
+
+
+  // need the Jacobian from virtual to actual parameters
+  for (i=0; i<=N_DOFS-N_DOFS_EST_SKIP; ++i) {
+
+    j=i*N_RBD_PARMS;
+
+    vm     = vb[j+1];
+    cmx    = vb[j+2];
+    cmy    = vb[j+3];
+    cmz    = vb[j+4];
+    vI11   = vb[j+5];
+    vI12   = vb[j+6];
+    vI13   = vb[j+7];
+    vI22   = vb[j+8];
+    vI23   = vb[j+9];
+    vI33   = vb[j+10];
+    vvis   = vb[j+11];
+    vcol   = vb[j+12];
+    vstiff = vb[j+13];
+    vcons  = vb[j+14];
+
+
+    Jt[1][1]  = 2*vm;
+    Jt[2][1]  = 2*cmx*vm;
+    Jt[3][1]  = 2*cmy*vm;
+    Jt[4][1]  = 2*cmz*vm;
+    Jt[5][1]  = 2*(sqr(cmy)+sqr(cmz))*vm;
+    Jt[6][1]  = (-2)*cmx*cmy*vm;
+    Jt[7][1]  = (-2)*cmx*cmz*vm;
+    Jt[8][1]  = 2*(sqr(cmx)+sqr(cmz))*vm;
+    Jt[9][1]  = (-2)*cmy*cmz*vm;
+    Jt[10][1] = 2*(sqr(cmx)+sqr(cmy))*vm;
+
+    Jt[2][2]  = sqr(vm);
+    Jt[6][2]  = (-1)*cmy*sqr(vm);
+    Jt[7][2]  = (-1)*cmz*sqr(vm);
+    Jt[8][2]  = 2*cmx*sqr(vm);
+    Jt[10][2] = 2*cmx*sqr(vm);
+
+    Jt[3][3]  =	sqr(vm);
+    Jt[5][3]  =	2*cmy*sqr(vm);
+    Jt[6][3]  =	(-1)*cmx*sqr(vm);
+    Jt[9][3]  = (-1)*cmz*sqr(vm);
+    Jt[10][3] = 2*cmy*sqr(vm);
+
+    Jt[4][4] = sqr(vm);
+    Jt[5][4] = 2*cmz*sqr(vm);
+    Jt[7][4] = (-1)*cmx*sqr(vm);
+    Jt[8][4] = 2*cmz*sqr(vm);
+    Jt[9][4] = (-1)*cmy*sqr(vm);
+
+    Jt[5][5] = 2*vI11;
+    Jt[6][5] = vI12;
+    Jt[7][5] = vI13;
+
+    Jt[6][6] = vI11;
+    Jt[8][6] = 2*vI12;
+    Jt[9][6] = vI13;
+
+    Jt[7][7] = vI11;
+    Jt[9][7] = vI12;
+    Jt[10][7] = 2*vI13;
+
+    Jt[8][8] = 2*vI22;
+    Jt[9][8] = vI23;
+
+    Jt[9][9]  = vI22;
+    Jt[10][9] = 2*vI23;
+
+    Jt[10][10] = 2*vI33;
+
+    Jt[11][11] = 2*vvis;
+
+    Jt[12][12] = 2*vcol;
+
+    Jt[13][13] = 2*vstiff;
+
+    Jt[13][14] = 2*vstiff*vcons;
+    Jt[14][14] = sqr(vstiff);
+    
+
+    for (j=1; j<=N_RBD_PARMS; ++j)
+      for (r=1; r<=N_RBD_PARMS; ++r)
+	Jo[i*N_RBD_PARMS+j][i*N_RBD_PARMS+r]=Jt[j][r];
+
+  }
+
+  // compute the gradient g = -((beta_uc-beta_pred)'*XTX*J)';
+  vec_mat_mult_size(b_m_bp,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,
+		    ATA,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,temp);
+  vec_mat_mult_size(temp,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,
+		    Jo,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,grad);
+
+  for (i=1; i<=(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS; ++i)
+    grad[i] *= -1.0;
+
+}
+
+static void
+project_parameters_predict(double *vb, double *bp, double *b_m_bp)
+{
+  int i,j;
+  double vm, cmx, cmy, cmz, vI11, vI12, vI13, vI22, vI23, vI33, vvis, vcol, vstiff, vcons;
+
+  for (i=0; i<=N_DOFS-N_DOFS_EST_SKIP; ++i) {
+
+    j=i*N_RBD_PARMS;
+
+    vm     = vb[j+1];
+    cmx    = vb[j+2];
+    cmy    = vb[j+3];
+    cmz    = vb[j+4];
+    vI11   = vb[j+5];
+    vI12   = vb[j+6];
+    vI13   = vb[j+7];
+    vI22   = vb[j+8];
+    vI23   = vb[j+9];
+    vI33   = vb[j+10];
+    vvis   = vb[j+11];
+    vcol   = vb[j+12];
+    vstiff = vb[j+13];
+    vcons  = vb[j+14];
+
+    bp[j+1]  = sqr(vm);
+    bp[j+2]  = cmx*sqr(vm);
+    bp[j+3]  = cmy*sqr(vm);
+    bp[j+4]  = cmz*sqr(vm);
+    bp[j+5]  = sqr(vI11)+(sqr(cmy)+sqr(cmz))*sqr(vm);
+    bp[j+6]  = vI11*vI12+(-1)*cmx*cmy*sqr(vm);
+    bp[j+7]  = vI11*vI13+(-1)*cmx*cmz*sqr(vm);
+    bp[j+8]  = sqr(vI12)+sqr(vI22)+(sqr(cmx)+sqr(cmz))*sqr(vm);
+    bp[j+9]  = vI12*vI13+vI22*vI23+(-1)*cmy*cmz*sqr(vm);
+    bp[j+10] = sqr(vI13)+sqr(vI23)+sqr(vI33)+(sqr(cmx)+sqr(cmy))*sqr(vm);
+    bp[j+11] = sqr(vvis);
+    bp[j+12] = sqr(vcol);
+    bp[j+13] = sqr(vstiff);
+    bp[j+14] = sqr(vstiff)*vcons;
+
+    // zero out prediction for those parameters where beta is zero -- those should not 
+    // affect the cost
+    for (j=i*N_RBD_PARMS+1; j<=(i+1)*N_RBD_PARMS; ++j) {
+      if (fabs(beta[j]) < 1.e-6)
+	bp[j] = 0;
+    }
+
+    if (b_m_bp != NULL)
+      for (j=i*N_RBD_PARMS+1; j<=(i+1)*N_RBD_PARMS; ++j)
+	b_m_bp[j] = beta[j]-bp[j];
+
+
+  }
 
 }
