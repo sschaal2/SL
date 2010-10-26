@@ -328,7 +328,6 @@ main(int argc, char **argv)
     fclose(datafp);
 
   /* write out the ATA and ATb */
-
   fid = fopen(fname,"w");
   if (fid == NULL) {
     printf("Couldn't open file >%s< for write\n",fname);
@@ -1256,33 +1255,16 @@ project_parameters(void)
   double fret;
   double aux;
 
-  printf("\nStarting Parameter Projection ...");
+  printf("\nStarting Parameter Projection ...\n");
 
   // iterate until convergence with comjugate gradient method
   
-  // initialize the virtual parameter
-  for (i=0; i<=N_DOFS-N_DOFS_EST_SKIP; ++i) {
+  // initialize the virtual parameters to random numbers
+  for (i=0; i<=N_DOFS-N_DOFS_EST_SKIP; ++i)
+    for (j=1; j<=N_RBD_PARMS; ++j)
+      vbeta[i*N_RBD_PARMS+j]=gaussian(0.0,0.01);
 
-    j=i*N_RBD_PARMS;
-
-    vbeta[j+1]  = 1.0;
-    vbeta[j+2]  = 0.0;
-    vbeta[j+3]  = 0.0;
-    vbeta[j+4]  = 0.0;
-    vbeta[j+5]  = 0.01;
-    vbeta[j+6]  = 0.0;
-    vbeta[j+7]  = 0.0;
-    vbeta[j+8]  = 0.01;
-    vbeta[j+9]  = 0.0;
-    vbeta[j+10] = 0.01;
-    vbeta[j+11] = 0.0;
-    vbeta[j+12] = 0.0;
-    vbeta[j+13] = 0.0;
-    vbeta[j+14] = 0.0;
-
-  }
-
-  // for all parameters that are essentiall zero, kill the elements in ATA
+  // for all parameters that are essentially zero, kill the elements in ATA
   for (i=1; i<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++i)
     for (j=1; j<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++j)
       if (fabs(beta[i]) < 1.e-6 || fabs(beta[j]) < 1.e-6)
@@ -1309,11 +1291,9 @@ project_parameters(void)
 	    project_parameters_opt_func,
 	    project_parameters_gradient_func);
   */
-
-  my_dfpmin(vbeta,(N_DOFS-N_DOFS_EST_SKIP+1)*N_RBD_PARMS,1.e-8,&iter,&fret,
+  my_dfpmin(vbeta,(N_DOFS-N_DOFS_EST_SKIP+1)*N_RBD_PARMS,1.e-10,&iter,&fret,
 	    project_parameters_opt_func,
 	    project_parameters_gradient_func);
-
 
   // the final prediction
   project_parameters_predict(vbeta, beta_proj, NULL);
@@ -1346,9 +1326,25 @@ project_parameters(void)
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+  \note  project_parameters_opt_fun
+  \date  Oct 2010
+
+  \remarks 
+
+  computes the current cost for the optimization
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+  \param[in]  vb: virtual parameter vector (to be optimized)
+
+ ******************************************************************************/
 static double
 project_parameters_opt_func(double *vb) 
 {
+  int i;
   MY_VECTOR(bp,1,(N_DOFS+1)*N_RBD_PARMS)
   MY_VECTOR(b_m_bp,1,(N_DOFS+1)*N_RBD_PARMS)
 
@@ -1359,6 +1355,22 @@ project_parameters_opt_func(double *vb)
   return 0.5*mat_mahal_size(ATA,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,b_m_bp);
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+  \note  project_parameters_gradient_func
+  \date  Oct 2010
+
+  \remarks 
+
+  computes the gradient for optimization
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+  \param[in]    vb: virtual parameter vector (to be optimized)
+  \param[in]  grad: gradient of cost function
+
+ ******************************************************************************/
 static void
 project_parameters_gradient_func(double *vb, double *grad) 
 {
@@ -1471,6 +1483,24 @@ project_parameters_gradient_func(double *vb, double *grad)
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+  \note  project_parameters_predict
+  \date  Oct 2010
+
+  \remarks 
+
+  computes the constraint parameters and difference between constraint and
+  unconstraint parameters
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+  \param[in]        vb: virtual parameter vector (to be optimized)
+  \param[out]       bp: predicted constraint parameters
+  \param[out]   b_m_bp: difference between beta and vbeta
+
+ ******************************************************************************/
 static void
 project_parameters_predict(double *vb, double *bp, double *b_m_bp)
 {
@@ -1514,10 +1544,8 @@ project_parameters_predict(double *vb, double *bp, double *b_m_bp)
     // zero out prediction for those parameters where beta is zero -- those should not 
     // affect the cost
     for (j=i*N_RBD_PARMS+1; j<=(i+1)*N_RBD_PARMS; ++j) {
-      if (fabs(beta[j]) < 1.e-6) {
-	printf("i=%d j=%d l=%d\n",i,j,j-i*N_RBD_PARMS);
+      if (fabs(beta[j]) < 1.e-6)
 	bp[j] = 0;
-      }
     }
 
     if (b_m_bp != NULL)
