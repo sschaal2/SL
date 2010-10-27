@@ -94,6 +94,8 @@ servo_argv = c;
 sprintf(argv_array[c++],"xdummy");
 sprintf(argv_array[c++],"-pid");
 sprintf(argv_array[c++],"%d",parent_process_id);
+if (!graphics_flag) 
+  sprintf(argv_array[c++],"-ng");
 
 
 // detach process

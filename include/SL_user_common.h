@@ -39,6 +39,7 @@ extern "C" {
   char          servo_name[100]="";
   int           parent_process_id = 0;
   int           real_robot_flag = FALSE;        /* signals that program is used for real robot */
+  int           no_graphics_flag = FALSE;       /* signals that no graphics is used */
   int           task_servo_ratio = TASK_SERVO_RATIO;
   int           servo_base_rate = SERVO_BASE_RATE;
 

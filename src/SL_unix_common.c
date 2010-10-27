@@ -506,5 +506,14 @@ parseOptions(int argc, char**argv)
     }
   }
 
+  // check for no-graphics flag
+  no_graphics_flag = FALSE;
+  for (i=1; i<argc; ++i) {
+    if (strcmp(argv[i],"-ng")==0) {
+      no_graphics_flag = TRUE;
+      break;
+    }
+  }
+
 }
 

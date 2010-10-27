@@ -318,6 +318,7 @@ extern "C" {
   extern char          servo_name[];
   extern int           parent_process_id;   /* process id of main program */
   extern int           real_robot_flag;     /* signals that program is used for real robot */
+  extern int           no_graphics_flag;    /* signals that no graphics are used */
   extern int           servo_base_rate;     /* base freq. of servos */
   extern int           task_servo_ratio;    /* divides base freq. to obtain task servo freq.*/
   extern char          joint_names[][20];

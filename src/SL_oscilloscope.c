@@ -88,6 +88,9 @@ initOsc(void)
   char   fname[100];
   FILE  *fp;
 
+  if (no_graphics_flag)
+    return;
+
   if (read_parameter_pool_int(config_files[PARAMETERPOOL],"osc_enabled", &rc))
     osc_enabled = macro_sign(abs(rc));
   
