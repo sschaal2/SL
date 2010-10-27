@@ -53,6 +53,11 @@ enum ConfigFile {
 #define _Q2_ 3
 #define _Q3_ 4
 
+#define _QW_ 1
+#define _QX_ 2
+#define _QY_ 3
+#define _QZ_ 4
+
 #define RIGHT 1
 #define LEFT  2
 
