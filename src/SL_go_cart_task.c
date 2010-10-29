@@ -358,6 +358,7 @@ change_goto_cart_task(void)
 
  \param[in]     ctar :  cartesian states
  \param[in]     stat :  1/0 for active target or not
+ \param[in]       mt :  movement time
 
  ******************************************************************************/
 int

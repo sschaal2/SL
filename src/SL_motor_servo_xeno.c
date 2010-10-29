@@ -217,7 +217,7 @@ motor_servo(void *dummy)
       current_real_time = rt_timer_read();
 
       real_time      = current_real_time  - start_real_time;
-      real_time_dt   = current_real_time  - last_real_time;
+      real_time_dt   = (current_real_time  - last_real_time)/1000.0; // mirco seconds
       last_real_time = current_real_time;
 
       motor_servo_errors += overruns;
