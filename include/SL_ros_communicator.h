@@ -17,6 +17,9 @@
 #ifndef SL_ROS_PUBLISHER_H_
 #define SL_ROS_PUBLISHER_H_
 
+// boost includes
+#include <boost/shared_ptr.hpp>
+
 // ROS includes
 #include <ros/ros.h>
 
@@ -40,9 +43,11 @@ public:
 
 private:
 
-	ros::NodeHandle *node_handle_;
+        boost::shared_ptr<ros::NodeHandle> node_handle_;
 	ros::Publisher nrt_joint_state_publisher_;
 	ros::Publisher nrt_endeffector_publisher_;
+        boost::shared_ptr<sensor_msgs::JointState> joint_state_msg_;
+        boost::shared_ptr<geometry_msgs::PoseStamped> pose_stamped_msg_;
 
 };
 
