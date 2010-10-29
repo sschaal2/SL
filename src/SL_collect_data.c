@@ -851,12 +851,13 @@ updateDataCollectScript( void )
  \param[in]     name : name of variable
  \param[out]    vptr : ptr to variable (or NULL if not existant)
  \param[out]    type : data type (see SL_collect_data.h)
+ \param[out]    units: units of variable (see SL_collect_data.h)
 
  returns FALSE if not found, and TRUE if found
 
  ******************************************************************************/
 int
-getDataCollectPtr( char *name, void **vptr, int *type )
+getDataCollectPtr( char *name, void **vptr, int *type, char *units )
 {
 
   Cinfo *ptr;
@@ -868,6 +869,7 @@ getDataCollectPtr( char *name, void **vptr, int *type )
     if (strcmp(ptr->name,name)==0) {
       *vptr = (void *)ptr->ptr;
       *type = ptr->type;
+      strncpy(units,ptr->units,sizeof(units)-1);
       return TRUE;
     }
     ptr = (Cinfo *)ptr->nptr;

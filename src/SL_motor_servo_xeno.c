@@ -28,6 +28,7 @@
 #include "SL_xeno_common.h"
 #include "SL_man.h"
 #include "SL_controller.h"
+#include "SL_oscilloscope.h"
 
 // external variables
 extern int           motor_servo_errors;
@@ -125,9 +126,10 @@ main(int argc, char**argv)
   changeCollectFreq(motor_servo_rate);
   if (real_time_clock_flag) {
     addVarToCollect((char *)&(real_time),"real_time","ns", INT,FALSE);
-    addVarToCollect((char *)&(real_time_dt),"real_time_dt","ns", INT,FALSE);
+    addVarToCollect((char *)&(real_time_dt),"real_time_dt","us", INT,FALSE);
   }
   updateDataCollectScript();
+  updateOscVars();
   setDefaultPosture();
   zero_integrator();
   

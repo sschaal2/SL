@@ -210,7 +210,7 @@ osc_display(void)
   static int listID = 999;
   static double freq_AD = 0;
   static double start_time_AD = 0;
-  double offx_left = 0.15;
+  double offx_left = 0.2;
   double offx_right = 0.1;
   double offy = 0.05;
   double offy_extra = 0.1;
@@ -287,7 +287,7 @@ osc_display(void)
 
   // find "D2A_task" for trigger
   for (i=1; i<=osc_data[0].n_active; ++i) {
-    if (strcmp("D2A_task",osc_data[0].names[i])==0)
+    if (strcmp("D2A_task [%]",osc_data[0].names[i])==0)
       break;
   }
 
