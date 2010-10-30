@@ -168,7 +168,7 @@ setOsc(int channel, double pval)
   ts = (double) t.tv_sec + ((double)t.tv_usec)/1.e6;
 #endif
 
-  sprintf(string,"D2A_%s",servo_name);
+  sprintf(string,"D2A_%s [%%]",servo_name);
   addEntryOscBuffer(string, pval, ts, 0);
 
   return TRUE;
@@ -375,6 +375,7 @@ readOscVarsScript( char *fn, int flag )
   int      i,rc;
   char     string[100];
   char     fname[100];
+  char     units[100];
   int      pID;
   void    *vptr;
   int      type;
@@ -406,7 +407,7 @@ readOscVarsScript( char *fn, int flag )
   while ((rc=fscanf(infile,"%s %d",string,&pID)) != EOF) {
 
     // figure out whether the string exists
-    if (getDataCollectPtr(string, &vptr, &type ) && pID > 0) {
+    if (getDataCollectPtr(string, &vptr, &type, units ) && pID > 0) {
       ++count;
       if (count == 1) {
 	osc_info_ptr = (OscInfo *) my_calloc(1,sizeof(OscInfo),MY_STOP);
@@ -420,7 +421,7 @@ readOscVarsScript( char *fn, int flag )
       optr->type = type;
       optr->nptr = NULL;
       optr->pID  = pID;
-      sprintf(optr->name,"%c.%s",servo_name[0],string);
+      sprintf(optr->name,"%c.%s [%s]",servo_name[0],string,units);
 
     }
   }
@@ -592,4 +593,37 @@ updateOscPeriodsAD(int w)
 
 
 
+
+/*!****************************************************************************
+******************************************************************************
+\note  updateOscVars
+\date  Aug. 2010
+
+\remarks
+
+re-reads the script for data collection, usually needed after new variables
+have been added to the data collection
+
+*****************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+*****************************************************************************/
+void
+updateOscVars(void)
+{
+
+  int    rc;
+  char   string[40];
+  char   fname[100];
+  FILE  *fp;
+
+  if (no_graphics_flag)
+    return;
+  
+  if (osc_enabled)
+    readOscVarsScript(osc_vars_name,FALSE);
+
+}
 
