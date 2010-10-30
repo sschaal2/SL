@@ -47,8 +47,8 @@ bool SL_ros_communicator::initialize()
     char* argv[1];
     argv[0] = name;
     ros::init(argc, argv, "SL2ROS_Publisher");
-		ros::AsyncSpinner spinner(1);
-		spinner.start();
+    //ros::AsyncSpinner spinner(1);
+    //spinner.start();
 
     node_handle_.reset(new ros::NodeHandle());
 
@@ -72,31 +72,34 @@ bool SL_ros_communicator::initialize()
     ROS_INFO("Publishing end-effector position."); // I am not sure whether this is needed.
 		nrt_endeffector_publisher_ = node_handle_->advertise<geometry_msgs::PoseStamped>("EndeffectorPose", 1000);
 
+    ros::spinOnce();
+
     ROS_INFO("Done.");
     return true;
 }
 
 bool SL_ros_communicator::publish()
 {
-	// publish joint states in NON REAL-TIME
-	joint_state_msg_->header.seq = 1;
-	joint_state_msg_->header.stamp = ros::Time::now();
-	for(int i=1; i<=n_dofs; ++i) {
-		joint_state_msg_->position[i-1] = joint_state[i].th;
-		joint_state_msg_->velocity[i-1] = joint_state[i].thd;
-		joint_state_msg_->effort[i-1] = joint_state[i].u;
-	}
-	nrt_joint_state_publisher_.publish(joint_state_msg_);
+    // publish joint states in NON REAL-TIME
+    joint_state_msg_->header.seq = 1;
+    joint_state_msg_->header.stamp = ros::Time::now();
+    for(int i=1; i<=n_dofs; ++i) {
+            joint_state_msg_->position[i-1] = joint_state[i].th;
+            joint_state_msg_->velocity[i-1] = joint_state[i].thd;
+            joint_state_msg_->effort[i-1] = joint_state[i].u;
+    }
+    nrt_joint_state_publisher_.publish(joint_state_msg_);
 
-	// publish endeffector pose in NON REAL-TIME
-	pose_stamped_msg_->header.seq = 1;
-	pose_stamped_msg_->header.stamp = ros::Time::now();
-	int i=1;
-	pose_stamped_msg_->pose.position.x = cart_state[i].x[_X_];
-	pose_stamped_msg_->pose.position.y = cart_state[i].x[_Y_];
-	pose_stamped_msg_->pose.position.z = cart_state[i].x[_Z_];
+    // publish endeffector pose in NON REAL-TIME
+    pose_stamped_msg_->header.seq = 1;
+    pose_stamped_msg_->header.stamp = ros::Time::now();
+    int i=1;
+    pose_stamped_msg_->pose.position.x = cart_state[i].x[_X_];
+    pose_stamped_msg_->pose.position.y = cart_state[i].x[_Y_];
+    pose_stamped_msg_->pose.position.z = cart_state[i].x[_Z_];
 
-	return true;
+    ros::spinOnce();
+    return true;
 }
 
 }
