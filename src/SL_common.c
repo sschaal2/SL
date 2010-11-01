@@ -2669,3 +2669,5 @@ count_extra_contact_points(char *fname) {
 
   return count;
 }
+
+

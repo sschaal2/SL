@@ -64,6 +64,7 @@ static int  checkForMessages(void);
 static void freezeBaseToggle(void);
 static void statusAll(void);
 static int  send_ros_state(void);
+static void read_link_parms(void);
 
 
 /*!*****************************************************************************
@@ -455,6 +456,7 @@ init_task_servo(void)
   addToMan("stop","kills the robot control",sim_stop);
   addToMan("dts","disables the task servo",dts);
   addToMan("statusAll","prints status on all processes",statusAll);
+  addToMan("read_link_params","re-reads the link parameters",read_link_parms);
   if (!real_robot_flag) {
     addToMan("reset","reset state of simulation",reset);
     addToMan("setG","set gravity constant",setG);
@@ -1968,3 +1970,31 @@ send_ros_state(void)
   
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_link_params
+\date  May 2000
+\remarks 
+
+interactive function to read link parameters from file again
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static void
+read_link_parms(void) 
+{
+
+  // check whether we are idle
+  if (strcmp(current_task_name,NO_TASK) != 0) {
+    printf("Link parameters cannot only be read when no task is running!\n");
+    return;
+  }
+
+  // read link parameters
+  read_link_parameters(config_files[LINKPARAMETERS]);
+
+}
