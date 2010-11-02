@@ -323,8 +323,11 @@ read_traj_file(int flag)
       /* try to read this file */
       sprintf(string,"%s%s",PREFS,fname);
       fp = fopen(string,"r");
-      if (fp != NULL)
-	break;
+      if (fp != NULL) {
+        break;
+      } else {
+        printf("ERROR: Could not open file >%s<\n",string);
+      }
     } else {
       found = TRUE;
       break;
@@ -528,12 +531,12 @@ check_traj_range(void)
       for(j=1;j<=n_rows;++j){
 	if ((traj_pos[j][idno] > joint_range[i][MAX_THETA]) ||
 	    ( traj_pos[j][idno]< joint_range[i][MIN_THETA])){
-	  printf("Joint Angle Limits Exceeded in %s at time %f",joint_names[i],((double) j)/sampling_freq);
+	  printf("Joint Angle Limits Exceeded in joint %s (is %1.3f, should be in range [%1.3f-%1.3f]) at time %f (tick %d)",joint_names[i],traj_pos[j][idno],joint_range[i][MIN_THETA],joint_range[i][MAX_THETA],((double) j)/sampling_freq,j);
 	  return FALSE;
 	}
 	if ((traj_uff[j][idno] > u_max[i]) ||
 	    ( traj_uff[j][idno]< -u_max[i])){
-	  printf("Feedforward Commands Exceeded in %s at time %f",joint_names[i],((double) j)/sampling_freq);
+	  printf("Feedforward Commands Exceeded in %s a(is %1.3f, should be in range [%1.3f-%1.3f]) at time %f (tick %d)",joint_names[i],traj_uff[j][idno],-u_max[i],u_max[i],((double) j)/sampling_freq,j);
 	  return FALSE;
 	}
       }
