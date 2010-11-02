@@ -79,16 +79,21 @@ static int        use_commands = TRUE;
 static FILE      *datafp=NULL;
 static int        write_data = FALSE;
 static int        down_sample = DOWN_SAMPLE_DEFAULT;
-static int        filt_data = 10;
 static int        got_all_joint_data = FALSE;
 static int        got_all_base_data = FALSE;
 static int        got_all_constraint_data = FALSE;
 static int        got_all_contact_force_data = FALSE;
 static int        use_floating_base = FALSE;
 static int        constraint_estimation_type = PROJECTION;
+static int        use_parm_file = FALSE;
+static int        filt_data = 10;
 static int        vis_flag = TRUE;
 static int        coul_flag = FALSE;
 static int        spring_flag = FALSE;
+static int        filt_data_dofs[N_DOFS+1];
+static int        vis_flag_dofs[N_DOFS+1];
+static int        coul_flag_dofs[N_DOFS+1];
+static int        spring_flag_dofs[N_DOFS+1];
 
 #define LLSB(x)	((x) & 0xff)		/*!< 32bit word byte/word swap macros */
 #define LNLSB(x) (((x) >> 8) & 0xff)
@@ -118,6 +123,7 @@ static int project_parameters(void);
 static double project_parameters_opt_func(double *vb);
 static void project_parameters_gradient_func(double *vb, double *grad);
 static void project_parameters_predict(double *vb, double *bp, double *b_m_bp);
+static int read_parm_file(void);
 
 
 extern SL_link    links[N_DOFS+1];
@@ -264,17 +270,36 @@ main(int argc, char **argv)
   if (!get_int("Downsample using which data point?",down_sample,&down_sample))
     exit(-1);
 
-  if (!get_int("Filter data cutoff [%]? (0 or 100 for no filter)",filt_data,&filt_data))
+  if (!get_int("Use parameter file for Filters/Vis/Coul/Stiff?",use_parm_file,&use_parm_file))
     exit(-1);
 
-  if (!get_int("Estimation viscous friction?",vis_flag,&vis_flag))
-    exit(-1);
+  if (use_parm_file) {
+    if (!read_parm_file())
+      use_parm_file = FALSE;
+  }
 
-  if (!get_int("Estimation coulomb friction?",coul_flag,&coul_flag))
-    exit(-1);
+  if (!use_parm_file) {
 
-  if (!get_int("Estimation spring term?",spring_flag,&spring_flag))
-    exit(-1);
+    if (!get_int("Filter data cutoff [%]? (0 or 100 for no filter)",filt_data,&filt_data))
+      exit(-1);
+
+    if (!get_int("Estimation viscous friction?",vis_flag,&vis_flag))
+      exit(-1);
+
+    if (!get_int("Estimation coulomb friction?",coul_flag,&coul_flag))
+      exit(-1);
+    
+    if (!get_int("Estimation spring term?",spring_flag,&spring_flag))
+      exit(-1);
+
+    for (i=1; i<=N_DOFS; ++i) {
+      filt_data_dofs[i] = filt_data;
+      vis_flag_dofs[i] = vis_flag;
+      coul_flag_dofs[i] = coul_flag;
+      spring_flag_dofs[i] = spring_flag;
+    }
+
+  }
 
   if (write_data)
     datafp = fopen("AbData.mat","w");
@@ -316,8 +341,7 @@ main(int argc, char **argv)
     }
     
     // filter
-    if (filt_data > 0 && filt_data < 100)
-      filter_data();
+    filter_data();
 
     // add data
     add_to_regression();
@@ -453,7 +477,7 @@ read_file(char *fname)
   got_all_contact_force_data = TRUE;
   
   /* shuffle the matrices */
-  for (i=1;i<=N_DOFS;++i) {
+  for (i=1;i<=N_DOFS-N_DOFS_EST_SKIP;++i) {
     
     sprintf(string, "%s_th",joint_names[i]);
     
@@ -721,9 +745,11 @@ filter_data(void)
   int j,i,r;
 
   for (i=1; i<=N_DOFS; ++i) {
-    filtfilt(data_pos[i],n_rows,filt_data,data_pos[i]);
-    diff(data_pos[i], n_rows, 1./sampling_freq, data_vel[i]);
-    diff2(data_pos[i], n_rows, 1./sampling_freq, data_acc[i]);
+    if (filt_data_dofs[i] > 0 && filt_data_dofs[i] < 100) {
+      filtfilt(data_pos[i],n_rows,filt_data,data_pos[i]);
+      diff(data_pos[i], n_rows, 1./sampling_freq, data_vel[i]);
+      diff2(data_pos[i], n_rows, 1./sampling_freq, data_acc[i]);
+    }
   }
 
   return TRUE;
@@ -988,19 +1014,19 @@ add_to_regression(void)
     for (j=1; j<=N_DOFS; ++j) {
       
       /* viscous friction */
-      if (vis_flag)
+      if (vis_flag_dofs[j])
 	Kp[j][j*N_RBD_PARMS+VIS] = state[j].thd;
       
       /* coulomb friction */
-      if (coul_flag)
+      if (coul_flag_dofs[j])
 	Kp[j][j*N_RBD_PARMS+COUL] = COULOMB_FUNCTION(state[j].thd);
 
       /* stiffness due to spring terms */
-      if (spring_flag)
+      if (spring_flag_dofs[j])
 	Kp[j][j*N_RBD_PARMS+STIFF] = state[j].th;
 
       /* constant offset of spring  */
-      if (spring_flag)
+      if (spring_flag_dofs[j])
 	Kp[j][j*N_RBD_PARMS+CONS] = 1.0;
 
     }
@@ -1247,6 +1273,7 @@ do_math(SL_endeff *eff) {
   none
 
  ******************************************************************************/
+#define RIDGE 1.e-6
 static int 
 project_parameters(void)
 {
@@ -1353,7 +1380,8 @@ project_parameters_opt_func(double *vb)
   project_parameters_predict(vb, bp, b_m_bp);
 
   // compute the optimization function
-  return 0.5*mat_mahal_size(ATA,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,b_m_bp);
+  return 0.5*mat_mahal_size(ATA,(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS,b_m_bp) +
+    0.5*vec_mult_inner(vb,vb)*RIDGE;
 }
 
 /*!*****************************************************************************
@@ -1482,6 +1510,10 @@ project_parameters_gradient_func(double *vb, double *grad)
   for (i=1; i<=(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS; ++i)
     grad[i] *= -1.0;
 
+  // shrinkage term
+  for (i=1; i<=(N_DOFS+1-N_DOFS_EST_SKIP)*N_RBD_PARMS; ++i)
+    grad[i] -= vb[i]*RIDGE;
+
 }
 
 /*!*****************************************************************************
@@ -1555,5 +1587,65 @@ project_parameters_predict(double *vb, double *bp, double *b_m_bp)
 
 
   }
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  read_parm_file
+\date  May 2000
+\remarks 
+
+reads the filter offset, viscous friction flag, coulomb friction flag, and
+spring flag per joint from file
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static int
+read_parm_file(void) {
+
+  int j,i,n,rc;
+  char   string[100]="xpest_parameters.cf";
+  FILE  *in;
+  double dum;
+
+  // get the file name
+  if (!get_string("Name of xpest parameters",string,string))
+    return FALSE;
+
+  // read the link parameters
+  in = fopen(string,"r");
+  if (in == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return FALSE;
+  }
+
+  // find all joint variables and read the relevant parameters
+  for (i=1; i<= N_DOFS-N_DOFS_EST_SKIP; ++i) {
+    if (!find_keyword(in, &(joint_names[i][0]))) {
+      printf("ERROR: Cannot find xpest parameters for >%s<!\n",
+	       joint_names[i]);
+      fclose(in);
+      return FALSE;
+    } else {
+      rc=fscanf(in,"%d %d %d %d",
+		&(filt_data_dofs[i]),
+		&(vis_flag_dofs[i]),
+		&(coul_flag_dofs[i]),
+		&(spring_flag_dofs[i]));
+      if (rc != 4) {
+	printf("Error: xpest parameter for joint >%s< have %d parameters, but should have %d\n",
+	       joint_names[i],rc,4);
+      }
+    }
+  }
+ 
+  fclose(in);
+  
+  return TRUE;
 
 }
