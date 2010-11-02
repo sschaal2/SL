@@ -79,7 +79,7 @@ static int        use_commands = TRUE;
 static FILE      *datafp=NULL;
 static int        write_data = FALSE;
 static int        down_sample = DOWN_SAMPLE_DEFAULT;
-static int        filt_data = TRUE;
+static int        filt_data = 10;
 static int        got_all_joint_data = FALSE;
 static int        got_all_base_data = FALSE;
 static int        got_all_constraint_data = FALSE;
@@ -264,7 +264,7 @@ main(int argc, char **argv)
   if (!get_int("Downsample using which data point?",down_sample,&down_sample))
     exit(-1);
 
-  if (!get_int("Filter data?",filt_data,&filt_data))
+  if (!get_int("Filter data cutoff [%]? (0 or 100 for no filter)",filt_data,&filt_data))
     exit(-1);
 
   if (!get_int("Estimation viscous friction?",vis_flag,&vis_flag))
@@ -316,7 +316,7 @@ main(int argc, char **argv)
     }
     
     // filter
-    if (filt_data)
+    if (filt_data > 0 && filt_data < 100)
       filter_data();
 
     // add data
@@ -721,8 +721,9 @@ filter_data(void)
   int j,i,r;
 
   for (i=1; i<=N_DOFS; ++i) {
-    diff( data_vel[i], n_rows, 1./sampling_freq, data_acc[i]);
-    filtfilt(data_acc[i],n_rows,10,data_acc[i]);
+    filtfilt(data_pos[i],n_rows,filt_data,data_pos[i]);
+    diff(data_pos[i], n_rows, 1./sampling_freq, data_vel[i]);
+    diff2(data_pos[i], n_rows, 1./sampling_freq, data_acc[i]);
   }
 
   return TRUE;

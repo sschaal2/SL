@@ -34,6 +34,8 @@ extern "C" {
   const int  d2a_ct = D2A_CT;
   const int  d2a_cr = D2A_CR;
 
+#include "Floating_Base.h"
+
   /* global variables */
   char         *robot_name = ROBOT_NAME;
   char          servo_name[100]="";

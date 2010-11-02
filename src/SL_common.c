@@ -618,6 +618,7 @@ read_link_parameters(char *fname) {
   char   string[100];
   FILE  *in;
   double dum;
+  extern const int floating_base_flag;
 
   /* read the link parameters */
   sprintf(string,"%s%s",CONFIG,fname);
@@ -632,9 +633,10 @@ read_link_parameters(char *fname) {
   
   for (i=0; i<= n_dofs; ++i) {
     if (!find_keyword(in, &(joint_names[i][0]))) {
-      if (strcmp(joint_names[i],"dummy") == 0 || strcmp(joint_names[i],"BASE") == 0) {
-	printf("WARNING: Cannot find link parameters for >%s<! Provide a >BASE< link, even for fixed base systems.\n",
-	       joint_names[i]);
+      if (strcmp(joint_names[i],"dummy") == 0 ) {
+	;  
+      } else if (strcmp(joint_names[i],"BASE") == 0 || floating_base_flag ) {
+	;
       } else {
 	printf("ERROR: Cannot find link parameters for >%s<!\n",
 	       joint_names[i]);

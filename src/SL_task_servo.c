@@ -1988,6 +1988,8 @@ static void
 read_link_parms(void) 
 {
 
+  char string[100];
+
   // check whether we are idle
   if (strcmp(current_task_name,NO_TASK) != 0) {
     printf("Link parameters cannot only be read when no task is running!\n");
@@ -1995,6 +1997,10 @@ read_link_parms(void)
   }
 
   // read link parameters
-  read_link_parameters(config_files[LINKPARAMETERS]);
+  sprintf(string,"%s%s",CONFIG,config_files[LINKPARAMETERS]);
+  if (!get_string("Parameter File Name",string,string))
+    return;
+
+  read_link_parameters(string);
 
 }
