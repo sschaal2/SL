@@ -1997,7 +1997,7 @@ read_link_parms(void)
   }
 
   // read link parameters
-  sprintf(string,"%s%s",CONFIG,config_files[LINKPARAMETERS]);
+  sprintf(string,"%s",config_files[LINKPARAMETERS]);
   if (!get_string("Parameter File Name",string,string))
     return;
 
