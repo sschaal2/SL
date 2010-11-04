@@ -43,6 +43,10 @@ pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER; //for a safe thread
 int (*window_check_function)(char *) = NULL;
 int  run_command_line_thread_flag = FALSE;
 
+// export of main() arguments
+int    global_argc;
+char **global_argv;
+
 // external variables
 
 // local variabes
@@ -487,6 +491,10 @@ parseOptions(int argc, char**argv)
   int i,j,n;
   int rc;
   int ans; 
+
+  // assign to global variables
+  global_argc = argc;
+  global_argv = argv;
 
   // the parent process ID
   parent_process_id = 0;

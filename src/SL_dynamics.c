@@ -290,7 +290,7 @@ compute_independent_joint_forces(SL_Jstate state, SL_link li)
 
 a test function that checks the compatiblity of Newton Euler Inv.Dyn. with
 Composite Inetia For.Dy. The result should have zero difference. This is done
-for the floating base case.
+for the floating  base case.
 
 *******************************************************************************
 Function Parameters: [in]=input,[out]=output
