@@ -12,6 +12,12 @@
  * This file defines a type "sl_rt_mutex", which is a wrapper for a real-time mutex.
  * It uses Xenomai mutexes on the Xenomai RTOS, and pthread mutexes otherwise.
  * We attempt to mimic the pthread_mutex_* api.
+ *
+ * Pthread condition functions are also wrapped as sl_rt_cond_*.
+ *
+ * TODOs:
+ *  Error codes are not converted yet. 
+ *  Calls with timeout values are not implemented yet.
  */
 
 
