@@ -2,7 +2,7 @@
   ==============================================================================
 
   \ingroup SLros
-  
+
   \file    SL_ros_servo_xeno.c
 
   \author  Stefan Schaal
@@ -53,20 +53,20 @@ static  void ros_servo(void *dummy);
 
 
 /*!*****************************************************************************
-*******************************************************************************
+ *******************************************************************************
 \note  main
 \date  July 2010
 \remarks 
 
 initializes everything and starts the servo loop
 
-*******************************************************************************
+ *******************************************************************************
 Function Parameters: [in]=input,[out]=output
 
 \param[in]     argc : number of elements in argv
 \param[in]     argv : array of argc character strings
 
-******************************************************************************/
+ ******************************************************************************/
 int 
 main(int argc, char**argv)
 {
@@ -75,7 +75,7 @@ main(int argc, char**argv)
   char name[100];
 
   // initialize xenomai specific variables and real-time environment
-  initXeno();
+  initXeno("ros");
 
   // parse command line options
   parseOptions(argc, argv);
@@ -92,7 +92,7 @@ main(int argc, char**argv)
   // get the servo parameters
   sprintf(name,"%s_servo",servo_name);
   read_servoParameters(config_files[SERVOPARAMETERS],name,&servo_priority,
-		       &servo_stack_size,&cpuID,&delay_ns);
+                       &servo_stack_size,&cpuID,&delay_ns);
 
   // reset ros_servo variables
   servo_enabled          = 1;
@@ -103,14 +103,14 @@ main(int argc, char**argv)
   ros_servo_rate         = servo_base_rate/(double) task_servo_ratio;
 
   changeCollectFreq(ros_servo_rate);
-  
+
   // make this process real-time
   if (use_spawn) {
 
     sprintf(name,"%s_servo",servo_name);
-    
+
     if ((rc=rt_task_spawn(&servo_ptr,name,servo_stack_size,servo_priority,
-			  T_FPU | T_JOINABLE | T_CPU(cpuID),ros_servo,NULL))) {
+                          T_FPU | T_JOINABLE | T_CPU(cpuID),ros_servo,NULL))) {
       printf("rt_task_spawn returned %d\n",rc);
     }
 
@@ -122,7 +122,7 @@ main(int argc, char**argv)
 
     // wait for the task to finish
     rt_task_join(&servo_ptr);
-	
+
   } else {
 
     // spawn command line interface thread
@@ -140,54 +140,52 @@ main(int argc, char**argv)
   return TRUE;
 
 }
- 
+
 /*!*****************************************************************************
-*******************************************************************************
+ *******************************************************************************
 \note  ros_servo
 \date  July 2010
 \remarks 
- 
+
 This program is clocked by the motor servo and uses a shared
 memory semaphore for synchronization
- 
-*******************************************************************************
+
+ *******************************************************************************
 Function Parameters: [in]=input,[out]=output
- 
+
 \param[in]  dummy: dummy argument
- 
-******************************************************************************/
+
+ ******************************************************************************/
 static void
 ros_servo(void *dummy) 
 
 {
   int rc;
 
+  //forces the mode switch
+  rt_printf("entering ros servo\n");
+
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL)))
     printf("rt_task_set_mode returned %d\n",rc);
-  
+
   // run the servo loop
   while (servo_enabled) {
 
     // force delay ticks if user wishes
     if (delay_ns > 0)
       taskDelay(ns2ticks(delay_ns));
-		
+
     // wait to take semaphore 
     if (semTake(sm_ros_servo_sem,WAIT_FOREVER) == ERROR) {
       printf("semTake Time Out -- Servo Terminated\n");
       return;
     }
-		
-    // lock out the keyboard interaction 
-    pthread_mutex_lock( &mutex1 );
 
     // run the task servo routines
     if (!run_ros_servo())
       break;
 
-    // continue keyboard interaction
-    pthread_mutex_unlock( &mutex1 );
 
   }  /* end servo while loop */
 

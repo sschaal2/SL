@@ -97,11 +97,19 @@ checkKeyboard(void *initial_command)
   extern double   servo_time;
   int             rc;
 
+
 #ifdef __XENO__
+
+  //become a real-time process
+  char name[100];
+  sprintf(name, "%s_terminal", servo_name);
+  rt_task_shadow(NULL, name, 0, 0);
+
   // we want this task in non real-time mode
   if ((rc=rt_task_set_mode(T_PRIMARY,0,NULL)))
     printf("rt_task_set_mode returned %d\n",rc);
-#endif  
+
+#endif
 
 
   while (run_command_line_thread_flag) {

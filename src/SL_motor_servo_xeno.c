@@ -60,20 +60,20 @@ int    delay_ns = FALSE;
 
 
 /*!*****************************************************************************
-*******************************************************************************
+ *******************************************************************************
 \note  main
 \date  Feb 1999
 \remarks 
 
 initializes everything and starts the servo loop
 
-*******************************************************************************
+ *******************************************************************************
 Function Parameters: [in]=input,[out]=output
 
 \param[in]     argc : number of elements in argv
 \param[in]     argv : array of argc character strings
 
-******************************************************************************/
+ ******************************************************************************/
 int 
 main(int argc, char**argv)
 {
@@ -90,8 +90,9 @@ main(int argc, char**argv)
     }
   }
 
+
   // initialize xenomai specific variables and real-time environment
-  initXeno();
+  initXeno("motor");
 
   // parse command line options
   parseOptions(argc, argv);
@@ -109,7 +110,7 @@ main(int argc, char**argv)
   // get the servo parameters
   sprintf(name,"%s_servo",servo_name);
   read_servoParameters(config_files[SERVOPARAMETERS],name,&servo_priority,
-		       &servo_stack_size,&cpuID,&delay_ns);
+                       &servo_stack_size,&cpuID,&delay_ns);
 
   // reset motor_servo variables
   servo_enabled            = 1;
@@ -122,7 +123,7 @@ main(int argc, char**argv)
   count_no_receive         = 0;
   count_no_receive_total   = 0;
   count_no_broadcast       = 0;
-  
+
   changeCollectFreq(motor_servo_rate);
   if (real_time_clock_flag) {
     addVarToCollect((char *)&(real_time),"real_time","ns", INT,FALSE);
@@ -132,14 +133,14 @@ main(int argc, char**argv)
   updateOscVars();
   setDefaultPosture();
   zero_integrator();
-  
+
   // make this process real-time
   if (use_spawn) {
 
     sprintf(name,"%s_servo",servo_name);
-    
+
     if ((rc=rt_task_spawn(&servo_ptr,name,servo_stack_size,servo_priority,
-			  T_FPU | T_JOINABLE | T_CPU(cpuID),motor_servo,NULL))) {
+                          T_FPU | T_JOINABLE | T_CPU(cpuID),motor_servo,NULL))) {
       printf("rt_task_spawn returned %d\n",rc);
     }
 
@@ -151,7 +152,7 @@ main(int argc, char**argv)
 
     // wait for the task to finish
     rt_task_join(&servo_ptr);
-	
+
   } else {
 
     // spawn command line interface thread
@@ -170,21 +171,21 @@ main(int argc, char**argv)
   return TRUE;
 
 }
- 
+
 /*!*****************************************************************************
  *******************************************************************************
  \note  motor_servo
  \date  Oct 2009
  \remarks 
- 
+
  This program is clocked either directly by a clock, or by another
   process through a shared memory semaphore for synchronization
- 
+
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
- 
+
  \param[in]  dummy: dummy argument
- 
+
  ******************************************************************************/
 static void
 motor_servo(void *dummy) 
@@ -194,14 +195,16 @@ motor_servo(void *dummy)
   unsigned long overruns;
   int rc;
 
+  //forces the mode switch
+  rt_printf("entering motor servo\n");
+
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
     printf("rt_task_set_mode returned %d\n",rc);
 
-  
   if (real_time_clock_flag) // make this a clocked task
     rt_task_set_periodic(NULL,TM_NOW,(RTIME)(1000000000./(double)motor_servo_rate));
-      
+
   // initialize time
   last_real_time   = rt_timer_read();
   start_real_time  = last_real_time;
@@ -223,26 +226,21 @@ motor_servo(void *dummy)
       last_real_time = current_real_time;
 
       motor_servo_errors += overruns;
-	
+
     } else { 
 
       // wait to take semaphore
       if (semTake(sm_motor_servo_sem,WAIT_FOREVER) == ERROR) {
-	printf("semTake Time Out -- Servo Terminated");
-	exit(-1);
+        printf("semTake Time Out -- Servo Terminated");
+        exit(-1);
       }
 
     }
-    
-    // lock out the keyboard interaction 
-    pthread_mutex_lock( &mutex1 );
+
 
     // run the task servo routines
     if (!run_motor_servo())
       break;
-
-    // continue keyboard interaction
-    pthread_mutex_unlock( &mutex1 );
 
     // trigger the simulation servo
     if (semGive(sm_simulation_servo_sem) == ERROR)

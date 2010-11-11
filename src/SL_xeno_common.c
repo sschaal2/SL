@@ -43,22 +43,22 @@ static void
 action_upon_switch(int sig __attribute__((unused)));
 
 /*!*****************************************************************************
-*******************************************************************************
+ *******************************************************************************
 \note  initXeno
 \date  Oct. 2009
- 
+
 \remarks 
- 
+
 xenomai specific initializations
- 
-*******************************************************************************
+
+ *******************************************************************************
 Function Parameters: [in]=input,[out]=output
- 
+
 none
- 
-******************************************************************************/
+
+ ******************************************************************************/
 void
-initXeno(void)
+initXeno(char *task_name)
 {
   int rc;
 
@@ -73,6 +73,10 @@ initXeno(void)
   pthread_mutexattr_setprotocol(&attr,PTHREAD_PRIO_INHERIT);
   pthread_mutex_init(&mutex1,&attr);
 
+  //become a real-time process
+  char name[100];
+  sprintf(name, "x%s_main", task_name);
+  rt_task_shadow(NULL, name, 0, 0);
 
   // start the non real-time printing library
   rt_print_auto_init(1);
@@ -96,20 +100,20 @@ initXeno(void)
 
 
 /*!*****************************************************************************
-*******************************************************************************
+ *******************************************************************************
 \note  action_upon_switch
 \date  Oct. 2009
- 
+
 \remarks 
- 
+
 what to do when mode switches occur
- 
-*******************************************************************************
+
+ *******************************************************************************
 Function Parameters: [in]=input,[out]=output
- 
+
 none
- 
-******************************************************************************/
+
+ ******************************************************************************/
 static void 
 action_upon_switch(int sig __attribute__((unused)))
 
@@ -127,6 +131,6 @@ action_upon_switch(int sig __attribute__((unused)))
   backtrace_symbols_fd(bt,nentries,fileno(stdout));
 
   getchar();
-  */
+   */
 
 }

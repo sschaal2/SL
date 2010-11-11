@@ -10,11 +10,11 @@
 
   ==============================================================================
   \remarks
-  
+
   the main program for graphics visualization
-  
+
   ============================================================================*/
-  
+
 // SL general includes of system headers
 #include "SL_system_headers.h"
 
@@ -42,30 +42,30 @@ static int     use_spawn = FALSE; // somehow openGL does not work in a spawned p
 static int     servo_priority = 10;
 static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
-  
+
 // local functions 
 static void openGL_servo(void *dummy);
 
-  
+
 /*!*****************************************************************************
-*******************************************************************************
+ *******************************************************************************
 \note  main
 \date  July 1998
- 
+
 \remarks 
 
- 
+
 entry program: the structure of the entire program is such that we assume 
 some initialization functions, and then a final function that continuously
 runs the simulation in a "clocked" fashion.
- 
-*******************************************************************************
+
+ *******************************************************************************
 Function Parameters: [in]=input,[out]=output
- 
+
 \param[in]     argc : number of elements in argv
 \param[in]     argv : array of argc character strings
- 
-******************************************************************************/
+
+ ******************************************************************************/
 int 
 main(int argc, char**argv)
 
@@ -77,7 +77,7 @@ main(int argc, char**argv)
 
 
   // initialize xenomai specific variables and real-time environment
-  initXeno();
+  initXeno("opengl");
 
   // parse command line options
   parseOptions(argc, argv);
@@ -104,15 +104,15 @@ main(int argc, char**argv)
   // get the servo parameters
   sprintf(name,"%s_servo",servo_name);
   read_servoParameters(config_files[SERVOPARAMETERS],name,&servo_priority,
-		       &servo_stack_size,&cpuID,&delay_ns);
+                       &servo_stack_size,&cpuID,&delay_ns);
 
   // make this process real-time
   if (use_spawn) { 
 
     sprintf(name,"%s_servo",servo_name);
-    
+
     if ((rc=rt_task_spawn(&servo_ptr,name,servo_stack_size,servo_priority,
-			  T_FPU | T_JOINABLE | T_CPU(cpuID),openGL_servo,NULL))) {
+                          T_FPU | T_JOINABLE | T_CPU(cpuID),openGL_servo,NULL))) {
       printf("rt_task_spawn returned %d\n",rc);
     }
 
@@ -121,10 +121,10 @@ main(int argc, char**argv)
 
     // signal that this process is initialized
     semGive(sm_init_process_ready_sem);
-  
+
     // wait for the task to finish
     rt_task_join(&servo_ptr);
-	
+
   } else {
 
     // spawn command line interface thread
@@ -132,7 +132,7 @@ main(int argc, char**argv)
 
     // signal that this process is initialized
     semGive(sm_init_process_ready_sem);
-  
+
     // run this servo
     openGL_servo(NULL);
 
@@ -147,15 +147,15 @@ main(int argc, char**argv)
  \note  openGL_servo
  \date  Oct 2009
  \remarks 
- 
+
  This program is clocked by the motor servo and uses a shared
  memory semaphore for synchronization
- 
+
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
- 
+
  \param[in]  dummy: dummary argument
- 
+
  ******************************************************************************/
 static void
 openGL_servo(void *dummy) 
@@ -163,9 +163,12 @@ openGL_servo(void *dummy)
 {
   int rc;
 
+  //forces the mode switch
+  rt_printf("entering opengl servo\n");
+
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
-      printf("rt_task_set_mode returned %d\n",rc);
+    printf("rt_task_set_mode returned %d\n",rc);
 
   // start the main loop
   servo_enabled = TRUE;

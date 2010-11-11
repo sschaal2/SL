@@ -63,20 +63,20 @@ static  void simulation_servo(void *dummy);
 // external functions
 
 /*!*****************************************************************************
-*******************************************************************************
+ *******************************************************************************
 \note  main
 \date  Feb 1999
 \remarks 
 
 initializes everything and starts the servo loop
 
-*******************************************************************************
+ *******************************************************************************
 Function Parameters: [in]=input,[out]=output
 
 \param[in]     argc : number of elements in argv
 \param[in]     argv : array of argc character strings
 
-******************************************************************************/
+ ******************************************************************************/
 int 
 main(int argc, char**argv)
 {
@@ -85,7 +85,7 @@ main(int argc, char**argv)
   char name[100];
 
   // initialize xenomai specific variables and real-time environment
-  initXeno();
+  initXeno("sim");
 
   // parse command line options
   parseOptions(argc, argv);
@@ -103,15 +103,15 @@ main(int argc, char**argv)
   // get the servo parameters
   sprintf(name,"%s_servo",servo_name);
   read_servoParameters(config_files[SERVOPARAMETERS],name,&servo_priority,
-		       &servo_stack_size,&cpuID,&delay_ns);
+                       &servo_stack_size,&cpuID,&delay_ns);
 
   // make this process real-time
   if (use_spawn) {
 
     sprintf(name,"%s_servo",servo_name);
-    
+
     if ((rc=rt_task_spawn(&servo_ptr,name,servo_stack_size,servo_priority,
-			  T_FPU | T_JOINABLE | T_CPU(cpuID),simulation_servo,NULL))) {
+                          T_FPU | T_JOINABLE | T_CPU(cpuID),simulation_servo,NULL))) {
       printf("rt_task_spawn returned %d\n",rc);
     }
 
@@ -120,18 +120,18 @@ main(int argc, char**argv)
 
     // signal that this process is initialized
     semGive(sm_init_process_ready_sem);
-  
+
     // wait for the task to finish
     rt_task_join(&servo_ptr);
-	
+
   } else {
-    
+
     // spawn command line interface thread
     spawnCommandLineThread(NULL);
 
     // signal that this process is initialized
     semGive(sm_init_process_ready_sem);
-  
+
     // run this servo
     simulation_servo(NULL);
 
@@ -140,21 +140,21 @@ main(int argc, char**argv)
   return TRUE;
 
 }
- 
+
 /*!*****************************************************************************
  *******************************************************************************
  \note  simulation_servo
  \date  Oct 2009
  \remarks 
- 
+
  This program is clocked by the motor servo and uses a shared
  memory semaphore for synchronization
- 
+
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
- 
+
  \param[in]  dummy: dummary argument
- 
+
  ******************************************************************************/
 static void
 simulation_servo(void *dummy) 
@@ -162,9 +162,12 @@ simulation_servo(void *dummy)
 {
   int rc;
 
+  //forces the mode switch
+  rt_printf("entering simulation servo\n");
+
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
-      printf("rt_task_set_mode returned %d\n",rc);
+    printf("rt_task_set_mode returned %d\n",rc);
 
   // boardcast the current state such that the motor servo can generate a command
   send_sim_state();
@@ -182,33 +185,28 @@ simulation_servo(void *dummy)
     // check for PAUSE
     if (semTake(sm_pause_sem,NO_WAIT) != ERROR) {
       if (pause_flag)
-	pause_flag = FALSE;
+        pause_flag = FALSE;
       else
-	pause_flag = TRUE;
+        pause_flag = TRUE;
     }
-    
+
     if (pause_flag) {
       taskDelay(ns2ticks(100000000));
       continue;
     }
-    
+
     // wait to take semaphore 
     if (semTake(sm_simulation_servo_sem,WAIT_FOREVER) == ERROR) {
       printf("semTake Time Out -- Servo Terminated\n");
       return;
     }
 
-    // lock out the keyboard interaction 
-    pthread_mutex_lock( &mutex1 );
-    
+
     // run the simulation servo routines
     if (!run_simulation_servo())
       break;
-    
-    // continue keyboard interaction
-    pthread_mutex_unlock( &mutex1 );
-    
+
   }  /* end servo while loop */
-  
+
 }
 

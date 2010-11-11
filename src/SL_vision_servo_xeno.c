@@ -73,7 +73,7 @@ main(int argc, char**argv)
 
 
   // initialize xenomai specific variables and real-time environment
-  initXeno();
+  initXeno("vision");
 
   // parse command line options
   parseOptions(argc, argv);
@@ -167,6 +167,9 @@ vision_servo(void *dummy)
   int i;
   int rc;
 
+  //forces the mode switch
+  rt_printf("entering vision servo\n");
+
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
       printf("rt_task_set_mode returned %d\n",rc);
@@ -182,9 +185,6 @@ vision_servo(void *dummy)
     if (semTake(sm_vision_servo_sem,WAIT_FOREVER) == ERROR)
       stop("semTake Time Out -- Servo Terminated");
    
-    // lock out the keyboard interaction 
-    pthread_mutex_lock( &mutex1 );
-
     // reset the blob status
     for (i=1; i<=max_blobs; ++i) {
       raw_blobs2D[i][1].status = FALSE;
@@ -195,8 +195,6 @@ vision_servo(void *dummy)
     if (!run_vision_servo())
       break;
 
-    // continue keyboard interaction
-    pthread_mutex_unlock( &mutex1 );
 
   }  /* end servo while loop */
 
