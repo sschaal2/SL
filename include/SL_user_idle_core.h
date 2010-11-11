@@ -37,12 +37,19 @@ if (pause_flag || stand_alone_flag) {
   return;
 }
 
+
+#ifdef __XENO__
+  // we want to be in real-time mode here
+  printf("..\n");
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+#endif
 //-------------------------------------------------------------------------
 // get 60Hz semaphore
 if (semTake(sm_openGL_servo_sem,WAIT_FOREVER) == ERROR) {
   printf("semTake Time Out -- Servo Terminated\n");
   exit(-1);
 }
+
 
 //-------------------------------------------------------------------------
 // advance the time (note that the servo time is copied from the time stamp
@@ -56,6 +63,10 @@ receive_misc_sensors();
 receive_contacts();
 checkForUserGraphics();
 checkForMessages();
+#ifdef __XENO__
+  // we want to be in secondary mode here
+  rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
 updateComet();
 receiveOscilloscopeData();
 
