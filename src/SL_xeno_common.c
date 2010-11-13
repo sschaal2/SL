@@ -40,7 +40,7 @@ long count_xenomai_mode_switches = -1;
 
 // local functions
 static void 
-action_upon_switch(int sig __attribute__((unused)));
+action_upon_switch(int sig, siginfo_t *si, void *context);
 
 /*!*****************************************************************************
  *******************************************************************************
@@ -61,6 +61,7 @@ void
 initXeno(char *task_name)
 {
   int rc;
+  struct sigaction sa;
 
   // lock all of the pages currently and pages that become
   // mapped into the address space of the process
@@ -82,7 +83,11 @@ initXeno(char *task_name)
   rt_print_auto_init(1);
 
   // what to do when mode switches happen
-  signal(SIGXCPU, action_upon_switch);
+  sigemptyset(&sa.sa_mask);
+  sa.sa_sigaction = action_upon_switch;
+  sa.sa_flags = SA_SIGINFO;
+  sigaction(SIGDEBUG, &sa, NULL);
+  //signal(SIGDEBUG, action_upon_switch);
 
   // get the timer info
   if ((rc=rt_timer_set_mode((RTIME) XENO_CLOCK_PERIOD)))
@@ -114,15 +119,59 @@ Function Parameters: [in]=input,[out]=output
 none
 
  ******************************************************************************/
+static const char *reason_str[] = {
+                                   [SIGDEBUG_UNDEFINED] = "undefined",
+                                   [SIGDEBUG_MIGRATE_SIGNAL] = "received signal",
+                                   [SIGDEBUG_MIGRATE_SYSCALL] = "invoked syscall",
+                                   [SIGDEBUG_MIGRATE_FAULT] = "triggered fault",
+                                   [SIGDEBUG_MIGRATE_PRIOINV] = "affected by priority inversion",
+                                   [SIGDEBUG_NOMLOCK] = "missing mlockall",
+                                   [SIGDEBUG_WATCHDOG] = "runaway thread",
+};
+
 static void 
-action_upon_switch(int sig __attribute__((unused)))
+action_upon_switch(int sig, siginfo_t *si, void *context)
 
 {
+  unsigned int reason = si->si_value.sival_int;
   void *bt[32];
   int nentries;
 
   // increment mode swich counter
-  ++count_xenomai_mode_switches;
+  if ( (reason >= SIGDEBUG_MIGRATE_SIGNAL) && (reason <=  SIGDEBUG_MIGRATE_PRIOINV) )
+  {
+    ++count_xenomai_mode_switches;
+    //rt_printf("modeswitch\n");
+    printf("\nSIGDEBUG received, reason %d: %s\n", reason,
+           reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
+    //rt_printf("\nRTprintf SIGDEBUG received, reason %d: %s\n", reason,
+    //          reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
+  }
+  else
+  {
+    extern RT_TASK servo_ptr;
+    //stop the task that is causing trouble
+    rt_task_suspend(&servo_ptr);
+
+    printf("\nSIGDEBUG received, reason %d: %s\n", reason,
+           reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
+    nentries = backtrace(bt,sizeof(bt) / sizeof(bt[0]));
+    backtrace_symbols_fd(bt,nentries,fileno(stderr));
+    backtrace_symbols_fd(bt,nentries,fileno(stdout));
+    fflush(stdout);
+    fflush(stderr);
+
+    //now we resume the task
+    //rt_task_resume(&servo_ptr);
+  }
+
+
+  //printf("\nSIGDEBUG received, reason %d: %s\n", reason,
+  //	 reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
+  /* Dump a backtrace of the frame which caused the switch to
+     secondary mode: */
+
+
 
   /* Dump a backtrace of the frame which caused the switch to
      secondary mode: */

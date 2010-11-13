@@ -37,7 +37,7 @@
 int     delay_ns=FALSE;
 
 // local variables
-static RT_TASK servo_ptr;
+ RT_TASK servo_ptr;
 static int     use_spawn = FALSE; // somehow openGL does not work in a spawned process
 static int     servo_priority = 10;
 static int     servo_stack_size = 2000000;
@@ -163,8 +163,12 @@ openGL_servo(void *dummy)
 {
   int rc;
 
-  //forces the mode switch
+  //forces the initial mode switch
   rt_printf("entering opengl servo\n");
+
+  //we decouple the linux and xenomai priorities
+  if ((rc=rt_task_set_mode(0, T_RPIOFF, NULL)))
+    printf("rt_task_set_mode returned %d\n", rc);
 
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
