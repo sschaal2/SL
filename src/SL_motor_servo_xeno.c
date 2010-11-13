@@ -90,6 +90,8 @@ main(int argc, char**argv)
     }
   }
 
+  // signal handlers
+  installSignalHandlers();
 
   // initialize xenomai specific variables and real-time environment
   initXeno("motor");
@@ -99,9 +101,6 @@ main(int argc, char**argv)
 
   // adjust settings if SL runs for a real robot
   setRealRobotOptions();
-
-  // signal handlers
-  installSignalHandlers();
 
   // initializes the servo
   init_motor_servo();

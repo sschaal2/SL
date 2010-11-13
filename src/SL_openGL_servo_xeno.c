@@ -38,7 +38,7 @@ int     delay_ns=FALSE;
 
 // local variables
  RT_TASK servo_ptr;
-static int     use_spawn = FALSE; // somehow openGL does not work in a spawned process
+static int     use_spawn = TRUE; // somehow openGL does not work in a spawned process
 static int     servo_priority = 10;
 static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
@@ -75,6 +75,8 @@ main(int argc, char**argv)
   int  ans; 
   char name[100];
 
+  // signal handlers
+  installSignalHandlers();
 
   // initialize xenomai specific variables and real-time environment
   initXeno("opengl");
@@ -93,9 +95,6 @@ main(int argc, char**argv)
       break;
     }
   }
-
-  // signal handlers
-  installSignalHandlers();
 
   // initializes the servo
   if (!init_openGL_servo(argc,argv))

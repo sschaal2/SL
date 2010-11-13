@@ -74,6 +74,13 @@ initXeno(char *task_name)
   pthread_mutexattr_setprotocol(&attr,PTHREAD_PRIO_INHERIT);
   pthread_mutex_init(&mutex1,&attr);
 
+  // what to do when mode switches happen
+   sigemptyset(&sa.sa_mask);
+   sa.sa_sigaction = action_upon_switch;
+   sa.sa_flags = SA_SIGINFO;
+   sigaction(SIGDEBUG, &sa, NULL);
+   //signal(SIGDEBUG, action_upon_switch);
+
   //become a real-time process
   char name[100];
   sprintf(name, "x%s_main", task_name);
@@ -82,12 +89,6 @@ initXeno(char *task_name)
   // start the non real-time printing library
   rt_print_auto_init(1);
 
-  // what to do when mode switches happen
-  sigemptyset(&sa.sa_mask);
-  sa.sa_sigaction = action_upon_switch;
-  sa.sa_flags = SA_SIGINFO;
-  sigaction(SIGDEBUG, &sa, NULL);
-  //signal(SIGDEBUG, action_upon_switch);
 
   // get the timer info
   if ((rc=rt_timer_set_mode((RTIME) XENO_CLOCK_PERIOD)))

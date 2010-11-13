@@ -166,8 +166,8 @@ ros_servo(void *dummy)
   rt_printf("entering ros servo\n");
 
   //we decouple the linux and xenomai priorities
-  if ((rc=rt_task_set_mode(0, T_RPIOFF, NULL)))
-    printf("rt_task_set_mode returned %d\n", rc);
+//  if ((rc=rt_task_set_mode(0, T_RPIOFF, NULL)))
+//    printf("rt_task_set_mode returned %d\n", rc);
 
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL)))
