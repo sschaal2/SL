@@ -47,7 +47,7 @@ static void motor_servo(void *dummy);
 static RTIME   real_time;
 static RTIME   real_time_dt;
 static RTIME   start_real_time;
-static RT_TASK servo_ptr;
+ RT_TASK servo_ptr;
 static int     use_spawn = TRUE;
 static int     servo_priority = 75;
 static int     servo_stack_size = 2000000;
@@ -90,6 +90,8 @@ main(int argc, char**argv)
     }
   }
 
+  // signal handlers
+  installSignalHandlers();
 
   // initialize xenomai specific variables and real-time environment
   initXeno("motor");
@@ -99,9 +101,6 @@ main(int argc, char**argv)
 
   // adjust settings if SL runs for a real robot
   setRealRobotOptions();
-
-  // signal handlers
-  installSignalHandlers();
 
   // initializes the servo
   init_motor_servo();

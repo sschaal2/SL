@@ -49,7 +49,7 @@ int     delay_ns = FALSE;
 
 // local variables
 static int     pause_flag = FALSE;
-static RT_TASK servo_ptr;
+ RT_TASK servo_ptr;
 static int     use_spawn = TRUE;
 static int     servo_priority = 90;
 static int     servo_stack_size = 2000000;
@@ -84,6 +84,9 @@ main(int argc, char**argv)
   int  rc;
   char name[100];
 
+  // signal handlers
+  installSignalHandlers();
+
   // initialize xenomai specific variables and real-time environment
   initXeno("sim");
 
@@ -92,9 +95,6 @@ main(int argc, char**argv)
 
   // adjust settings if SL runs for a real robot
   setRealRobotOptions();
-
-  // signal handlers
-  installSignalHandlers();
 
   // initalize the servo
   if (!init_simulation_servo())

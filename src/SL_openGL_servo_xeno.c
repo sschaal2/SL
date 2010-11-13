@@ -37,8 +37,8 @@
 int     delay_ns=FALSE;
 
 // local variables
-static RT_TASK servo_ptr;
-static int     use_spawn = FALSE; // somehow openGL does not work in a spawned process
+ RT_TASK servo_ptr;
+static int     use_spawn = TRUE; // somehow openGL does not work in a spawned process
 static int     servo_priority = 10;
 static int     servo_stack_size = 2000000;
 static int     cpuID = 0;
@@ -75,6 +75,8 @@ main(int argc, char**argv)
   int  ans; 
   char name[100];
 
+  // signal handlers
+  installSignalHandlers();
 
   // initialize xenomai specific variables and real-time environment
   initXeno("opengl");
@@ -93,9 +95,6 @@ main(int argc, char**argv)
       break;
     }
   }
-
-  // signal handlers
-  installSignalHandlers();
 
   // initializes the servo
   if (!init_openGL_servo(argc,argv))
@@ -163,8 +162,12 @@ openGL_servo(void *dummy)
 {
   int rc;
 
-  //forces the mode switch
+  //forces the initial mode switch
   rt_printf("entering opengl servo\n");
+
+  //we decouple the linux and xenomai priorities
+  if ((rc=rt_task_set_mode(0, T_RPIOFF, NULL)))
+    printf("rt_task_set_mode returned %d\n", rc);
 
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
