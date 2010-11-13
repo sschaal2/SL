@@ -76,11 +76,11 @@ main(int argc, char**argv)
 
   installSignalHandlers();
 
-  // initialize xenomai specific variables and real-time environment
-  initXeno("task");
-
   // parse command line options
   parseOptions(argc, argv);
+
+  // initialize xenomai specific variables and real-time environment
+  initXeno("task");
 
   // adjust settings if SL runs for a real robot
   setRealRobotOptions();
@@ -121,7 +121,7 @@ main(int argc, char**argv)
   // make this process real-time
   if (use_spawn) {
 
-    sprintf(name,"%s_servo",servo_name);
+    sprintf(name,"%s_servo_%d",servo_name, parent_process_id);
 
     if ((rc=rt_task_spawn(&servo_ptr,name,servo_stack_size,servo_priority,
                           T_FPU | T_JOINABLE | T_CPU(cpuID),task_servo,NULL))) {

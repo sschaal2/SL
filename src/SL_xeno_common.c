@@ -83,7 +83,7 @@ initXeno(char *task_name)
 
   //become a real-time process
   char name[100];
-  sprintf(name, "x%s_main", task_name);
+  sprintf(name, "x%s_main_%d", task_name, parent_process_id);
   rt_task_shadow(NULL, name, 0, 0);
 
   // start the non real-time printing library
@@ -139,20 +139,15 @@ action_upon_switch(int sig, siginfo_t *si, void *context)
   int nentries;
 
   // increment mode swich counter
-  //  if ( (reason >= SIGDEBUG_MIGRATE_SIGNAL) && (reason <=  SIGDEBUG_MIGRATE_PRIOINV) )
-  //{
-    //++count_xenomai_mode_switches;
-    //rt_printf("modeswitch\n");
-    //  printf("\nSIGDEBUG received, reason %d: %s\n", reason,
-  //      reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
-    //rt_printf("\nRTprintf SIGDEBUG received, reason %d: %s\n", reason,
-    //          reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
-  //}
-  //else
-  //{
+    if ( (reason >= SIGDEBUG_MIGRATE_SIGNAL) && (reason <=  SIGDEBUG_MIGRATE_PRIOINV) )
+  {
+    ++count_xenomai_mode_switches;
+  }
+  else //another error happened (likely a watchdog kill)
+  {
     extern RT_TASK servo_ptr;
     //stop the task that is causing trouble
-    //rt_task_suspend(&servo_ptr);
+    rt_task_suspend(&servo_ptr);
 
     printf("\nSIGDEBUG received, reason %d: %s\n", reason,
            reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
@@ -164,23 +159,6 @@ action_upon_switch(int sig, siginfo_t *si, void *context)
 
     //now we resume the task
     //rt_task_resume(&servo_ptr);
-    //}
-
-
-  //printf("\nSIGDEBUG received, reason %d: %s\n", reason,
-  //	 reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
-  /* Dump a backtrace of the frame which caused the switch to
-     secondary mode: */
-
-
-
-  /* Dump a backtrace of the frame which caused the switch to
-     secondary mode: */
-  /*
-  nentries = backtrace(bt,sizeof(bt) / sizeof(bt[0]));
-  backtrace_symbols_fd(bt,nentries,fileno(stdout));
-
-  getchar();
-   */
+    }
 
 }

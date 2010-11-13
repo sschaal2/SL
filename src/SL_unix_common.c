@@ -102,7 +102,7 @@ checkKeyboard(void *initial_command)
 
   //become a real-time process
   char name[100];
-  sprintf(name, "%s_terminal", servo_name);
+  sprintf(name, "%s_terminal_%d", servo_name, parent_process_id);
   rt_task_shadow(NULL, name, 0, 0);
 
   // we want this task in non real-time mode
