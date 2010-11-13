@@ -139,20 +139,20 @@ action_upon_switch(int sig, siginfo_t *si, void *context)
   int nentries;
 
   // increment mode swich counter
-  if ( (reason >= SIGDEBUG_MIGRATE_SIGNAL) && (reason <=  SIGDEBUG_MIGRATE_PRIOINV) )
-  {
-    ++count_xenomai_mode_switches;
+  //  if ( (reason >= SIGDEBUG_MIGRATE_SIGNAL) && (reason <=  SIGDEBUG_MIGRATE_PRIOINV) )
+  //{
+    //++count_xenomai_mode_switches;
     //rt_printf("modeswitch\n");
-    printf("\nSIGDEBUG received, reason %d: %s\n", reason,
-           reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
+    //  printf("\nSIGDEBUG received, reason %d: %s\n", reason,
+  //      reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
     //rt_printf("\nRTprintf SIGDEBUG received, reason %d: %s\n", reason,
     //          reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
-  }
-  else
-  {
+  //}
+  //else
+  //{
     extern RT_TASK servo_ptr;
     //stop the task that is causing trouble
-    rt_task_suspend(&servo_ptr);
+    //rt_task_suspend(&servo_ptr);
 
     printf("\nSIGDEBUG received, reason %d: %s\n", reason,
            reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
@@ -164,7 +164,7 @@ action_upon_switch(int sig, siginfo_t *si, void *context)
 
     //now we resume the task
     //rt_task_resume(&servo_ptr);
-  }
+    //}
 
 
   //printf("\nSIGDEBUG received, reason %d: %s\n", reason,

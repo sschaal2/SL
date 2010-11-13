@@ -25,7 +25,7 @@ INCLUDES               = -I../src -I../include -I$(MY_INCLUDES)  \
                          -I$(SARCOSDTSHOME)/include -I../math \
                          -I/usr/local/glut/include
 
-CFLAGS                 = $(OPTIMIZE_CC_FLAGS) $(INCLUDES) -D$(MACHTYPE)
+CFLAGS                 = $(DEBUG_CC_FLAGS) $(INCLUDES) -D$(MACHTYPE)
 SRCDIR                 = ../src
 LIBDIR                 = $(MY_LIBDIR)/$(MACHTYPE)
 HEADERDIR              = $(MY_INCLUDES)

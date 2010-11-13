@@ -159,9 +159,11 @@ setOsc(int channel, double pval)
     return TRUE;
 
 #ifdef __XENO__
-  struct timespec t;
-  clock_gettime(CLOCK_MONOTONIC,&t);
-  ts = (double) t.tv_sec + ((double)t.tv_nsec)/1.e9;
+  RTIME t = rt_timer_read();
+  ts = (double)t/1.e9;
+  //struct timespec t;
+  //clock_gettime(CLOCK_MONOTONIC,&t);
+  //ts = (double) t.tv_sec + ((double)t.tv_nsec)/1.e9;
 #else
   struct timeval t;
   gettimeofday(&t,NULL);
