@@ -74,17 +74,18 @@ initXeno(char *task_name)
   pthread_mutexattr_setprotocol(&attr,PTHREAD_PRIO_INHERIT);
   pthread_mutex_init(&mutex1,&attr);
 
-  // what to do when mode switches happen
-   sigemptyset(&sa.sa_mask);
-   sa.sa_sigaction = action_upon_switch;
-   sa.sa_flags = SA_SIGINFO;
-   sigaction(SIGDEBUG, &sa, NULL);
-   //signal(SIGDEBUG, action_upon_switch);
-
   //become a real-time process
   char name[100];
   sprintf(name, "x%s_main_%d", task_name, parent_process_id);
   rt_task_shadow(NULL, name, 0, 0);
+
+  // what to do when mode switches happen
+//   sigemptyset(&sa.sa_mask);
+//   sa.sa_sigaction = action_upon_switch;
+//   sa.sa_flags = SA_SIGINFO;
+//   sigaction(SIGDEBUG, &sa, NULL);
+   signal(SIGDEBUG, SIG_IGN);
+
 
   // start the non real-time printing library
   rt_print_auto_init(1);
@@ -139,7 +140,7 @@ action_upon_switch(int sig, siginfo_t *si, void *context)
   int nentries;
 
   // increment mode swich counter
-    if ( (reason >= SIGDEBUG_MIGRATE_SIGNAL) && (reason <=  SIGDEBUG_MIGRATE_PRIOINV) )
+  if ( (reason >= SIGDEBUG_MIGRATE_SIGNAL) && (reason <=  SIGDEBUG_MIGRATE_PRIOINV) )
   {
     ++count_xenomai_mode_switches;
   }
