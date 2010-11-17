@@ -471,7 +471,7 @@ init_task_servo(void)
   initOsc();
   setOsc(d2a_ct,0.0);
 
-  scd();
+  // scd();
 
 }
 
@@ -918,7 +918,7 @@ step(int jid, int iamp)
     flag = TRUE;
   }
 
-//  scd();
+  scd();
   
   return TRUE;
 
