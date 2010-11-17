@@ -293,6 +293,9 @@ run_simulation_servo(void)
   // compute miscellenous sensors
   run_user_simulation();
 
+  // run user specific simulations
+  runUserSimulation();
+
   // data collection
   writeToBuffer();
 
