@@ -918,7 +918,7 @@ step(int jid, int iamp)
     flag = TRUE;
   }
 
-  scd();
+//  scd();
   
   return TRUE;
 
