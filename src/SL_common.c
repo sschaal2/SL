@@ -1335,7 +1335,9 @@ where_cog(void)
  Function Parameters: [in]=input,[out]=output
 
  \param[in]     R   : rotation matrix
- \param[out]    q   : quaternian structure for output
+ \param[in,out] q   : quaternian structure for output -- the output is chosen
+                      such that the new quaternion does not flip sign relative
+                      to the previous quaternion
 
  ******************************************************************************/
 void
@@ -1343,6 +1345,8 @@ linkQuat(Matrix R, SL_quat *q)
 {
   int i,j;
   double T,S,qx,qy,qz,qw;
+  double quat_sign;
+  double aux;
 
   T = 1.0 + R[1][1] + R[2][2] + R[3][3];
 
@@ -1376,6 +1380,28 @@ linkQuat(Matrix R, SL_quat *q)
       qw = (R[1][2] - R[2][1] ) / S;
     } 
 
+  }
+
+  // check whether we have a valid reference quaternion
+  aux = 0.0;
+  for (i=1;i<=N_QUAT;i++)
+    aux += sqr(q->q[i]);
+  aux = sqrt(aux);
+
+  // fix the sign of quaternion
+  if ( fabs(1.-aux) < 0.01) {
+    quat_sign = 
+      q->q[_Q0_] * qw + 
+      q->q[_Q1_] * qx +
+      q->q[_Q2_] * qy +
+      q->q[_Q3_] * qz;
+
+    if (quat_sign < 0.0) {
+      qw *= -1.0;
+      qx *= -1.0;
+      qy *= -1.0;
+      qz *= -1.0;
+    }
   }
   
   q->q[_Q0_] = qw;
