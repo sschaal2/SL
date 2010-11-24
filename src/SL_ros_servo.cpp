@@ -345,6 +345,7 @@ run_ros_servo(void)
   if (dticks != 1 && ros_servo_calls > 2) // need transient ticks to sync servos
     ros_servo_errors += abs(dticks-1);
 
+
   /*********************************************************************
    * check for messages
    */
@@ -370,18 +371,27 @@ run_ros_servo(void)
   
   setOsc(d2a_cr,20.0);
 
+#ifdef __XENO__
+  // we want to be in secondary mode here
+  rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
+
   /**********************************************************************
    * do ROS communication
    */
 	ros_communicator_.publish();
 
-  setOsc(d2a_cr,80.0);
   
   /**********************************************************************
    * do user specific ROS functions
    */
 
   run_user_ros();
+
+#ifdef __XENO__
+  // we want to be in real-time mode here
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+#endif
 
   setOsc(d2a_cr,90.0);
   
@@ -392,7 +402,9 @@ run_ros_servo(void)
   writeToBuffer();
   sendOscilloscopeData();
 
+
   setOsc(d2a_cr,100.0);
+
   
   /*************************************************************************
    * end of program sequence
