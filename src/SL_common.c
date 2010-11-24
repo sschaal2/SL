@@ -512,7 +512,7 @@ read_sensor_offsets(char *fname) {
   /* get the max, min, and offsets of the position sensors */
 
   sprintf(string,"%s%s",CONFIG,fname);
-  in = fopen(string,"r");
+  in = fopen_strip(string);
   if (in == NULL) {
     printf("ERROR: Cannot open file >%s<!\n",string);
     return FALSE;
@@ -568,7 +568,7 @@ read_gains(char *fname, double *gth, double *gthd, double *gint) {
   double dum;
 
   sprintf(string,"%s%s",CONFIG,fname);
-  in = fopen(string,"r");
+  in = fopen_strip(string);
   if (in == NULL) {
     printf("ERROR: Cannot open file >%s<!\n",string);
     return FALSE;
@@ -622,7 +622,7 @@ read_link_parameters(char *fname) {
 
   /* read the link parameters */
   sprintf(string,"%s%s",CONFIG,fname);
-  in = fopen(string,"r");
+  in = fopen_strip(string);
   if (in == NULL) {
     printf("ERROR: Cannot open file >%s<!\n",string);
     return FALSE;
@@ -701,7 +701,7 @@ read_whichDOFs(char *fname, char *keyword) {
 
   /* read the link parameters */
   sprintf(string,"%s%s",CONFIG,fname);
-  in = fopen(string,"r");
+  in = fopen_strip(string);
   if (in == NULL) {
     printf("ERROR: Cannot open file >%s<!\n",string);
     return FALSE;
@@ -774,7 +774,7 @@ read_servoParameters(char *fname, char *keyword, int *priority, int *stacksize,
 
   /* read the parameters */
   sprintf(string,"%s%s",CONFIG,fname);
-  in = fopen(string,"r");
+  in = fopen_strip(string);
   if (in == NULL) {
     printf("ERROR: Cannot open file >%s<!\n",string);
     return FALSE;
@@ -2025,7 +2025,7 @@ read_config_files(char *fname) {
 
   // open the file for read 
   sprintf(string,"%s%s",CONFIG,fname);
-  in = fopen(string,"r");
+  in = fopen_strip(string);
   if (in == NULL) {
     printf("ERROR: Cannot open file >%s<!\n",string);
     return FALSE;
@@ -2075,7 +2075,7 @@ read_sensor_calibration(char *fname, Matrix joint_lin_rot,
   double dum;
 
   sprintf(string,"%s%s",CONFIG,fname);
-  in = fopen(string,"r");
+  in = fopen_strip(string);
   if (in == NULL) {
     printf("ERROR: Cannot open file >%s<!\n",string);
     return FALSE;
