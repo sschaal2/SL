@@ -37,7 +37,7 @@ char initial_user_command[100]="";
 int  delay_ns = FALSE;
 
 // local variables
- RT_TASK servo_ptr;
+static RT_TASK servo_ptr;
 static int     use_spawn = TRUE;
 static int     servo_priority = 25;
 static int     servo_stack_size = 2000000;

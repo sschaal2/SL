@@ -625,10 +625,6 @@ triggerSynchronization(void)
 #ifdef __XENO__
     RTIME t = rt_timer_read();
     current_time = (double)t / 1.e9;
-
-    //struct timespec t;  
-    //clock_gettime(CLOCK_MONOTONIC,&t);
-    //current_time = (double) t.tv_sec + ((double)t.tv_nsec)/1.e9;
 #else
     struct timeval t;
     

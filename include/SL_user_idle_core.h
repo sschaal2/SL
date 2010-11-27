@@ -40,7 +40,6 @@ if (pause_flag || stand_alone_flag) {
 
 #ifdef __XENO__
   // we want to be in real-time mode here
-//printf("..\n");
   rt_task_set_mode(0,T_PRIMARY,NULL);
 #endif
 //-------------------------------------------------------------------------

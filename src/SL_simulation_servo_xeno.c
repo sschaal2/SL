@@ -49,7 +49,7 @@ int     delay_ns = FALSE;
 
 // local variables
 static int     pause_flag = FALSE;
- RT_TASK servo_ptr;
+static RT_TASK servo_ptr;
 static int     use_spawn = TRUE;
 static int     servo_priority = 90;
 static int     servo_stack_size = 2000000;

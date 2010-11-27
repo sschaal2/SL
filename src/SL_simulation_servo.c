@@ -209,10 +209,6 @@ run_simulation_servo(void)
 
   // real-time processing if needed 
 #ifdef __XENO__
-  //struct timespec t;
-  //clock_gettime(CLOCK_MONOTONIC,&t);
-  //current_time = (double) t.tv_sec + ((double)t.tv_nsec)/1.e9;
-
   RTIME t = rt_timer_read();
   current_time = (double)t/1.e9;
 
@@ -227,8 +223,6 @@ run_simulation_servo(void)
 
     RTIME t = rt_timer_read();
     current_time = (double)t/1.e9;
-    //clock_gettime(CLOCK_MONOTONIC,&t);
-    //current_time = (double) t.tv_sec + ((double)t.tv_nsec)/1.e9;
 
   }
 #else

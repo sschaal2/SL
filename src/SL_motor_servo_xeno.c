@@ -47,7 +47,7 @@ static void motor_servo(void *dummy);
 static RTIME   real_time;
 static RTIME   real_time_dt;
 static RTIME   start_real_time;
- RT_TASK servo_ptr;
+static RT_TASK servo_ptr;
 static int     use_spawn = TRUE;
 static int     servo_priority = 75;
 static int     servo_stack_size = 2000000;

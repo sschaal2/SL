@@ -34,7 +34,7 @@
 
 extern "C" {
 
- RT_TASK servo_ptr;
+static RT_TASK servo_ptr;
 static int     use_spawn = TRUE;
 static int     servo_priority = 10;
 static int     servo_stack_size = 2000000;
@@ -166,8 +166,8 @@ ros_servo(void *dummy)
   rt_printf("entering ros servo\n");
 
   //we decouple the linux and xenomai priorities
-//  if ((rc=rt_task_set_mode(0, T_RPIOFF, NULL)))
-//    printf("rt_task_set_mode returned %d\n", rc);
+  if ((rc=rt_task_set_mode(0, T_RPIOFF, NULL)))
+    printf("rt_task_set_mode returned %d\n", rc);
 
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL)))

@@ -606,7 +606,7 @@ receiveOscilloscopeData(void)
   if (semTake(sm_oscilloscope_sem,ns2ticks(TIME_OUT_SHORT_NS)) == ERROR)
   {
 #ifdef __XENO__
-    // we want to be in real-time mode here
+    // we want to be in secondary mode here
     rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
@@ -623,7 +623,7 @@ receiveOscilloscopeData(void)
   semGive(sm_oscilloscope_sem);
 
 #ifdef __XENO__
-  // we want to be in real-time mode here
+  // we want to be in secondary mode here
   rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
