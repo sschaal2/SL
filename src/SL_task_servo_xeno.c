@@ -196,9 +196,16 @@ task_servo(void *dummy)
     if (semTake(sm_task_servo_sem,WAIT_FOREVER) == ERROR)
       stop("semTake Time Out -- Servo Terminated");
 
+    // lock out the keyboard interaction
+    sl_rt_mutex_lock(&mutex1);
+
     // run the task servo routines
     if (!run_task_servo())
       break;
+
+    // continue keyboard interaction
+    sl_rt_mutex_unlock(&mutex1);
+
 
 
   }  /* end servo while loop */

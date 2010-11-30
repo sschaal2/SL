@@ -186,10 +186,15 @@ ros_servo(void *dummy)
       return;
     }
 
+    // lock keyboard interaction
+    sl_rt_mutex_lock(&mutex1);
+
     // run the task servo routines
     if (!run_ros_servo())
       break;
 
+    // continue keyboard interaction
+    sl_rt_mutex_unlock(&mutex1);
 
   }  /* end servo while loop */
 

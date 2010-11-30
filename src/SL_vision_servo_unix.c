@@ -101,7 +101,7 @@ main(int argc, char**argv)
       stop("semTake Time Out -- Servo Terminated");
 
     // lock out the keyboard interaction 
-    pthread_mutex_lock( &mutex1 );
+    sl_rt_mutex_lock( &mutex1 );
 
     // reset the blob status
     for (i=1; i<=max_blobs; ++i) {
@@ -114,7 +114,7 @@ main(int argc, char**argv)
       break;
 
     // continue keyboard interaction
-    pthread_mutex_unlock( &mutex1 );
+    sl_rt_mutex_unlock( &mutex1 );
 
   }  /* end servo while loop */
 

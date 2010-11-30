@@ -878,12 +878,28 @@ SLGenericDisplay(void)
   GLfloat  objscolor[4]={(float)0.2,(float)0.2,(float)0.2,(float)1.0};
   OpenGLWPtr ptr = first_window_ptr;
 
+#ifdef __XENO__
+  // we want to be in real-time mode here
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+#endif
   // lock out the keyboard interaction 
-  pthread_mutex_lock( &mutex1 );
+  sl_rt_mutex_lock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in secondary mode here
+  rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
 
   ptr = whichGLWindow();
   if (ptr == NULL) {
-    pthread_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in real-time mode here
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+#endif
+    sl_rt_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in secondary mode here
+  rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
     return;
   }
 
@@ -894,7 +910,15 @@ SLGenericDisplay(void)
     // reactivate the window -- somehow this is neede
     glViewport(0,0,(GLsizei) ptr->width, (GLsizei) ptr->height);
     glutPositionWindow(ptr->x, ptr->y-22);
-    pthread_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in real-time mode here
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+#endif
+    sl_rt_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in secondary mode here
+  rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
     return;
   }
 
@@ -905,7 +929,15 @@ SLGenericDisplay(void)
     ptr->y = glutGet(GLUT_WINDOW_Y);
     glutIconifyWindow();
     ptr->hide = TRUE;
-    pthread_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in real-time mode here
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+#endif
+    sl_rt_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in secondary mode here
+  rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
     return;
   }
 
@@ -978,7 +1010,15 @@ SLGenericDisplay(void)
   glutSwapBuffers();
 
   // continue keyboard interaction
-  pthread_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in real-time mode here
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+#endif
+    sl_rt_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in secondary mode here
+  rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
 
 }
 
@@ -1393,7 +1433,15 @@ toggleHideWindow(OpenGLWPtr ptr)
 {
 
   // make sure we don't interfer with the display functions
-  pthread_mutex_lock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in real-time mode here
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+#endif
+    sl_rt_mutex_lock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in secondary mode here
+  rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
 
   if (ptr->hide) {
     printf("Click Icon >%s< To Make Window Visible\n",ptr->name);
@@ -1405,7 +1453,15 @@ toggleHideWindow(OpenGLWPtr ptr)
     printf("Hide Window %s [%d]\n",ptr->name,ptr->ID);
   }
 
-  pthread_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in real-time mode here
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+#endif
+    sl_rt_mutex_unlock( &mutex1 );
+#ifdef __XENO__
+  // we want to be in secondary mode here
+  rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
 
 }
 

@@ -56,7 +56,7 @@ void motor_servo(void);
 // local functions
 
 // local variables
-static pthread_cond_t      cond  = PTHREAD_COND_INITIALIZER;
+static sl_rt_cond cond;
 static double real_time;
 static double real_time_dt;
 
@@ -100,6 +100,9 @@ main(int argc, char**argv)
   struct timespec   ts;
   struct timeval    tp,start_tp;
   double last_real_time;
+
+  //init the cond
+  sl_rt_cond_init(&cond);
 
   // parse command line options
   parseOptions(argc, argv);
@@ -183,15 +186,17 @@ main(int argc, char**argv)
 #ifdef i386
 #ifdef i386mac
       // use pthread_cond_timedwait for absolute timing
-      pthread_mutex_lock(&mutex1);
-      pthread_cond_timedwait(&cond, &mutex1, &ts);
-      pthread_mutex_unlock(&mutex1);
+      sl_rt_time timeout = (sl_rt_time)(ts.tv_nsec) + (sl_rt_time)(ts.tv_sec * 1000000000);
+      sl_rt_mutex_lock(&mutex1);
+      sl_rt_cond_timedwait(&cond, &mutex1, timeout);
+      sl_rt_mutex_unlock(&mutex1);
 #else
 #ifdef x86_64mac
       // use pthread_cond_timedwait for absolute timing
-      pthread_mutex_lock(&mutex1);
-      pthread_cond_timedwait(&cond, &mutex1, &ts);
-      pthread_mutex_unlock(&mutex1);
+      sl_rt_time timeout = (sl_rt_time)(ts.tv_nsec) + (sl_rt_time)(ts.tv_sec * 1000000000);
+      sl_rt_mutex_lock(&mutex1);
+      sl_rt_cond_timedwait(&cond, &mutex1, timeout);
+      sl_rt_mutex_unlock(&mutex1);
 #else
       clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ts,NULL);
 #endif
@@ -201,9 +206,10 @@ main(int argc, char**argv)
       clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &ts,NULL);
 #else
       // use pthread_cond_timedwait for absolute timing
-      pthread_mutex_lock(&mutex1);
-      pthread_cond_timedwait(&cond, &mutex1, &ts);
-      pthread_mutex_unlock(&mutex1);
+      sl_rt_time timeout = (sl_rt_time)(ts.tv_nsec) + (sl_rt_time)(ts.tv_sec * 1000000000);
+      sl_rt_mutex_lock(&mutex1);
+      sl_rt_cond_timedwait(&cond, &mutex1, timeout);
+      sl_rt_mutex_unlock(&mutex1);
 #endif
 #endif
 
@@ -218,15 +224,15 @@ main(int argc, char**argv)
       exit(-1);
     }
     
-    // lock out the keyboard interaction 
-    pthread_mutex_lock( &mutex1 );
+    // lock out the keyboard interaction
+    sl_rt_mutex_lock(&mutex1);
 
     // run the task servo routines
     if (!run_motor_servo())
       break;
 
     // continue keyboard interaction
-    pthread_mutex_unlock( &mutex1 );
+    sl_rt_mutex_unlock(&mutex1);
 
     // trigger the simulation servo
     if (semGive(sm_simulation_servo_sem) == ERROR)

@@ -94,14 +94,14 @@ main(int argc, char**argv)
     }
 
     // lock out the keyboard interaction 
-    pthread_mutex_lock( &mutex1 );
+    sl_rt_mutex_lock( &mutex1 );
 
     // run the task servo routines
     if (!run_ros_servo())
       break;
 
     // continue keyboard interaction
-    pthread_mutex_unlock( &mutex1 );
+    sl_rt_mutex_unlock( &mutex1 );
 
   }  /* end servo while loop */
 

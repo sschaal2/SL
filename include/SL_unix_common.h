@@ -20,12 +20,15 @@
 #include "unistd.h"
 #include "pthread.h"
 
+#include "SL_rt_mutex.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
   // external variables 
-  extern pthread_mutex_t mutex1;
+  //extern pthread_mutex_t mutex1;
+  extern sl_rt_mutex mutex1;
   extern int run_command_line_thread_flag;
   extern int (*window_check_function)(char *);
   extern int    global_argc;

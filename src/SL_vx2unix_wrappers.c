@@ -611,7 +611,7 @@ removeSharedMemory(int dummy)
   }
 
   // make sure the thread is unlocked
-  pthread_mutex_unlock( &mutex1 );
+  sl_rt_mutex_unlock( &mutex1 );
   run_command_line_thread_flag = FALSE;
 
   // execute user function

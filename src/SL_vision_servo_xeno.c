@@ -191,9 +191,15 @@ vision_servo(void *dummy)
       raw_blobs2D[i][2].status = FALSE;
     }
 
+    // lock out the keyboard interaction
+    sl_rt_mutex_lock(&mutex1);
+
     // run the task servo routines
     if (!run_vision_servo())
       break;
+
+    // continue keyboard interaction
+    sl_rt_mutex_unlock(&mutex1);
 
 
   }  /* end servo while loop */

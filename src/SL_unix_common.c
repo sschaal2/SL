@@ -36,9 +36,9 @@
 
 // global variables
 #ifdef __XENO__
-pthread_mutex_t mutex1;
+sl_rt_mutex mutex1;
 #else
-pthread_mutex_t mutex1 = PTHREAD_MUTEX_INITIALIZER; //for a safe thread
+sl_rt_mutex mutex1 = PTHREAD_MUTEX_INITIALIZER; //for a safe thread
 #endif
 int (*window_check_function)(char *) = NULL;
 int  run_command_line_thread_flag = FALSE;

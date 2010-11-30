@@ -67,12 +67,7 @@ initXeno(char *task_name)
   // mapped into the address space of the process
   mlockall(MCL_CURRENT | MCL_FUTURE);
 
-  // Note that only pthread_mutex_init() may be used to initialize a mutex,
-  // using the static initializer PTHREAD_MUTEX_INITIALIZER is not supported by Xenomai.
-  pthread_mutexattr_t attr;
-  pthread_mutexattr_setpshared(&attr,PTHREAD_PROCESS_SHARED);
-  pthread_mutexattr_setprotocol(&attr,PTHREAD_PRIO_INHERIT);
-  pthread_mutex_init(&mutex1,&attr);
+  sl_rt_mutex_init(&mutex1);
 
   //become a real-time process
   char name[100];

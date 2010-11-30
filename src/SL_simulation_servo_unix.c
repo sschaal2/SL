@@ -114,14 +114,14 @@ main(int argc, char**argv)
     }
 
     // lock out the keyboard interaction 
-    pthread_mutex_lock( &mutex1 );
+    sl_rt_mutex_lock( &mutex1 );
 
     // run the simulation servo routines
     if (!run_simulation_servo())
       break;
 
     // continue keyboard interaction
-    pthread_mutex_unlock( &mutex1 );
+    sl_rt_mutex_unlock( &mutex1 );
 
   }  /* end servo while loop */
 

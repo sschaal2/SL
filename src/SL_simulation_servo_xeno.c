@@ -201,10 +201,16 @@ simulation_servo(void *dummy)
       return;
     }
 
+    // lock out the keyboard interaction
+    sl_rt_mutex_lock(&mutex1);
 
     // run the simulation servo routines
     if (!run_simulation_servo())
       break;
+
+    // continue keyboard interaction
+    sl_rt_mutex_unlock(&mutex1);
+
 
   }  /* end servo while loop */
 

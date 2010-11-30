@@ -236,10 +236,15 @@ motor_servo(void *dummy)
 
     }
 
+    // lock out the keyboard interaction
+    sl_rt_mutex_lock(&mutex1);
 
     // run the task servo routines
     if (!run_motor_servo())
       break;
+
+    // continue keyboard interaction
+    sl_rt_mutex_unlock(&mutex1);
 
     // trigger the simulation servo
     if (semGive(sm_simulation_servo_sem) == ERROR)
