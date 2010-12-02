@@ -69,6 +69,7 @@ static void triggerSynchronization(void);
 static int  checkForMessages(void);
 static void sim_stop(void);
 static void reset(void);
+static void where_gains(void);
 
 
 /*!*****************************************************************************
@@ -188,6 +189,7 @@ init_motor_servo(void)
   addToMan("dms","disables the motor servo",dms);
   addToMan("status","displays status information about servo",status);
   addToMan("stop","kills the robot control",sim_stop);
+  addToMan("where_gains","Print gains of the joints",where_gains);
 
 
   /* initialize user specific things */
@@ -699,6 +701,10 @@ checkForMessages(void)
       }
       
     // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"where_gains") == 0) { 
+      where_gains();
+      
+    // ---------------------------------------------------------------------------
     } else if (strcmp(name,"status") == 0) { 
       extern void status(void);
       status();
@@ -867,3 +873,47 @@ reset(void)
 }
 
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  where_gains
+\date  Nov 2010
+\remarks 
+
+ printf the PID gains of all the DOFs
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+static void
+where_gains(void)
+{
+  int i,j;
+  int start=1;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: motor servo is not running!!\n");
+  }
+
+  extern double        servo_time;
+	extern double* controller_gain_th;
+	extern double* controller_gain_thd;
+	extern double* controller_gain_int;
+  printf("Current Gains %f:\n",servo_time);
+
+  for (i=start; i<=start+n_dofs-1; ++i) {
+
+    printf("%2d: %5s: P=% 5.3f D=% 6.3f I=% 6.2f\n",
+	   i,joint_names[i],
+	   controller_gain_th[i],
+	   controller_gain_thd[i],
+	   controller_gain_int[i]
+	   );
+
+  }
+  printf("\n");
+
+}  
