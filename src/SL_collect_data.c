@@ -223,6 +223,9 @@ readDataCollectScript( char *fn, int flag )
     printf("Error when trying to open file >%s< !\n",fname);
     return FALSE;
   }
+
+  /* make sure no data collection is running */
+  save_data_flag = FALSE;
   
   /* now read the file */
   n_cvars = 0;
