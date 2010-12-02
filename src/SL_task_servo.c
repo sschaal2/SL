@@ -471,7 +471,7 @@ init_task_servo(void)
   initOsc();
   setOsc(d2a_ct,0.0);
 
-  // scd();
+  scd();
 
 }
 
