@@ -77,10 +77,8 @@ initXeno(char *task_name)
   // what to do when mode switches happen
   signal(SIGDEBUG, action_upon_switch);
 
-
   // start the non real-time printing library
   rt_print_auto_init(1);
-
 
   // get the timer info
   if ((rc=rt_timer_set_mode((RTIME) XENO_CLOCK_PERIOD)))

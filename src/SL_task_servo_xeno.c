@@ -74,6 +74,7 @@ main(int argc, char**argv)
   int  rc;
   char name[100];
 
+  // signal handlers
   installSignalHandlers();
 
   // parse command line options
@@ -84,9 +85,6 @@ main(int argc, char**argv)
 
   // adjust settings if SL runs for a real robot
   setRealRobotOptions();
-
-  // signal handlers
-  //installSignalHandlers();
 
   // initializes the servo
   init_task_servo();

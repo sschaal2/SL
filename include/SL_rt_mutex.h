@@ -1,25 +1,31 @@
-/*
- * SL_rt_mutex.h
- *
- *  Created on: Nov 10, 2010
- *      Author: kalakris
- */
+/*!=============================================================================
+  ==============================================================================
+
+  \file    SL_rt_mutex.h
+
+  \author  Mrinal Kalakrishnan
+  \date    Nov. 2010
+
+  ==============================================================================
+  \remarks
+
+  This file defines a type "sl_rt_mutex", which is a wrapper for a real-time mutex.
+  It uses Xenomai mutexes on the Xenomai RTOS, and pthread mutexes otherwise.
+  We attempt to mimic the pthread_mutex_* api.
+
+  Pthread condition functions are also wrapped as sl_rt_cond_*.
+
+  Using this wrappers turned out to be more stable than using the xenomai
+  posix-skin, which caused problems in 64-bit Xenomai.
+
+  TODOs:
+  Error codes are not converted yet. 
+  Calls with timeout values are not implemented yet.
+
+  ============================================================================*/
 
 #ifndef SL_RT_MUTEX_H_
 #define SL_RT_MUTEX_H_
-
-/**
- * This file defines a type "sl_rt_mutex", which is a wrapper for a real-time mutex.
- * It uses Xenomai mutexes on the Xenomai RTOS, and pthread mutexes otherwise.
- * We attempt to mimic the pthread_mutex_* api.
- *
- * Pthread condition functions are also wrapped as sl_rt_cond_*.
- *
- * TODOs:
- *  Error codes are not converted yet. 
- *  Calls with timeout values are not implemented yet.
- */
-
 
 #ifdef __XENO__
 #include <native/mutex.h>
