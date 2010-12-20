@@ -86,6 +86,8 @@ init_dynamics( void )
       freeze_base_quat[i] = base_orient.q[i] = quat[i]/(aux + 1.e-10);
   } else if (read_parameter_pool_double_array(config_files[PARAMETERPOOL],"init_base_euler",N_CART,euler)) {
     SL_quat qtmp;
+
+    bzero((void *)&qtmp,sizeof(qtmp));
     eulerToQuat(euler, &qtmp);
     for (i=1; i<=N_QUAT; ++i) 
       freeze_base_quat[i] = base_orient.q[i] = qtmp.q[i];
