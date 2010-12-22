@@ -423,6 +423,21 @@ semGive (SEM_ID semId)
   RT_SEM_INFO info;
   int         rc;
 
+  rc = rt_sem_p(semId,TM_NONBLOCK);
+  if (rc == -EWOULDBLOCK || rc == 0) {
+    rc = rt_sem_v(semId);
+    if (rc) {
+      printf("Error in rt_sem_v (rc=%d)\n",rc);
+      return ERROR;
+    }
+  } else {
+    char name[100];
+    semFindNameByID(semId,name);
+    printf("Error in rt_sem_p (rc=%d, name=%s)\n",rc,name);
+    return ERROR;
+  }
+
+#if 0
   // only give the semaphore if empty -- this emulates a binary semaphore
   rc = rt_sem_inquire(semId,&info);
   if (rc) {
@@ -435,7 +450,10 @@ semGive (SEM_ID semId)
       printf("Error in rt_sem_v (rc=%d)\n",rc);
       return ERROR;
     }
+  } else {
+    printf("not empty when giving semaphore\n");
   }
+#endif
 
   return OK;
 }

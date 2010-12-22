@@ -786,6 +786,7 @@ send_commands(void)
 
   semGive(sm_sjoint_des_state_sem);
   semGive(sm_sjoint_des_state_ready_sem);
+  printf("give sm_sjoint_des_state_ready_sem\n");
   
   return TRUE;
   

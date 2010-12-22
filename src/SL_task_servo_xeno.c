@@ -191,8 +191,10 @@ task_servo(void *dummy)
       taskDelay(ns2ticks(delay_ns));
 
     // wait to take semaphore 
+    printf("before\n");
     if (semTake(sm_task_servo_sem,WAIT_FOREVER) == ERROR)
       stop("semTake Time Out -- Servo Terminated");
+    printf("after\n");
 
     // lock out the keyboard interaction
     sl_rt_mutex_lock(&mutex1);

@@ -228,11 +228,15 @@ motor_servo(void *dummy)
 
     } else { 
 
+      printf("before\n");
+
       // wait to take semaphore
       if (semTake(sm_motor_servo_sem,WAIT_FOREVER) == ERROR) {
         printf("semTake Time Out -- Servo Terminated");
         exit(-1);
       }
+
+      printf("after\n");
 
     }
 
@@ -249,6 +253,7 @@ motor_servo(void *dummy)
     // trigger the simulation servo
     if (semGive(sm_simulation_servo_sem) == ERROR)
       exit(-1);
+    printf("give sm_simulation_servo_sem\n");
 
   }  /* end servo while loop */
 

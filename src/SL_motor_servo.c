@@ -387,6 +387,8 @@ receive_commands(void)
       wait_flag = WAIT_FOREVER;
   }
 
+  printf("before joint_state_ready with WAIT_FOREVER=%d (cnr=%d %d)\n",wait_flag,
+	 count_no_receive,task_servo_ratio-1);
   if (semTake(sm_sjoint_des_state_ready_sem,wait_flag) == ERROR) {
 
     if (wait_flag == WAIT_FOREVER) // an error in WAIT_FOREVER must be terminated
@@ -437,6 +439,7 @@ receive_commands(void)
     }
 
   }
+  printf("after joint_state_ready\n");
 
   /* check status of joints */
   for (i=1; i<=n_dofs; ++i) {
@@ -614,6 +617,7 @@ triggerSynchronization(void)
     semGive(sm_task_servo_sem);
 #endif
   }
+  printf("give sm_task_servo_sem\n");
 
   iaux = (int)(((double)motor_servo_rate)/60.0+0.5);
   if (motor_servo_calls%iaux==1)
@@ -642,6 +646,7 @@ triggerSynchronization(void)
  
   }
 #endif
+
   
 }
 

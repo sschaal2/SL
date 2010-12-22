@@ -248,6 +248,7 @@ run_simulation_servo(void)
   // only after the write/read steps above, trigger the motor servo to avoid that
   // the motor servo can read data that has the wrong time stamp
   semGive(sm_motor_servo_sem);
+  printf("give sm_motor_servo_sem\n");
 
   // real-time processing if needed 
 #ifdef __XENO__
