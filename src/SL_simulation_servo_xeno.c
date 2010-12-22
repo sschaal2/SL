@@ -196,12 +196,10 @@ simulation_servo(void *dummy)
     }
 
     // wait to take semaphore 
-    printf("before\n");
     if (semTake(sm_simulation_servo_sem,WAIT_FOREVER) == ERROR) {
       printf("semTake Time Out -- Servo Terminated\n");
       return;
     }
-    printf("after\n");
 
     // lock out the keyboard interaction
     sl_rt_mutex_lock(&mutex1);

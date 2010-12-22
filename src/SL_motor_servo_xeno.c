@@ -253,7 +253,6 @@ motor_servo(void *dummy)
     // trigger the simulation servo
     if (semGive(sm_simulation_servo_sem) == ERROR)
       exit(-1);
-    printf("give sm_simulation_servo_sem\n");
 
   }  /* end servo while loop */
 

@@ -423,12 +423,27 @@ semGive (SEM_ID semId)
   RT_SEM_INFO info;
   int         rc;
 
+  // only give the semaphore if empty -- this emulates a binary semaphore
   rc = rt_sem_p(semId,TM_NONBLOCK);
-  if (rc == -EWOULDBLOCK || rc == 0) {
+  if (rc == -EWOULDBLOCK) { // this is perfect and means the semaphore should be given
     rc = rt_sem_v(semId);
     if (rc) {
       printf("Error in rt_sem_v (rc=%d)\n",rc);
       return ERROR;
+    }
+  } else if (rc == 0) { // this means the semaphore was already available
+    // check whether semaphore is empty before giving -- not an atomic operation
+    rc = rt_sem_inquire(semId,&info);
+    if (rc) {
+      printf("Error in rt_sem_inquire (rc=%d)\n",rc);
+      return ERROR;
+    }
+    if (info.count == 0) {
+      rc = rt_sem_v(semId);
+      if (rc) {
+	printf("Error in rt_sem_v (rc=%d)\n",rc);
+	return ERROR;
+      }
     }
   } else {
     char name[100];
@@ -436,24 +451,6 @@ semGive (SEM_ID semId)
     printf("Error in rt_sem_p (rc=%d, name=%s)\n",rc,name);
     return ERROR;
   }
-
-#if 0
-  // only give the semaphore if empty -- this emulates a binary semaphore
-  rc = rt_sem_inquire(semId,&info);
-  if (rc) {
-    printf("Error in rt_sem_inquire (rc=%d)\n",rc);
-    return ERROR;
-  }
-  if (info.count == 0) {
-    rc = rt_sem_v(semId);
-    if (rc) {
-      printf("Error in rt_sem_v (rc=%d)\n",rc);
-      return ERROR;
-    }
-  } else {
-    printf("not empty when giving semaphore\n");
-  }
-#endif
 
   return OK;
 }
