@@ -409,7 +409,7 @@ readOscVarsScript( char *fn, int flag )
   while ((rc=fscanf(infile,"%s %d",string,&pID)) != EOF) {
 
     // figure out whether the string exists
-    if (getDataCollectPtr(string, &vptr, &type, units ) && pID > 0) {
+    if (getDataCollectPtr(string, sizeof(units), &vptr, &type, units ) && pID > 0) {
       ++count;
       if (count == 1) {
 	osc_info_ptr = (OscInfo *) my_calloc(1,sizeof(OscInfo),MY_STOP);

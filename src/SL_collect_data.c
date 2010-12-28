@@ -852,6 +852,7 @@ updateDataCollectScript( void )
  Function Parameters: [in]=input,[out]=output
 
  \param[in]     name : name of variable
+ \param[in]     n_char_units : pass sizeof(units) or an explicity integer
  \param[out]    vptr : ptr to variable (or NULL if not existant)
  \param[out]    type : data type (see SL_collect_data.h)
  \param[out]    units: units of variable (see SL_collect_data.h)
@@ -860,7 +861,8 @@ updateDataCollectScript( void )
 
  ******************************************************************************/
 int
-getDataCollectPtr( char *name, void **vptr, int *type, char *units )
+getDataCollectPtr( char *name, int n_char_units, void **vptr, int *type, 
+		   char *units )
 {
 
   Cinfo *ptr;
@@ -872,7 +874,7 @@ getDataCollectPtr( char *name, void **vptr, int *type, char *units )
     if (strcmp(ptr->name,name)==0) {
       *vptr = (void *)ptr->ptr;
       *type = ptr->type;
-      strncpy(units,ptr->units,sizeof(units)-1);
+      strncpy(units,ptr->units,n_char_units);
       return TRUE;
     }
     ptr = (Cinfo *)ptr->nptr;

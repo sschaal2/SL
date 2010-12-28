@@ -44,7 +44,7 @@ extern "C" {
   void outMenu(void);
   void changeCollectFreq( int freq );
   void updateDataCollectScript( void );
-  int  getDataCollectPtr( char *name, void **vptr, int *type, char *units );
+  int  getDataCollectPtr( char *name, int n_char_units, void **vptr, int *type, char *units );
   
   
 #ifdef __cplusplus

@@ -228,15 +228,11 @@ motor_servo(void *dummy)
 
     } else { 
 
-      printf("before\n");
-
       // wait to take semaphore
       if (semTake(sm_motor_servo_sem,WAIT_FOREVER) == ERROR) {
         printf("semTake Time Out -- Servo Terminated");
         exit(-1);
       }
-
-      printf("after\n");
 
     }
 
