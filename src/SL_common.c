@@ -475,15 +475,18 @@ init_commands(void)
 {
   addToMan("where","print all current state information",where);
   addToMan("where_des","print all desired joint information",where_des);
-  addToMan("cwhere","cartesian state of endeffectors",cwhere);
-  addToMan("lwhere","cartesian state of links",lwhere);
-  addToMan("linfo","axis,cog,orgin info of each link",linfo);
   addToMan("bwhere","cartesian state of vision blobs",bwhere_sim);
   addToMan("rbwhere","current state of vision blobs",rbwhere);
   addToMan("rbwhere2D","current state of 2D vision blobs",rbwhere2D);
   addToMan("where_base","current state of base coordiante system",where_base);
   addToMan("where_misc","current state of miscellanious sensors",where_misc);
   addToMan("where_cog","current state of the COG",where_cog);
+  if (strcmp(servo_name,"motor") != 0) {
+    addToMan("cwhere","cartesian state of endeffectors",cwhere);
+    addToMan("lwhere","cartesian state of links",lwhere);
+    addToMan("linfo","axis,cog,orgin info of each link",linfo);
+  }
+
 
   return TRUE;
 }
