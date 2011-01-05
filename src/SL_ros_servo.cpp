@@ -43,7 +43,8 @@ double servo_time=0;
 int    servo_enabled;
 int    ros_servo_rate;
 
-sl2ros::SL_ros_communicator ros_communicator_;
+static sl2ros::SL_ros_communicator ros_communicator_;
+static int default_publisher_enabled_ = 0;
 
 /* local variables */
 
@@ -289,7 +290,16 @@ init_ros_servo(void)
   addToMan((char *)"status",(char *)"displays information about the servo",status);
   addToMan((char *)"drs",(char *)"disables the ros servo",drs);
 
-  if(!ros_communicator_.initialize())
+  int argc = 1;
+  char name[] = "SL2ROS_Publisher";
+  char* argv[1];
+  argv[0] = name;
+  ros::init(argc, argv, "SL2ROS_Publisher");
+
+  if (!read_parameter_pool_int(config_files[PARAMETERPOOL], "default_publisher_enabled", &default_publisher_enabled_))
+    default_publisher_enabled_ = 0;
+
+  if(default_publisher_enabled_ && !ros_communicator_.initialize())
   {
     printf("ERROR: could not initialize ros communication\n");
     return;
@@ -379,14 +389,16 @@ run_ros_servo(void)
   /**********************************************************************
    * do ROS communication
    */
-	ros_communicator_.publish();
-
+  if (default_publisher_enabled_)
+    ros_communicator_.publish();
   
   /**********************************************************************
    * do user specific ROS functions
    */
 
   run_user_ros();
+
+  ros::spinOnce();
 
 #ifdef __XENO__
   // we want to be in real-time mode here

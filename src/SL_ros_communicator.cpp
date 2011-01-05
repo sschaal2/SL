@@ -42,11 +42,11 @@ bool SL_ros_communicator::initialize()
     ROS_INFO("Initializing SL_ros_communicator.");
 
 		// Note: this will be done once and probably goes somewhere else...
-    int argc = 1;
-    char name[] = "SL2ROS_Publisher";
-    char* argv[1];
-    argv[0] = name;
-    ros::init(argc, argv, "SL2ROS_Publisher");
+//    int argc = 1;
+//    char name[] = "SL2ROS_Publisher";
+//    char* argv[1];
+//    argv[0] = name;
+//    ros::init(argc, argv, "SL2ROS_Publisher");
     //ros::AsyncSpinner spinner(1);
     //spinner.start();
 
@@ -98,7 +98,7 @@ bool SL_ros_communicator::publish()
     pose_stamped_msg_->pose.position.y = cart_state[i].x[_Y_];
     pose_stamped_msg_->pose.position.z = cart_state[i].x[_Z_];
 
-    ros::spinOnce();
+    //ros::spinOnce();
     return true;
 }
 

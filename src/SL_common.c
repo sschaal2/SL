@@ -2265,7 +2265,10 @@ read_parameter_pool_double(char *fname, char *keyword, double *value)
   } else {
     rc=fscanf(in,"%lf",value);
     if (rc != 1)
+    {
+      fclose(in);
       return FALSE;
+    }
   }
 
   fclose(in);
@@ -2323,7 +2326,10 @@ read_parameter_pool_double_array(char *fname, char *keyword, int n_values, doubl
     for (i=1; i<=n_values; ++i) {
       rc=fscanf(in,"%lf",&(values[i]));
       if (rc != 1)
+      {
+        fclose(in);
 	return FALSE;
+      }
     }
   }
 
@@ -2380,7 +2386,10 @@ read_parameter_pool_int(char *fname, char *keyword, int *ivalue)
   } else {
     rc=fscanf(in,"%d",ivalue);
     if (rc != 1)
+    {
+      fclose(in);
       return FALSE;
+    }
   }
 
   fclose(in);
@@ -2438,7 +2447,10 @@ read_parameter_pool_int_array(char *fname, char *keyword, int n_values, int *iva
     for (i=1; i<=n_values; ++i) {
       rc=fscanf(in,"%d",&(ivalues[i]));
       if (rc != 1)
+      {
+        fclose(in);
 	return FALSE;
+      }
     }
   }
 

@@ -29,6 +29,8 @@
 
 #define SL_RT_MUTEX_WARNINGS 1
 
+#include <stdio.h>
+
 #ifdef __XENO__
 #include <native/mutex.h>
 #include <native/cond.h>
@@ -76,7 +78,7 @@ static inline int sl_rt_mutex_init(sl_rt_mutex* mutex)
 #ifdef __XENO__
   int res = rt_mutex_create(mutex, NULL);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_mutex_create", -res);
+    sl_rt_warning("rt_mutex_create", res);
   return res;
 #else
   return pthread_mutex_init(mutex, NULL);
@@ -88,7 +90,7 @@ static inline int sl_rt_mutex_destroy(sl_rt_mutex* mutex)
 #ifdef __XENO__
   int res = rt_mutex_delete(mutex);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_mutex_delete", -res);
+    sl_rt_warning("rt_mutex_delete", res);
   return res;
 #else
   return pthread_mutex_destroy(mutex);
@@ -100,7 +102,7 @@ static inline int sl_rt_mutex_lock(sl_rt_mutex* mutex)
 #ifdef __XENO__
   int res = rt_mutex_acquire(mutex, TM_INFINITE);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_mutex_acquire", -res);
+    sl_rt_warning("rt_mutex_acquire", res);
   return res;
 #else
   return pthread_mutex_lock(mutex);
@@ -112,7 +114,7 @@ static inline int sl_rt_mutex_trylock(sl_rt_mutex* mutex)
 #ifdef __XENO__
   int res = rt_mutex_acquire(mutex, TM_NONBLOCK);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_mutex_acquire", -res);
+    sl_rt_warning("rt_mutex_acquire", res);
   return res;
 #else
   return pthread_mutex_trylock(mutex);
@@ -124,7 +126,7 @@ static inline int sl_rt_mutex_unlock(sl_rt_mutex* mutex)
 #ifdef __XENO__
   int res = rt_mutex_release(mutex);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_mutex_unlock", -res);
+    sl_rt_warning("rt_mutex_unlock", res);
   return res;
 #else
   return pthread_mutex_unlock(mutex);
@@ -136,7 +138,7 @@ static inline int sl_rt_cond_init(sl_rt_cond* cond)
 #ifdef __XENO__
   int res = rt_cond_create(cond, NULL);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_cond_create", -res);
+    sl_rt_warning("rt_cond_create", res);
   return res;
 #else
   return pthread_cond_init(cond, NULL);
@@ -148,7 +150,7 @@ static inline int sl_rt_cond_destroy(sl_rt_cond* cond)
 #ifdef __XENO__
   int res = rt_cond_delete(cond);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_cond_delete", -res);
+    sl_rt_warning("rt_cond_delete", res);
   return res;
 #else
   return pthread_cond_destroy(cond);
@@ -160,7 +162,7 @@ static inline int sl_rt_cond_signal(sl_rt_cond* cond)
 #ifdef __XENO__
   int res = rt_cond_signal(cond);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_cond_signal", -res);
+    sl_rt_warning("rt_cond_signal", res);
   return res;
 #else
   return pthread_cond_signal(cond);
@@ -172,7 +174,7 @@ static inline int sl_rt_cond_wait(sl_rt_cond* cond, sl_rt_mutex* mutex)
 #ifdef __XENO__
   int res = rt_cond_wait(cond, mutex, TM_INFINITE);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_cond_wait", -res);
+    sl_rt_warning("rt_cond_wait", res);
   return res;
 #else
   return pthread_cond_wait(cond, mutex);
@@ -184,7 +186,7 @@ static inline int sl_rt_cond_timedwait(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_
 #ifdef __XENO__
   int res = rt_cond_wait_until(cond, mutex, timeout);
   if (SL_RT_MUTEX_WARNINGS && res)
-    sl_rt_warning("rt_cond_wait_until", -res);
+    sl_rt_warning("rt_cond_wait_until", res);
   return res;
 #else
   struct timespec ts;
@@ -196,9 +198,9 @@ static inline int sl_rt_cond_timedwait(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_
 
 static inline void sl_rt_warning(char* function_name, int error_code)
 {
-  char error_str[1000];
-  strerror_r(error_code, error_str, 1000);
-  printf("ERROR: %s failed: %d (%s)", function_name, error_code, error_str);
+  //char error_str[1000];
+  //strerror_r(error_code, error_str, 1000);
+  printf("ERROR: %s failed with error code: %d", function_name, error_code);
 }
 
 #endif /* SL_RT_MUTEX_H_ */
