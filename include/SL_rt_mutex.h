@@ -27,7 +27,7 @@
 #ifndef SL_RT_MUTEX_H_
 #define SL_RT_MUTEX_H_
 
-#define SL_RT_MUTEX_WARNINGS 0
+#define SL_RT_MUTEX_WARNINGS 1
 
 #ifdef __XENO__
 #include <native/mutex.h>
