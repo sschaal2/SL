@@ -113,7 +113,7 @@ static inline int sl_rt_mutex_trylock(sl_rt_mutex* mutex)
 {
 #ifdef __XENO__
   int res = rt_mutex_acquire(mutex, TM_NONBLOCK);
-  if (SL_RT_MUTEX_WARNINGS && res)
+  if (SL_RT_MUTEX_WARNINGS && res && res !=-EWOULDBLOCK)
     sl_rt_warning("rt_mutex_acquire", res);
   return res;
 #else
@@ -200,7 +200,7 @@ static inline void sl_rt_warning(char* function_name, int error_code)
 {
   //char error_str[1000];
   //strerror_r(error_code, error_str, 1000);
-  printf("ERROR: %s failed with error code: %d", function_name, error_code);
+  printf("ERROR: %s failed with error code: %d\n", function_name, error_code);
 }
 
 #endif /* SL_RT_MUTEX_H_ */
