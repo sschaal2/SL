@@ -85,6 +85,7 @@ extern "C" {
   void where_cog(void);
   void where_misc(void);
   void revoluteGJacColumn(Vector p, Vector pi, Vector zi, Vector c);
+  void prismaticGJacColumn(Vector p, Vector pi, Vector zi, Vector c);
   void compute_cog(void);
 
 

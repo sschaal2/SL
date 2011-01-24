@@ -89,6 +89,12 @@ init_kinematics(void)
     Alink_sim[i] = my_matrix(1,4,1,4);
   }
 
+  // initialize indicators for prismatic joints
+  for (i=0; i<=N_DOFS; ++i)
+    prismatic_joint_flag[i] = FALSE;
+
+#include "Prismatic_Joints.h"  
+
 }
 
 /*!*****************************************************************************
@@ -209,10 +215,17 @@ jacobian(Matrix lp, Matrix jop, Matrix jap, Matrix Jac)
   for (i=1; i<=n_endeffs; ++i) {
     for (j=1; j<=n_dofs; ++j) {
       if ( Jlist[i][j] != 0 ) {
-	revoluteGJacColumn( lp[link2endeffmap[i]],
-			    jop[j],
-			    jap[j],
-			    c );
+	if (prismatic_joint_flag[j]) {
+	  prismaticGJacColumn( lp[link2endeffmap[i]],
+			      jop[j],
+			      jap[j],
+			      c );
+	} else {
+	  revoluteGJacColumn( lp[link2endeffmap[i]],
+			      jop[j],
+			      jap[j],
+			      c );
+	}
 	for (r=1; r<=2*N_CART; ++r) 
 	  Jac[(i-1)*6+r][j] = c[r];
       }
@@ -455,10 +468,17 @@ computeLinkVelocity(int lID, Matrix lp, Matrix jop, Matrix jap,
   
   for (j=1; j<=n_dofs; ++j) {
     if ( Jlist[lID][j] != 0 ) {
-      revoluteGJacColumn( lp[lID],
-			  jop[j],
-			  jap[j],
-			  c );
+      if (prismatic_joint_flag[j]) {
+	prismaticGJacColumn( lp[lID],
+			    jop[j],
+			    jap[j],
+			    c );
+      } else {
+	revoluteGJacColumn( lp[lID],
+			    jop[j],
+			    jap[j],
+			    c );
+      }
       for (r=1; r<=N_CART; ++r) 
 	Jlink[r][j] = c[r];
     }

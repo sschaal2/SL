@@ -386,6 +386,7 @@ extern "C" {
   extern SL_Cstate     cog_des;
   extern double        gravity;
   extern int           n_contacts;
+  extern int           prismatic_joint_flag[]; 
 
   /* Function prototypes */
   void  where(void);

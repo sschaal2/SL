@@ -1674,6 +1674,38 @@ revoluteGJacColumn(Vector p, Vector pi, Vector zi, Vector c)
 
 /*!*****************************************************************************
  *******************************************************************************
+\note  prismaticGJacColumn
+\date  January 2011
+\remarks 
+
+ computes one column for the geometric jacobian of a prismatic joint
+ from the given input vectors
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     p    : position of endeffector
+ \param[in]     pi   : position of joint origin
+ \param[in]     zi   : unit vector of joint axis
+ \param[out]    c    : column vector of Jacobian
+
+ ******************************************************************************/
+void
+prismaticGJacColumn(Vector p, Vector pi, Vector zi, Vector c)
+{
+  int i,j;
+
+  c[1] = zi[1];
+  c[2] = zi[2];
+  c[3] = zi[3];
+  c[4] = 0.0;
+  c[5] = 0.0;
+  c[6] = 0.0;
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
 \note  compute_cog
 \date  March 2005
    
