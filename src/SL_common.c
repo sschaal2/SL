@@ -23,7 +23,9 @@
 #include "SL_common.h"
 #include "SL_dynamics.h"
 #include "utility.h"
+#include "utility_macros.h"
 #include "SL_man.h"
+#include "mdefs.h"
 
 // global variables and their default assignments
 char config_files[][100] = {
@@ -2745,4 +2747,127 @@ count_extra_contact_points(char *fname) {
   return count;
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  compute_local_interface_forces
+\date  January 2011
+\remarks 
 
+This function computes the force/torque vector acting at a point
+(normally chosen to be the point of the local coordinate system of a
+DOF) due to the inertial properties of the link of this joint. In
+Featherstone, this is called fnet force. This is the force/torque
+vector described in Ann,Atkeson, and Hollerbach.  This force torque
+sensor is what would be sensed by a 6-axis force torque sensor at the
+joint -- i.e., this can be used to created a force/torque sensor simulation.
+If the force/torque from multiple links were to be determined, the force/torques
+need to be propagated and added over those links.
+
+Note that this computation needs to be  done in local coordinates which are 
+determined by the inertia matrix, which includes the parallel axis theorem
+for the local coordinates. Thus, the force/torque vector will be in local
+coordinates, too.
+
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     xdd : acceleration of refence point for force/torque
+ \param[in]      ad : angular velocity of reference point
+ \param[in]     add : angular acceleration of reference point
+ \param[in]       g : gravity vector
+ \param[in]      li : RBD parameters of link
+ \param[out]      f : force vector
+ \param[out]      t : torque vector
+
+ returns the number of extra contact points
+
+ ******************************************************************************/
+ void
+ compute_local_interface_forces(double *xdd, double *ad, double *add, double *g,
+				SL_link li, double *f, double *t)
+{
+  int i,j;
+  MY_MATRIX(K,1,2*N_CART,1,N_RBD_PARMS);
+  MY_VECTOR(v,1,N_RBD_PARMS);
+    
+  
+  K[1][1] = -g[1] + xdd[1];
+  K[1][2] = -Power(ad[2],2) - Power(ad[3],2);
+  K[1][3] = ad[1]*ad[2] - add[3];
+  K[1][4] = ad[1]*ad[3] + add[2];
+  
+  K[2][1] = -g[2] + xdd[2];
+  K[2][2] = ad[1]*ad[2] + add[3];
+  K[2][3] = -Power(ad[1],2) - Power(ad[3],2);
+  K[2][4] = ad[2]*ad[3] - add[1];
+  
+  K[3][1] = -g[3] + xdd[3];
+  K[3][2] = ad[1]*ad[3] - add[2];
+  K[3][3] = ad[2]*ad[3] + add[1];
+  K[3][4] = -Power(ad[1],2) - Power(ad[2],2);
+  
+  K[4][1] = 0;
+  K[4][2] = 0;
+  K[4][3] = -g[3] + xdd[3];
+  K[4][4] = g[2] - xdd[2];
+  K[4][5] = add[1];
+  K[4][6] = -(ad[1]*ad[3]) + add[2];
+  K[4][7] = ad[1]*ad[2] + add[3];
+  K[4][8] = -(ad[2]*ad[3]),
+  K[4][9] = Power(ad[2],2) - Power(ad[3],2);
+  K[4][10] = ad[2]*ad[3];
+  
+  K[5][1] = 0;
+  K[5][2] = g[3] - xdd[3];
+  K[5][3] = 0;
+  K[5][4] = -g[1] + xdd[1];
+  K[5][5] = ad[1]*ad[3];
+  K[5][6] = ad[2]*ad[3] + add[1];
+  K[5][7] = -Power(ad[1],2) + Power(ad[3],2);
+  K[5][8] = add[2];
+  K[5][9] = -(ad[1]*ad[2]) + add[3];
+  K[5][10] = -(ad[1]*ad[3]);
+  
+  K[6][1] = 0;
+  K[6][2] = -g[2] + xdd[2];
+  K[6][3] = g[1] - xdd[1];
+  K[6][4] = 0;
+  K[6][5] = -(ad[1]*ad[2]);
+  K[6][6] = Power(ad[1],2) - Power(ad[2],2);
+  K[6][7] = -(ad[2]*ad[3]) + add[1];
+  K[6][8] = ad[1]*ad[2];
+  K[6][9] = ad[1]*ad[3] + add[2];
+  K[6][10] = add[3];
+
+  // Note that vis,coul,stiff,off are not relevant as these are parameters that act
+  // only locally on a motor, i.e., can be thought to reduce the motor torque, but
+  // don't propagate through the dynamics.
+
+  // sort link parameters into vector
+  v[1] = li.m;
+  v[2] = li.mcm[1];
+  v[3] = li.mcm[2];
+  v[4] = li.mcm[3];
+  v[5] = li.inertia[1][1];
+  v[6] = li.inertia[1][2];
+  v[7] = li.inertia[1][3];
+  v[8] = li.inertia[2][1];
+  v[9] = li.inertia[2][2];
+  v[10] = li.inertia[3][3];
+
+  
+  // compute the result
+  for (i=1; i<=N_CART; ++i) {
+    f[i] = 0.0;
+    for (j=1; j<=N_RBD_PARMS; ++j)
+      f[i] += K[i][j]*v[j];
+  }
+
+  for (i=1; i<=N_CART; ++i) {
+    t[i] = 0.0;
+    for (j=1; j<=N_RBD_PARMS; ++j)
+      t[i] += K[i+N_CART][j]*v[j];
+  }
+
+}
