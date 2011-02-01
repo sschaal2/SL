@@ -34,6 +34,7 @@
 #ifdef __XENO__
 #include <native/mutex.h>
 #include <native/cond.h>
+#include <native/timer.h>
 #else
 #include <pthread.h>
 #endif
@@ -63,6 +64,7 @@ static int sl_rt_cond_destroy(sl_rt_cond* cond);
 static int sl_rt_cond_signal(sl_rt_cond* cond);
 static int sl_rt_cond_wait(sl_rt_cond* cond, sl_rt_mutex* mutex);
 static int sl_rt_cond_timedwait(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_rt_time timeout);
+static int sl_rt_cond_timedwait_relative(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_rt_time timeout);
 
 static void sl_rt_warning(char* function_name, int error_code);
 
@@ -185,7 +187,7 @@ static inline int sl_rt_cond_timedwait(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_
 {
 #ifdef __XENO__
   int res = rt_cond_wait_until(cond, mutex, timeout);
-  if (SL_RT_MUTEX_WARNINGS && res)
+  if (SL_RT_MUTEX_WARNINGS && res && res!=-ETIMEDOUT)
     sl_rt_warning("rt_cond_wait_until", res);
   return res;
 #else
@@ -193,6 +195,31 @@ static inline int sl_rt_cond_timedwait(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_
   ts.tv_sec = (time_t) (timeout / 1000000000);
   ts.tv_nsec = (long) (timeout % 1000000000);
   return pthread_cond_timedwait(cond, mutex, &ts);
+#endif
+}
+
+static inline int sl_rt_cond_timedwait_relative(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_rt_time timeout)
+{
+#ifdef __XENO__
+  RTIME abs_timeout = rt_timer_read() + timeout;
+  return sl_rt_cond_timedwait(cond, mutex, abs_timeout);
+#else
+  struct timespec ts;
+  clock_gettime(CLOCK_REALTIME, &ts);
+
+  struct timespec ts2;
+  ts2.tv_sec = (time_t) (timeout / 1000000000);
+  ts2.tv_nsec = (long) (timeout % 1000000000);
+
+  ts2.tv_sec += ts.tv_sec;
+  ts2.tv_nsec += ts.tv_nsec;
+  if (ts2.tv_nsec >= 1000000000)
+  {
+    ts2.tv_sec += 1;
+    ts2.tv_nsec -= 1000000000;
+  }
+  return pthread_cond_timedwait(cond, mutex, &ts2);
+
 #endif
 }
 
