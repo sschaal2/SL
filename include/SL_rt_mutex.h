@@ -37,6 +37,7 @@
 #include <native/timer.h>
 #else
 #include <pthread.h>
+#include <sys/time.h>
 #endif
 
 #ifdef __cplusplus
@@ -204,21 +205,21 @@ static inline int sl_rt_cond_timedwait_relative(sl_rt_cond* cond, sl_rt_mutex* m
   RTIME abs_timeout = rt_timer_read() + timeout;
   return sl_rt_cond_timedwait(cond, mutex, abs_timeout);
 #else
+  struct timeval t;
+  gettimeofday(&t, NULL);
+
   struct timespec ts;
-  clock_gettime(CLOCK_REALTIME, &ts);
+  ts.tv_sec = (time_t) (timeout / 1000000000);
+  ts.tv_nsec = (long) (timeout % 1000000000);
 
-  struct timespec ts2;
-  ts2.tv_sec = (time_t) (timeout / 1000000000);
-  ts2.tv_nsec = (long) (timeout % 1000000000);
-
-  ts2.tv_sec += ts.tv_sec;
-  ts2.tv_nsec += ts.tv_nsec;
-  if (ts2.tv_nsec >= 1000000000)
+  ts.tv_sec += t.tv_sec;
+  ts.tv_nsec += t.tv_usec*1000;
+  if (ts.tv_nsec >= 1000000000)
   {
-    ts2.tv_sec += 1;
-    ts2.tv_nsec -= 1000000000;
+    ts.tv_sec += 1;
+    ts.tv_nsec -= 1000000000;
   }
-  return pthread_cond_timedwait(cond, mutex, &ts2);
+  return pthread_cond_timedwait(cond, mutex, &ts);
 
 #endif
 }
