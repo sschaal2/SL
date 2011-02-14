@@ -1659,13 +1659,19 @@ read_parm_file(void) {
   {
 	  for(i = 1; i<=N_DOFS+2*N_CART; i++)
 	  {
-		  rc = fscanf(in, "%f", &(least_square_weight[i]));
+		  float tmp;
+		  rc = fscanf(in, "%f", &tmp);
 		  if(rc != 1)
 		  {
 			  printf("error there should be %d weights but found only %d\n", N_DOFS+2*N_CART, i);
-			  return false;
+			  return FALSE;
+		  }
+		  else
+		  {
+			  least_square_weight[i] = 1.0/(double)tmp;
 		  }
 	  }
+	  print_vec("least_square_weight", least_square_weight);
   }
  
   fclose(in);
