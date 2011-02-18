@@ -76,6 +76,7 @@ static void  my_exit(void);
 static void  toggleClmcplotMode(void);
 static void  togglePlaybackMode(void);
 static void  toggleUserGraphicsMode(void);
+static void  printCameraParameters(void);
 static void  extractState(char **vnames, Vector D, int n_cols);
 static void  reset_playback(void);
 static void  go_playback(void);
@@ -223,6 +224,9 @@ initGraphics(int *argc, char*** argv)
 
   // contact point display toggle
   addToMan("contactDisplay","draws all active contact points",toggleContactDisplay);
+
+  // print the extrinsic camera parameters
+  addToMan("printCamera","print the camera position",printCameraParameters);
 
   return TRUE;
 
@@ -1739,6 +1743,27 @@ toggleClmcplotMode(void)
 
   }
   
+}
+
+static void 
+printCameraParameters(void) 
+{
+  int i;
+  OpenGLWPtr ptr;
+
+  ptr = whichGLWindow();
+  if (ptr == NULL)
+    return;
+  
+  printf("eye =    [ ");
+  for (i=1; i<=N_CART; i++) printf("%1.3f ",ptr->eye[i]); 
+  printf("]\n");
+  printf("center = [ ");
+  for (i=1; i<=N_CART; i++) printf("%1.3f ",ptr->center[i]); 
+  printf("]\n");
+  printf("up =     [ ");
+  for (i=1; i<=N_CART; i++) printf("%1.3f ",ptr->up[i]); 
+  printf("]\n");
 }
 
 /*!*****************************************************************************
