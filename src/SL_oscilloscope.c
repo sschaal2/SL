@@ -30,10 +30,10 @@
 #include "SL_man.h"
 
 // defines
-#define  MAX_CHARS 20
+#define  MAX_CHARS 40
 
 /*! a structure to store information about variables */
-typedef struct Cinfo {
+typedef struct OscInfo {
   char *ptr;
   char  name[MAX_CHARS];
   int   type;
@@ -285,32 +285,36 @@ sendOscilloscopeData(void)
   // add data to the buffer
   optr = osc_info_ptr;
   while (optr != NULL) {
-
+    
     switch (optr->type) {
-
-      case DOUBLE:
-	temp = (float) *((double *) optr->ptr);
-	break;
-
-      case FLOAT:
-	temp = (float) *((float *) optr->ptr);
-	break;
-
-      case INT:
-	temp = (float) *((int *) optr->ptr);
-	break;
-
-      case SHORT:
-	temp = (float) *((short *) optr->ptr);
-	break;
-
-      case LONG:
-	temp = (float) *((long *) optr->ptr);
-	break;
-
-      case CHAR:
-	temp = (float) *((char *) optr->ptr);
-	break;
+      
+    case DOUBLE:
+      temp = (float) *((double *) optr->ptr);
+      break;
+      
+    case FLOAT:
+      temp = (float) *((float *) optr->ptr);
+      break;
+      
+    case INT:
+      temp = (float) *((int *) optr->ptr);
+      break;
+      
+    case SHORT:
+      temp = (float) *((short *) optr->ptr);
+      break;
+      
+    case LONG:
+      temp = (float) *((long *) optr->ptr);
+      break;
+      
+    case CHAR:
+      temp = (float) *((char *) optr->ptr);
+      break;
+      
+    default:
+      printf("WARNING unknown data type in sendOscilloscopeData(void)\n");
+      
 
     }
 
@@ -374,7 +378,7 @@ readOscVarsScript( char *fn, int flag )
 {
 
   FILE    *infile;
-  int      i,rc;
+  int      i,rc,n;
   char     string[100];
   char     fname[100];
   char     units[100];
@@ -423,7 +427,9 @@ readOscVarsScript( char *fn, int flag )
       optr->type = type;
       optr->nptr = NULL;
       optr->pID  = pID;
-      sprintf(optr->name,"%c.%s [%s]",servo_name[0],string,units);
+      n = snprintf(optr->name,sizeof(optr->name),"%c.%s [%s]",servo_name[0],string,units);
+      if ( n > MAX_CHARS-1 ) 
+	printf("WARNING label too long in readOscVarsScript(): %c.%s [%s]: length=%d, MAX_CHARS=%d\n",servo_name[0],string,units,n,MAX_CHARS-1);
 
     }
   }
