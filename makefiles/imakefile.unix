@@ -77,6 +77,7 @@ OBJS_TASK_SERVO = \
 	SL_tasks.o \
 	SL_task_servo.o \
 	SL_task_servo_unix.o \
+  SL_send_user_graphics.o \
 	SL_goto_task.o \
 	SL_sine_task.o \
 	SL_go_cart_task.o \
@@ -87,6 +88,7 @@ SRCS_TASK_SERVO = \
 	SL_tasks.c \
 	SL_task_servo.c \
 	SL_task_servo_unix.c \
+  SL_send_user_graphics.c \
 	SL_goto_task.c \
 	SL_sine_task.c \
 	SL_go_cart_task.c \
