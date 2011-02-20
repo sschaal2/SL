@@ -99,6 +99,7 @@ OBJS_SIM_SERVO = \
 	SL_simulation_servo.o \
 	SL_simulation_servo_unix.o \
 	SL_userSimulation.o \
+  SL_send_user_graphics.o \
 	SL_objects.o \
 	SL_integrate.o 
 
@@ -106,8 +107,9 @@ SRCS_SIM_SERVO = \
 	SL_simulation_servo.c \
 	SL_simulation_servo_unix.c \
 	SL_userSimulation.c \
+  SL_send_user_graphics.c \
 	SL_objects.c \
-        SL_integrate.c 
+	SL_integrate.c 
 
 /* ------------------------------------------------------------------------*/
 

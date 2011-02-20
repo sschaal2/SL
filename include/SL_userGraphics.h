@@ -28,6 +28,7 @@ extern "C" {
   void runUserGraphics(void);
   int  checkForUserGraphics(void);
   void clearUserGraphics(void);
+  int  activateUserGraphic(char *name);
   void initUserGraph(void);
 
   extern int  user_graphics_update;

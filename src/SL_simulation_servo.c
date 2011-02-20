@@ -436,6 +436,7 @@ initDataCollection(void)
     sprintf(string,"%s_ctz",joint_names[i]);
     addVarToCollect((char *)&(ucontact[i].t[_G_]),string,"Nm", DOUBLE,FALSE);
   }
+  printf("\n");
 
   /* the state of the base */
   addVarToCollect((char *)&(base_state.x[_X_]),"base_x","m",DOUBLE,FALSE);

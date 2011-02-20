@@ -223,11 +223,12 @@ runUserSimulation(void)
 {
 
   UserSimulationEntry *ptr;
-  
   ptr = usims;
   while (ptr != NULL) {
     if (ptr->active)
+    {
       (*ptr->func)();
+    }
     ptr = (UserSimulationEntry *)ptr->nptr;
   }
 
