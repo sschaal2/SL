@@ -284,12 +284,12 @@ baseJacobian(Matrix lp, Matrix jop, Matrix jap, Matrix Jb)
 /*!*****************************************************************************
  *******************************************************************************
 \note  inverseKinematics
-\date  June 1999
+\date  Feb 2011
    
 \remarks 
 
         computes the inverse kinematics based on the pseudo-inverse
-        with optimization
+        with optimization, using a robust SVD-based inversion
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -304,8 +304,12 @@ baseJacobian(Matrix lp, Matrix jop, Matrix jap, Matrix Jb)
 the function updates the state by adding the appropriate joint velocities
 and by integrating the state forward with dt
 
+The function returns the condition number of the inverted matrix. Normally,
+condition number above 5000 become a bit critical. The SVD clips at a condition
+number of 10000.
+
  ******************************************************************************/
-int
+double
 inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
 		  Vector cart, iVector status, double dt)
 {
@@ -325,6 +329,8 @@ inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
   static int     firsttime = TRUE;
   double         ridge = 1.e-4;
   double         ralpha = 0.5;
+  double         condnr;
+  double         condnr_cutoff = 10000.0;
 
   /* initialization of static variables */
   if (firsttime) {
@@ -376,11 +382,34 @@ inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
     }
   }
 
-  /* invert the matrix */
-  if (!my_inv_ludcmp(P, count, P)) {
-    return FALSE;
-  }
+  // inversion with SVD with damping
+  MY_MATRIX(M,1,count,1,count);
+  MY_MATRIX(U,1,count,1,count);
+  MY_MATRIX(V,1,count,1,count);
+  MY_VECTOR(s,1,count);
+  MY_VECTOR(si,1,count);
+  mat_equal_size(P,count,count,U);
+  my_svdcmp(U,count,count,s,V);
 
+  // regularize if the condition number gets too large -- after the cutoff, we decay
+  // the inverse of the singular value in a smooth way to zero
+  for (i=1; i<=count; ++i)
+    if (s[1]/(s[i]+1.e-10) > condnr_cutoff) {
+      double sc = s[1]/condnr_cutoff;
+      si[i] = -2./(sqr(sc)*sc)*sqr(s[i])+3./sqr(sc)*s[i];
+    } else {
+      si[i] = 1./s[i];
+    }
+
+  condnr = s[1]/(s[count]+1.e-10);
+
+  // V*1/S*U' is the inverse
+  for (i=1; i<=count; ++i) 
+    for (j=1; j<=count; ++j)
+      M[i][j] = U[j][i]*si[i];
+
+  mat_mult(V,M,P);
+  
   /* build the B matrix, i.e., the pseudo-inverse */
   for (i=1; i<=N_DOFS; ++i) {
     for (j=1; j<=count; ++j) {
@@ -425,7 +454,7 @@ inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
     state[i].th += state[i].thd * dt;
   }
 
-  return TRUE;
+  return condnr;
 
 }
 

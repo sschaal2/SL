@@ -25,30 +25,30 @@
 extern "C" {
 #endif
 
-void init_kinematics(void);
-void jacobian(Matrix lp, Matrix jop, Matrix jap, Matrix J);
-void baseJacobian(Matrix lp, Matrix jop, Matrix jap, Matrix Jb);
-int  inverseKinematics(SL_DJstate *state, SL_endeff *endeff, SL_OJstate *rest,
-		       Vector cart, iVector status, double dt);
-void linkInformation(SL_Jstate *state,SL_Cstate *basec,
-		     SL_quat *baseo, SL_endeff *eff, 
-		     double **Xmcog, double **Xaxis, double **Xorigin, 
-		     double **Xlink, double ***Ahmat);
-void linkInformationDes(SL_DJstate *state,SL_Cstate *basec,
-			SL_quat *baseo, SL_endeff *eff, 
-			double **Xmcog, double **Xaxis, double **Xorigin, 
-			double **Xlink, double ***Ahmat);
-void 
-computeLinkVelocity(int lID, Matrix lp, Matrix jop, Matrix jap, 
-		    SL_Jstate *js, double *v);
-void 
-computeConstraintJacobian(SL_Jstate *state,SL_Cstate *basec,
+  void   init_kinematics(void);
+  void   jacobian(Matrix lp, Matrix jop, Matrix jap, Matrix J);
+  void   baseJacobian(Matrix lp, Matrix jop, Matrix jap, Matrix Jb);
+  double inverseKinematics(SL_DJstate *state, SL_endeff *endeff, SL_OJstate *rest,
+			   Vector cart, iVector status, double dt);
+  void   linkInformation(SL_Jstate *state,SL_Cstate *basec,
+			 SL_quat *baseo, SL_endeff *eff, 
+			 double **Xmcog, double **Xaxis, double **Xorigin, 
+			 double **Xlink, double ***Ahmat);
+  void linkInformationDes(SL_DJstate *state,SL_Cstate *basec,
 			  SL_quat *baseo, SL_endeff *eff, 
-			  Matrix Jc, int *nr, int *nc);
-
-void 
-computeQR(Matrix Jc, int nr, int nc, Matrix Q, Matrix Qu, Matrix R, Vector sv);
-
+			  double **Xmcog, double **Xaxis, double **Xorigin, 
+			  double **Xlink, double ***Ahmat);
+  void 
+  computeLinkVelocity(int lID, Matrix lp, Matrix jop, Matrix jap, 
+		      SL_Jstate *js, double *v);
+  void 
+  computeConstraintJacobian(SL_Jstate *state,SL_Cstate *basec,
+			    SL_quat *baseo, SL_endeff *eff, 
+			    Matrix Jc, int *nr, int *nc);
+  
+  void 
+  computeQR(Matrix Jc, int nr, int nc, Matrix Q, Matrix Qu, Matrix R, Vector sv);
+  
 
 #ifdef __cplusplus
 }
