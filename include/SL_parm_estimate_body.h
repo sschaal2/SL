@@ -95,7 +95,7 @@ static int        vis_flag_dofs[N_DOFS+1];
 static int        coul_flag_dofs[N_DOFS+1];
 static int        spring_flag_dofs[N_DOFS+1];
 
-static Vector	  least_square_weight=NULL;
+static Vector	  least_square_weight=NULL; //used to perform a weighted least square for param est
 
 #define LLSB(x)	((x) & 0xff)		/*!< 32bit word byte/word swap macros */
 #define LNLSB(x) (((x) >> 8) & 0xff)
@@ -1651,6 +1651,7 @@ read_parm_file(void) {
   }
 
   //see if there is a weighting matrix out there
+  //it is used to make a weighted least square for param est
   if(!find_keyword(in, "least_square_weight"))
   {
 	  printf("Cannot read any least square weight, using 1s\n");
