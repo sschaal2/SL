@@ -28,7 +28,6 @@
 #include "SL_man.h"
 
 /*! defines */
-#define MAX_CART_STATE   1
 
 /* local variables */
 static double     time_step;
@@ -153,10 +152,7 @@ init_goto_cart_task(void)
 	while (TRUE) {
 	  sprintf(string,"%s_x Target",cart_names[i]);
 	  get_double(string,ctarget[i].x[_X_],&aux);
-	  if (fabs(aux) < MAX_CART_STATE) {
-	    ctarget[i].x[_X_] = aux;
-	    break;
-	  }
+	  ctarget[i].x[_X_] = aux;
 	}
       }
       
@@ -170,10 +166,7 @@ init_goto_cart_task(void)
 	while (TRUE) {
 	  sprintf(string,"%s_y Target",cart_names[i]);
 	  get_double(string,ctarget[i].x[_Y_],&aux);
-	  if (fabs(aux) < MAX_CART_STATE) {
-	    ctarget[i].x[_Y_] = aux;
-	    break;
-	  }
+	  ctarget[i].x[_Y_] = aux;
 	}
       }
       
@@ -187,10 +180,7 @@ init_goto_cart_task(void)
 	while (TRUE) {
 	  sprintf(string,"%s_z Target",cart_names[i]);
 	  get_double(string,ctarget[i].x[_Z_],&aux);
-	  if (fabs(aux) < MAX_CART_STATE) {
-	    ctarget[i].x[_Z_] = aux;
-	    break;
-	  }
+	  ctarget[i].x[_Z_] = aux;
 	}
       }
       
@@ -380,11 +370,7 @@ go_cart_target_wait(SL_Cstate *ctar,int *stat, double mt)
     for (j= _X_; j<= _Z_; ++j) {
       cstatus[(i-1)*6+j] = stat[(i-1)*6+j];
       aux = ctar[i].x[j];
-      if (fabs(aux) > MAX_CART_STATE) {
-	cstatus[(i-1)*6+j] = FALSE;
-      } else {
-	ctarget[i].x[j] = aux;
-      }
+      ctarget[i].x[j] = aux;
     }
   }
   

@@ -3,8 +3,8 @@
 
   \file    SL_kinematics_body.h
 
-  \author  Stefan Schaal
-  \date    1999
+  \author  Stefan Schaal & Ludovic Righetti
+  \date    2011
 
   ==============================================================================
   \remarks
@@ -20,6 +20,11 @@
 
 // the system headers
 #include "SL_system_headers.h"
+
+#ifndef max
+#define max( a, b ) ( ((a) > (b)) ? (a) : (b) )
+#endif
+
 
 /* private includes */
 #include "SL.h"
@@ -289,7 +294,9 @@ baseJacobian(Matrix lp, Matrix jop, Matrix jap, Matrix Jb)
 \remarks 
 
         computes the inverse kinematics based on the pseudo-inverse
-        with optimization, using a robust SVD-based inversion
+        with optimization, using a robust SVD-based inversion, and using
+	velocity reduction towards the end of the workspace. Changes are
+	based on Ludovic Righetti's version of IK.
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -306,18 +313,51 @@ and by integrating the state forward with dt
 
 The function returns the condition number of the inverted matrix. Normally,
 condition number above 5000 become a bit critical. The SVD clips at a condition
-number of 10000.
+number of about 5000.
 
  ******************************************************************************/
 double
 inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
 		  Vector cart, iVector status, double dt)
 {
+  return inverseKinematicsClip(state, eff, rest, cart, status, dt, 0.0, 0.0);
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  inverseKinematicsClip
+\date  Feb 2011
+   
+\remarks 
+
+       the same as inverseKinematics but with threshold for max joint 
+       velocities
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in,out] state    : the state of the robot (given as a desired state)
+ \param[in]     endeff   : the endeffector parameters
+ \param[in]     rest     : the optimization posture
+ \param[in]     cart     : the cartesian state (pos & orientations in a matrix)
+ \param[in]     status   : which rows to use from the Jacobian
+ \param[in]     dt       : the integration time step     
+ \param[in]     max_rev  : max velocity for revolute joints  (0.0 to ignore)
+ \param[in]     max_pris : max velocity for prismatic joints (0.0 to ignore)
+
+ for return values, see inverseKinematics()
+
+ ******************************************************************************/
+double
+inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
+		      Vector cart, iVector status, double dt, double max_rev,
+		      double max_pris)
+{
   
   int            i,j,n;
   int            count;
   static Matrix  Jac;
-  static Matrix  P;
+  static Matrix  Jreal;
   static Matrix  B;
   static Matrix  O;
   static iVector ind;
@@ -327,16 +367,15 @@ inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
   static Matrix  local_joint_axis_pos_des;
   static Matrix  local_Alink_des[N_LINKS+1];
   static int     firsttime = TRUE;
-  double         ridge = 1.e-4;
   double         ralpha = 0.5;
   double         condnr;
-  double         condnr_cutoff = 10000.0;
+  double         condnr_cutoff = 70.0;  // this corresponds to condnr_cutoff^2 in invere space
 
   /* initialization of static variables */
   if (firsttime) {
     firsttime = FALSE;
     Jac  = my_matrix(1,6*N_ENDEFFS,1,N_DOFS);
-    P    = my_matrix(1,6*N_ENDEFFS,1,6*N_ENDEFFS);
+    Jreal= my_matrix(1,6*N_ENDEFFS,1,N_DOFS);
     ind  = my_ivector(1,6*N_ENDEFFS);
     B    = my_matrix(1,N_DOFS,1,6*N_ENDEFFS);
     O    = my_matrix(1,N_DOFS,1,N_DOFS);
@@ -369,27 +408,28 @@ inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
     }
   }
 
-  /* build the pseudo-inverse according to the status information */
-  mat_zero(P);
-  for (i=1; i<=count; ++i) {
-    for (j=i; j<=count; ++j) {
-      for (n=1; n<=N_DOFS; ++n) {
-	P[i][j] += Jac[ind[i]][n] * Jac[ind[j]][n];
-      }
-      if (i==j) 
-	P[i][j] += ridge;
-      P[j][i] = P[i][j];
-    }
-  }
+  /* build the pseudo-inverse according to the status information using SVD */
+
+  // the Jacobian that is actually needed, i.e., only the constraint rows
+  mat_zero(Jreal);
+  for (i=1; i<=count; ++i)
+    for (j=1; j<=N_DOFS; ++j)
+      Jreal[i][j] = Jac[ind[i]][j];
+
 
   // inversion with SVD with damping
   MY_MATRIX(M,1,count,1,count);
-  MY_MATRIX(U,1,count,1,count);
-  MY_MATRIX(V,1,count,1,count);
-  MY_VECTOR(s,1,count);
-  MY_VECTOR(si,1,count);
-  mat_equal_size(P,count,count,U);
-  my_svdcmp(U,count,count,s,V);
+  MY_MATRIX(P,1,count,1,count);
+  MY_MATRIX(U,1,count,1,N_DOFS);
+  MY_MATRIX(V,1,N_DOFS,1,N_DOFS);
+  MY_VECTOR(s,1,N_DOFS);
+  MY_VECTOR(si,1,N_DOFS);
+
+  mat_equal_size(Jreal,count,N_DOFS,U);
+  my_svdcmp(U,count,N_DOFS,s,V);
+
+  //printf("count=%d\n",count);
+  //print_mat("V",V);getchar();
 
   // regularize if the condition number gets too large -- after the cutoff, we decay
   // the inverse of the singular value in a smooth way to zero
@@ -397,18 +437,19 @@ inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
     if (s[1]/(s[i]+1.e-10) > condnr_cutoff) {
       double sc = s[1]/condnr_cutoff;
       si[i] = -2./(sqr(sc)*sc)*sqr(s[i])+3./sqr(sc)*s[i];
+      //si[i] = sc;
     } else {
       si[i] = 1./s[i];
     }
 
   condnr = s[1]/(s[count]+1.e-10);
 
-  // V*1/S*U' is the inverse
+  //  P=inv(U*S*V'*V*S'*U')=U*inv(S*S')*U' is the inverse
   for (i=1; i<=count; ++i) 
     for (j=1; j<=count; ++j)
-      M[i][j] = U[j][i]*si[i];
+      M[i][j] = U[j][i]*sqr(si[i]);
 
-  mat_mult(V,M,P);
+  mat_mult_size(U,count,count,M,count,count,P);
   
   /* build the B matrix, i.e., the pseudo-inverse */
   for (i=1; i<=N_DOFS; ++i) {
@@ -428,16 +469,13 @@ inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
     }
   }
 
-  /* the optimization part */
+  /* the optimization part: we use the unrecularized Null space such that we don't
+     suddently pop up new null space dimensions when the inversion is ill conditioned */
   for (i=1; i<=N_DOFS; ++i) {
     for (j=i; j<=N_DOFS; ++j) {
-      if (i==j) 
-	O[i][j] = 1.0;
-      else
-	O[i][j] = 0.0;
-      for (n=1; n<=count; ++n) {
-	O[i][j] -= B[i][n] * Jac[ind[n]][j];
-      }
+      O[i][j] = 0.0;
+      for (n=count+1; n<=N_DOFS; ++n)
+	O[i][j] += V[i][n] * V[j][n];
       O[j][i] = O[i][j];
     }
   }
@@ -449,6 +487,39 @@ inverseKinematics(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
     }
   }
 
+  /* reduce the joint velocities if we get too close to the end of range of 
+     motion of a DOF */
+  for (i=1; i<=N_DOFS; ++i) {
+    double max_thd, min_thd;
+    double max_thd_now;
+    double min_thd_now;
+
+    if (prismatic_joint_flag[i] && max_pris == 0.0)
+      continue;
+
+    if (!prismatic_joint_flag[i] && max_rev == 0.0)
+      continue;
+
+    
+    if (prismatic_joint_flag[i]) {
+
+      max_thd =  max_pris*max(0.0,tanh(-20.0*(state[i].th-joint_range[i][MAX_THETA])));
+      min_thd = -max_pris*max(0.0,tanh( 20.0*(state[i].th-joint_range[i][MIN_THETA])));
+
+    } else {
+
+      max_thd =  max_rev*max(0.0,tanh(-20.0*(state[i].th-joint_range[i][MAX_THETA])));
+      min_thd = -max_rev*max(0.0,tanh( 20.0*(state[i].th-joint_range[i][MIN_THETA])));
+
+    }
+
+    if (state[i].thd > max_thd)
+      state[i].thd = max_thd;
+    
+    if (state[i].thd < min_thd)
+      state[i].thd = min_thd;
+  }
+  
   /* integrate forward */
   for (i=1; i<=N_DOFS; ++i) {
     state[i].th += state[i].thd * dt;

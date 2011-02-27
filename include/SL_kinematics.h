@@ -30,6 +30,10 @@ extern "C" {
   void   baseJacobian(Matrix lp, Matrix jop, Matrix jap, Matrix Jb);
   double inverseKinematics(SL_DJstate *state, SL_endeff *endeff, SL_OJstate *rest,
 			   Vector cart, iVector status, double dt);
+  double inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
+			       Vector cart, iVector status, double dt, double max_rev,
+			       double max_pris);
+
   void   linkInformation(SL_Jstate *state,SL_Cstate *basec,
 			 SL_quat *baseo, SL_endeff *eff, 
 			 double **Xmcog, double **Xaxis, double **Xorigin, 
