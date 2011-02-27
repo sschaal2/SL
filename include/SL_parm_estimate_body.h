@@ -95,6 +95,8 @@ static int        vis_flag_dofs[N_DOFS+1];
 static int        coul_flag_dofs[N_DOFS+1];
 static int        spring_flag_dofs[N_DOFS+1];
 
+static Vector	  least_square_weight=NULL; //used to perform a weighted least square for param est
+
 #define LLSB(x)	((x) & 0xff)		/*!< 32bit word byte/word swap macros */
 #define LNLSB(x) (((x) >> 8) & 0xff)
 #define LNMSB(x) (((x) >> 16) & 0xff)
@@ -176,6 +178,10 @@ main(int argc, char **argv)
   vbeta    = my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
   beta_old = my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
   beta_proj= my_vector(1,(N_DOFS+1)*N_RBD_PARMS);
+
+  //create a least square weight and make it to one by default
+  least_square_weight = my_vector(1, N_DOFS+2*N_CART);
+  vec_equal_scalar(1, least_square_weight);
 
   /* initialize the dynamics calculations */
   if (!init_dynamics())
@@ -1080,10 +1086,10 @@ add_to_regression(void)
       
       for (m=1; m<=(N_DOFS+1)*N_RBD_PARMS; ++m)
 	for (n=m; n<=(N_DOFS+1)*N_RBD_PARMS; ++n)
-	  ATA[m][n] += Kp[j][m]*Kp[j][n];
+	  ATA[m][n] += Kp[j][m]*Kp[j][n] * least_square_weight[j];
       
       for (m=1; m<=(N_DOFS+1)*N_RBD_PARMS; ++m) {
-	ATb[m] += Kp[j][m]*Yp[j];
+	ATb[m] += Kp[j][m]*Yp[j]* least_square_weight[j];
 	aux = Kp[j][m];
 	if (write_data) {
 #ifdef BYTESWAP
@@ -1642,6 +1648,31 @@ read_parm_file(void) {
 	       joint_names[i],rc,4);
       }
     }
+  }
+
+  //see if there is a weighting matrix out there
+  //it is used to make a weighted least square for param est
+  if(!find_keyword(in, "least_square_weight"))
+  {
+	  printf("Cannot read any least square weight, using 1s\n");
+  }
+  else
+  {
+	  for(i = 1; i<=N_DOFS+2*N_CART; i++)
+	  {
+		  float tmp;
+		  rc = fscanf(in, "%f", &tmp);
+		  if(rc != 1)
+		  {
+			  printf("error there should be %d weights but found only %d\n", N_DOFS+2*N_CART, i);
+			  return FALSE;
+		  }
+		  else
+		  {
+			  least_square_weight[i] = 1.0/(double)tmp;
+		  }
+	  }
+	  print_vec("least_square_weight", least_square_weight);
   }
  
   fclose(in);
