@@ -759,7 +759,8 @@ sendMessageToServo(smMessage *sm_message, SEM_ID sm_message_sem,
   
   // specify the name and info of this message
   strcpy(sm_message->name[sm_message->n_msgs],message);
-  memcpy(sm_message->buf+sm_message->moff[sm_message->n_msgs],buf,n_bytes);
+  if (n_bytes > 0)
+    memcpy(sm_message->buf+sm_message->moff[sm_message->n_msgs],buf,n_bytes);
   
   // prepare pointer buffer for next message
   if (sm_message->n_msgs < MAX_N_MESSAGES)

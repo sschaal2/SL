@@ -708,6 +708,10 @@ checkForMessages(void)
       where_gains();
       
     // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"scdMotor") == 0) { 
+      scd();
+      
+    // ---------------------------------------------------------------------------
     } else if (strcmp(name,"status") == 0) { 
       extern void status(void);
       status();
