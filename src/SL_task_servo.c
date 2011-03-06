@@ -1348,7 +1348,7 @@ starts collect data on the motor servo
 
  ******************************************************************************/
 void 
-scdMotory(void)
+scdMotor(void)
 {
   int i,j;
 
