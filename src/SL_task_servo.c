@@ -1678,6 +1678,23 @@ checkForMessages(void)
     // act according to the message name
     if (strcmp(name,"reset") == 0) {
       reset();
+      
+    } else if (strcmp(name,"changeObjectPos") == 0) {      
+      struct {
+        char   obj_name[100];
+        double pos[N_CART+1];
+        double rot[N_CART+1];
+      } data;
+     
+      memcpy(&data,sm_task_message->buf+sm_task_message->moff[i],sizeof(data));
+      
+      ObjectPtr ptr = getObjPtrByName(data.obj_name);
+      if (ptr != NULL) { 
+        for (i=1;i<=N_CART; ++i) {
+          ptr->trans[i]=data.pos[i];
+          ptr->rot[i]=data.rot[i];
+        }
+      }
     }
 
   }
