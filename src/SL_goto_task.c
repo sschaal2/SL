@@ -169,7 +169,7 @@ init_goto_task(void)
       
     }
     
-  } else {  /* the default posture flag was set */
+  } else {  /* the special posture flag was set */
     
     max_range = 0;
     for (i=1; i<=n_dofs; ++i) {

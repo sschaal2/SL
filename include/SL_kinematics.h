@@ -52,6 +52,10 @@ extern "C" {
   
   void 
   computeQR(Matrix Jc, int nr, int nc, Matrix Q, Matrix Qu, Matrix R, Vector sv);
+
+  int
+  checkIKTarget(SL_DJstate *js, SL_Cstate *bs, SL_quat *bo, SL_endeff *eff, 
+		SL_Cstate *ct, int *status, int max_iter);
   
 
 #ifdef __cplusplus

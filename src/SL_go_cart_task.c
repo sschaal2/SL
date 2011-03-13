@@ -26,6 +26,7 @@
 #include "SL_dynamics.h"
 #include "SL_collect_data.h"
 #include "SL_man.h"
+#include "SL_filters.h"
 
 /*! defines */
 
@@ -34,12 +35,14 @@ static double     time_step;
 static double     *cart;
 static SL_Cstate  *ctarget;
 static SL_Cstate  *cnext;
+static SL_DJstate *target;
 static int        *cstatus;
 static SL_DJstate *target;
 static int        firsttime = TRUE;
 static int        special_flag = FALSE;
 static double     movement_time = 1.0;
 static double     tau;
+static Filter    *fthdd;
 
 /* global functions */
 void add_goto_cart_task(void);
@@ -84,7 +87,13 @@ add_goto_cart_task( void )
     cnext   = (SL_Cstate *) my_calloc(n_endeffs+1,sizeof(SL_Cstate),MY_STOP);
     cstatus = my_ivector(1,n_endeffs*6);
     target  = (SL_DJstate *)my_calloc(n_dofs+1,sizeof(SL_DJstate),MY_STOP);
-    
+    fthdd   = (Filter *)my_calloc(n_dofs+1,sizeof(Filter),MY_STOP);
+    target  = (SL_DJstate *)my_calloc(n_dofs+1,sizeof(SL_DJstate),MY_STOP);
+
+    // initialize the filters
+    init_filters();
+    for (i=1; i<=n_dofs; ++i) 
+      fthdd[i].cutoff = 5;
     
     addTask("Goto Cart Task", init_goto_cart_task, 
 	    run_goto_cart_task, change_goto_cart_task);
@@ -126,11 +135,23 @@ init_goto_cart_task(void)
     return FALSE;
   }
 
+  /* zero the filters */
+  for (i=1; i<=n_dofs; ++i) 
+    for (j=0; j<=FILTER_ORDER; ++j)
+      fthdd[i].raw[j] = fthdd[i].filt[j] = 0;
+  
   /* initialize some variables */
   init_vars();
   time_step = 1./(double)task_servo_rate;
 
   if (!special_flag) {
+
+    /* go to the same target as the current one, but with ID */
+    for (i=1; i<=n_dofs; ++i)
+      target[i] = joint_des_state[i];
+
+    if (!go_target_wait_ID(target))
+      return FALSE;
 
     /* input the movement speed */
     get_double("Movement Time?",movement_time,&movement_time);
@@ -149,11 +170,9 @@ init_goto_cart_task(void)
 	if (!iaux)
 	  ctarget[i].x[_X_] = cart_des_state[i].x[_X_];
 	flag = TRUE;
-	while (TRUE) {
-	  sprintf(string,"%s_x Target",cart_names[i]);
-	  get_double(string,ctarget[i].x[_X_],&aux);
-	  ctarget[i].x[_X_] = aux;
-	}
+	sprintf(string,"%s_x Target",cart_names[i]);
+	get_double(string,ctarget[i].x[_X_],&aux);
+	ctarget[i].x[_X_] = aux;
       }
       
       sprintf(string,"%s_y Status",cart_names[i]);
@@ -163,11 +182,9 @@ init_goto_cart_task(void)
 	if (!iaux)
 	  ctarget[i].x[_Y_] = cart_des_state[i].x[_Y_];
 	flag = TRUE;
-	while (TRUE) {
-	  sprintf(string,"%s_y Target",cart_names[i]);
-	  get_double(string,ctarget[i].x[_Y_],&aux);
-	  ctarget[i].x[_Y_] = aux;
-	}
+	sprintf(string,"%s_y Target",cart_names[i]);
+	get_double(string,ctarget[i].x[_Y_],&aux);
+	ctarget[i].x[_Y_] = aux;
       }
       
       sprintf(string,"%s_z Status",cart_names[i]);
@@ -177,17 +194,32 @@ init_goto_cart_task(void)
 	if (!iaux)
 	  ctarget[i].x[_Z_] = cart_des_state[i].x[_Z_];
 	flag = TRUE;
-	while (TRUE) {
-	  sprintf(string,"%s_z Target",cart_names[i]);
-	  get_double(string,ctarget[i].x[_Z_],&aux);
-	  ctarget[i].x[_Z_] = aux;
-	}
+	sprintf(string,"%s_z Target",cart_names[i]);
+	get_double(string,ctarget[i].x[_Z_],&aux);
+	ctarget[i].x[_Z_] = aux;
       }
       
     }
     
     if (!flag)
       return FALSE;
+
+    /* check whether target is reachable */
+    SL_DJstate js[n_dofs+1];
+
+    for (i=1; i<=n_dofs; ++i)
+      js[i] = joint_des_state[i];
+
+    if (!checkIKTarget(js, &base_state, &base_orient, endeff, ctarget, cstatus, 1000)) {
+      printf("Target was reduced to reachable limits:\n");
+      for (j=1; j<=n_endeffs; ++j) {
+	for (i=1; i<=N_CART; ++i) {
+	  if (cstatus[(j-1)*6+i]) {
+	    printf("%s.%d = %f \n",cart_names[j],i,ctarget[j].x[i]);
+	  }
+	}
+      }
+    }
 
   }
 
@@ -251,7 +283,7 @@ run_goto_cart_task(void)
 {
   int j, i;
   double sum=0;
-  double aux,auxd;
+  double aux;
 
   /* has the movement time expired? I intentially run 0.5 sec longer */
   if (tau <= -0.5 || (tau <= 0.0 && special_flag)) {
@@ -268,8 +300,7 @@ run_goto_cart_task(void)
   for (i=1; i<=n_endeffs; ++i) {
     for (j=1; j<=N_CART; ++j) {
       aux  = cnext[i].x[j] - cart_des_state[i].x[j];
-      auxd = cnext[i].xd[j] - cart_des_state[i].xd[j];
-      cart[(i-1)*6+j] = cnext[i].xd[j] + 100.*aux;
+      cart[(i-1)*6+j] = cnext[i].xd[j] + 20.*aux;
     }
   }
 
@@ -282,12 +313,13 @@ run_goto_cart_task(void)
     freeze();
     return FALSE;
   }
- 
+
   /* prepare inverse dynamics */
   for (i=1; i<=n_dofs; ++i) {
-    joint_des_state[i].thdd += 0.1*
-      ((target[i].thd-joint_des_state[i].thd)*
-      (double)task_servo_rate-joint_des_state[i].thdd);
+    aux = (target[i].thd-joint_des_state[i].thd)*(double)task_servo_rate;
+    target[i].thdd  = filt(aux,&(fthdd[i]));
+
+    joint_des_state[i].thdd = target[i].thdd;
     joint_des_state[i].thd  = target[i].thd;
     joint_des_state[i].th   = target[i].th;
 

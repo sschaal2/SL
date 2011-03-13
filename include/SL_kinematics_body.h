@@ -367,7 +367,7 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
   static Matrix  local_joint_axis_pos_des;
   static Matrix  local_Alink_des[N_LINKS+1];
   static int     firsttime = TRUE;
-  double         ralpha = 0.5;
+  double         ralpha = 2.0;
   double         condnr;
   double         condnr_cutoff = 70.0;  // this corresponds to condnr_cutoff^2 in invere space
 
@@ -784,3 +784,147 @@ computeQR(Matrix Jc, int nr, int nc, Matrix Q, Matrix Qu, Matrix R, Vector sv)
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  checkIKTarget
+\date  March 2011
+\remarks 
+
+Performs a velocity-based IK from a Cartesian start to a Cartesian target,
+but aborts when joint limits are reached. Thus, the best reachable target is
+returned. Note that this does not include orientations, and that the standard
+joint_opt_state is used for redundancy resolution.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in,out]     js       : the starting joint state
+ \param[in]         bs       : the base state
+ \param[in]         bo       : the base orientation
+ \param[in]         eff      : the endeffector information
+ \param[in,out]     ct       : the cartesian target state
+ \param[in]         status   : status variables for which endeffector states
+                               to use (array of n_endeffs*N_CART+2+1)
+ \param[in]         max_iter : the maximal number of iterations
+
+ returns TRUE if no problem occured, and FALSE if there was problem and the
+ target was not reached.
+
+ ******************************************************************************/
+#define SIM_DT   (1./500.)
+int
+checkIKTarget(SL_DJstate *js, SL_Cstate *bs, SL_quat *bo, SL_endeff *eff, 
+	      SL_Cstate *ct, int *status, int max_iter)
+{
+  int       i,j;
+  int       count = 0;
+  SL_Cstate cs[n_endeffs+1];
+  SL_Cstate last_cs[n_endeffs+1];
+  double    aux;
+  double    dist[n_endeffs+1];
+  double    c_ref[n_endeffs*2*N_CART+1];
+  double    condnr;
+
+  MY_MATRIX(local_link_pos_des,0,N_LINKS,1,3);
+  MY_MATRIX(local_joint_cog_mpos_des,0,N_DOFS,1,3);
+  MY_MATRIX(local_joint_origin_pos_des,0,N_DOFS,1,3);
+  MY_MATRIX(local_joint_axis_pos_des,0,N_DOFS,1,3);
+  MY_MATRIX_ARRAY(local_Alink_des,1,4,1,4,n_links+1);
+
+  // compute the current cartesian positions
+  linkInformationDes(js,bs,bo,eff,
+		     local_joint_cog_mpos_des,
+		     local_joint_axis_pos_des,
+		     local_joint_origin_pos_des,
+		     local_link_pos_des,
+		     local_Alink_des);
+
+  for (j=1; j<=n_endeffs; ++j)
+    for (i=1; i<=N_CART; ++i)
+      cs[j].x[i] = local_link_pos_des[link2endeffmap[j]][i];
+
+  // remember the last cartesian state such that we can use it if we hit a joint limit
+  for (i=1; i<=N_ENDEFFS; ++i)
+    last_cs[i] = cs[i];
+
+  // this is the IK loop --------------------------------------------------------------
+  while (TRUE) { 
+
+    if (++count > 1000) // break out if too many iterations
+      break;
+
+    // compute reference velocity, or actually reference cartesian update step
+    aux = 0.0;
+    for (j=1; j<=n_endeffs; ++j) {
+      
+      // positions
+      dist[j] = 0.0;
+      for (i=1; i<=N_CART; ++i) {
+	
+	if (status[(j-1)*2*N_CART+i]) { // if this dimensions is constraint
+	  
+	  c_ref[(j-1)*2*N_CART+i] = (ct[j].x[i]-cs[j].x[i]);
+	  dist[j] += sqr(c_ref[(j-1)*2*N_CART+i]);
+	  
+	} else {
+	  
+	  c_ref[(j-1)*2*N_CART+i] = 0.0;
+	  
+	}
+      }
+      dist[j] = sqrt(dist[j]);
+      if (dist[j] > aux)
+	aux = dist[j];
+      
+      // orientations
+      for (i=N_CART+1; i<=2*N_CART; ++i) {
+	if (status[(j-1)*2*N_CART+i]) { // if this dimensions is constraint
+	  printf("checkIKTarget was not programmed for orientations yet\n");
+	}
+	c_ref[(j-1)*2*N_CART+i] = 0.0;
+      }
+
+    }
+
+    // have we reached the goal
+    if (aux < 0.001)
+      return TRUE;
+
+    // move at 1cm in most moving endeffector
+    for (i=1; i<=n_endeffs*2*N_CART; ++i) { 
+      c_ref[i] /= aux;
+      c_ref[i] *= 0.01/SIM_DT;
+    }
+    
+    // inverse kinematics simulated at SIM_DT
+    condnr = inverseKinematics(js, eff, joint_opt_state, c_ref, status, SIM_DT);
+
+    // check whether we violate joint ranges
+    if (!check_range(js))
+      break;
+
+    // where are we in cartesian space
+    linkInformationDes(js,bs,bo,eff,
+		       local_joint_cog_mpos_des,
+		       local_joint_axis_pos_des,
+		       local_joint_origin_pos_des,
+		       local_link_pos_des,
+		       local_Alink_des);
+    
+    for (j=1; j<=n_endeffs; ++j)
+      for (i=1; i<=N_CART; ++i)
+	cs[j].x[i] = local_link_pos_des[link2endeffmap[j]][i];
+    
+    for (i=1; i<=N_ENDEFFS; ++i)
+      last_cs[i] = cs[i];
+
+    
+  } // while (TRUE)
+
+
+  // correct the target to the most recently reached state
+  for (i=1; i<=N_ENDEFFS; ++i)
+    ct[i] = last_cs[i];
+
+  return FALSE;
+}
