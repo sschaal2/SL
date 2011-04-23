@@ -107,6 +107,7 @@ extern "C" {
   void       displayCoord(void);
   void       receiveOscilloscopeData(void);
   int        initOscWindow(void);
+  int        displayListFromObjFile(char *fname, double scale);
   
   /* exported variables */
   extern int solid;
@@ -124,6 +125,7 @@ extern "C" {
   extern SL_Cstate userGraphics_base_state;
   extern SL_quat userGraphics_base_orient;
   extern int cometDisplay;
+
   
 #ifdef __cplusplus
 }

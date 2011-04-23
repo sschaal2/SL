@@ -22,6 +22,7 @@
 // UNIX specific headers
 #ifdef UNIX
 #include "sys/ioctl.h"
+#include "sys/stat.h"
 #ifdef sparc
 #include "sys/filio.h"
 #include "unistd.h"
@@ -3195,6 +3196,284 @@ displayCoord(void)
   glEnable(GL_LIGHTING);   
   glLineWidth(1.0);
   glPopMatrix();
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  displayListFromObjFile
+\date  April 2011
+   
+\remarks 
+
+        reads an OBJ (WAVEFRONT/MAJA) file and creates a display list
+	from the faces.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     fname   : file name
+ \param[in]     scale   : scale multiplier for converting units
+
+ returns the ID of the display list, or FALSE
+
+ ******************************************************************************/
+#define MAX_STRING_LEN 100
+int
+displayListFromObjFile(char *fname, double scale)
+{
+  int     i,j,k,r,rc;
+  FILE   *fp;
+  double  v1[3+1];
+  double  v2[3+1];
+  double  v3[3+1];
+  double  x,y,z;
+  char    string[MAX_STRING_LEN+1];
+  char    fnamebin[100];
+  char    c;
+  char    key[10];
+  int     n_v=0;
+  int     n_f=0;
+  int     n_vn=0;
+  Matrix  v;
+  Matrix  vn;
+  iMatrix f;
+  double  max_v[N_CART+1] = {0.0,-1.e10,-1.e10,-1.e10};
+  double  min_v[N_CART+1] = {0.0,+1.e10,+1.e10,+1.e10};
+  int     nx,ny;
+  struct  stat sfile;
+  struct  stat sfilebin;
+
+  // check whether binary version exists 
+  sprintf(fnamebin,"%s.bin",fname);
+
+  // check whether binary versin needs to be re-generated
+  if (stat(fnamebin,&sfilebin) == 0) { // the file exists
+
+    // check date in comparison to filename file and regenerate .bin if needed
+    stat(fname,&sfile);
+    if (sfile.st_mtime > sfilebin.st_mtime) // need update
+      remove(fnamebin);
+  }
+
+  fp = fopen(fnamebin,"r");
+
+  if (fp == NULL) { // try reading the ascii file
+
+    // try to open the file
+    fp = fopen(fname,"r");
+    if (fp == NULL) {
+      printf("Cannot read OBJ file >%s<\n",fname);
+      return FALSE;
+    }
+    
+    printf("Procdessing %s ...\n",fname);
+    
+    // count the number of faces, vertices, normals in file
+    while (TRUE) {
+      
+      // get the next line
+      i=0;
+      while ((c=fgetc(fp)) != '\n' && c != EOF) {
+	string[i++] = c;
+	if ( i >= MAX_STRING_LEN ) {
+	  printf("ERROR: max. string length exceeded\n");
+	  return FALSE;
+	}
+      }
+      string[i] = '\0';
+      
+      // check for vertices and faces
+      sscanf(string,"%s",key);
+      if (strcmp(key,"vn")==0)
+	++n_vn;
+      else if (strcmp(key,"f")==0)
+	++n_f;
+      else if (strcmp(key,"v")==0)
+	++n_v;
+      
+      if (c == EOF)
+	break;
+      
+    }
+    
+    printf("#faces=%d  #vertices=%d   #normals=%d\n",n_f,n_v,n_vn);
+    
+    rewind(fp);
+    
+    // allocate memory
+    v  = my_matrix(1,n_v,1,3);
+    f  = my_imatrix(1,n_f,1,9); // first 3 for vertex, next for texture, last 3 for normal
+    vn = my_matrix(1,n_vn,1,3);
+    
+    // get the data
+    n_v = n_f = n_vn = 0;
+    while (TRUE) {
+      char s1[100],s2[100],s3[100];
+      
+      // get the next line
+      i=0;
+      while ((c=fgetc(fp)) != '\n' && c != EOF) {
+	string[i++] = c;
+	if ( i >= MAX_STRING_LEN ) {
+	  printf("ERROR: max. string length exceeded\n");
+	  return FALSE;
+	}
+      }
+      string[i] = '\0';
+      
+      // check for vertices, normals, and faces
+      sscanf(string,"%s",key);
+      if (strcmp(key,"vn")==0) {
+	++n_vn;
+	sscanf(string,"%s %lf %lf %lf",key,&vn[n_vn][1],&vn[n_vn][2],&vn[n_vn][3]);
+	
+      } else if (strcmp(key,"v")==0) {
+	++n_v;
+	sscanf(string,"%s %lf %lf %lf",key,&v[n_v][1],&v[n_v][2],&v[n_v][3]);
+	
+	v[n_v][1]*=scale;
+	v[n_v][2]*=scale;
+	v[n_v][3]*=scale;
+	
+	for (j=1; j<=N_CART; ++j) {
+	  if (v[n_v][j] > max_v[j])
+	    max_v[j] = v[n_v][j];
+	  if (v[n_v][j] < min_v[j])
+	    min_v[j] = v[n_v][j];
+	}
+	
+      } else if (strcmp(key,"f")==0) {
+	++n_f;
+	
+	sscanf(string,"%s %s %s %s",key,s1,s2,s3);
+	
+	if (sscanf(s1,"%d/%d/%d",&f[n_f][1],&f[n_f][1+3],&f[n_f][1+6]) == 3) {
+	  ; // this is the best scenario with vertex,texture, and normal info
+	} else if (sscanf(s1,"%d//%d",&f[n_f][1],&f[n_f][1+6]) == 2) {
+	  ; // texture info is missing
+	} else if (sscanf(s1,"%d/%d/",&f[n_f][1],&f[n_f][1+3]) == 2) {
+	  ; // normal info is missing
+	} else {
+	  if (sscanf(s1,"%d",&f[n_f][1]) != 1) 
+	    printf("Couldn't parse face informamtion\n");
+	}
+	
+	if (sscanf(s2,"%d/%d/%d",&f[n_f][2],&f[n_f][2+3],&f[n_f][2+6]) == 3) {
+	  ; // this is the best scenario with vertex,texture, and normal info
+	} else if (sscanf(s2,"%d//%d",&f[n_f][2],&f[n_f][2+6]) == 2) {
+	  ; // texture info is missing
+	} else if (sscanf(s2,"%d/%d/",&f[n_f][2],&f[n_f][2+3]) == 2) {
+	  ; // normal info is missing
+	} else {
+	  if (sscanf(s2,"%d",&f[n_f][2]) != 1) 
+	    printf("Couldn't parse face informamtion\n");
+	}
+	
+	if (sscanf(s3,"%d/%d/%d",&f[n_f][3],&f[n_f][3+3],&f[n_f][3+6]) == 3) {
+	  ; // this is the best scenario with vertex,texture, and normal info
+	} else if (sscanf(s3,"%d//%d",&f[n_f][3],&f[n_f][3+6]) == 2) {
+	  ; // texture info is missing
+	} else if (sscanf(s3,"%d/%d/",&f[n_f][3],&f[n_f][3+3]) == 2) {
+	  ; // normal info is missing
+	} else {
+	  if (sscanf(s3,"%d",&f[n_f][3]) != 1) 
+	    printf("Couldn't parse face informamtion\n");
+	}
+	
+      }
+      
+      if (c == EOF)
+	break;
+    }
+    fclose(fp);
+    
+    printf("max: x=%6.2f y=%6.2f z=%6.2f\n",max_v[_X_],max_v[_Y_],max_v[_Z_]);
+    printf("min: x=%6.2f y=%6.2f z=%6.2f\n",min_v[_X_],min_v[_Y_],min_v[_Z_]);
+    
+    // write binary files
+    fp = fopen(fnamebin,"w");
+    fprintf(fp,"%d %d %d\n",n_v,n_vn,n_f);
+
+    fwrite_mat(fp,v);
+    fwrite_mat(fp,vn);
+    fwrite_imat(fp,f);
+
+    fclose(fp);
+
+    printf("... done with %s\n",fname);
+    
+  } else { // read binary files
+    
+    rc = fscanf(fp,"%d %d %d",&n_v,&n_vn,&n_f);
+    fgetc(fp);
+
+    // allocate memory
+    v  = my_matrix(1,n_v,1,3);
+    f  = my_imatrix(1,n_f,1,9); // first 3 for vertex, next for texture, last 3 for normal
+    vn = my_matrix(1,n_vn,1,3);
+    
+    // binary read
+    fread_mat(fp,v);
+    fread_mat(fp,vn);
+    fread_imat(fp,f);
+
+    fclose(fp);
+
+  }
+
+  
+  // create one display list item
+  GLuint index = glGenLists(1);
+  glNewList((GLuint)index, GL_COMPILE);
+
+  for (i=1; i<=n_f; ++i) {
+    double normal[N_CART+1];
+    double v1[N_CART+1];
+    double v2[N_CART+1];
+
+    // compute default normal vector if needed
+    for (j=1; j<=N_CART; ++j) {
+      v1[j] = v[f[i][2]][j] - v[f[i][1]][j];
+      v2[j] = v[f[i][3]][j] - v[f[i][2]][j];
+    }
+    vec_mult_outer_size(v1, v2, N_CART, normal);
+
+    // draw the face
+    glBegin(GL_TRIANGLES);
+
+    if ( f[i][6+1] == 0 )
+      glNormal3d( (GLdouble)normal[_X_],(GLdouble)normal[_Y_],(GLdouble)normal[_Z_]);
+    else
+      glNormal3d((GLdouble)vn[f[i][6+1]][_X_],(GLdouble)vn[f[i][6+1]][_Y_],(GLdouble)vn[f[i][6+1]][_Z_]);
+
+    glVertex3dv(&(v[f[i][1]][_X_]));
+
+    if ( f[i][6+2] == 0 )
+      glNormal3d( (GLdouble)normal[_X_],(GLdouble)normal[_Y_],(GLdouble)normal[_Z_]);
+    else
+      glNormal3d((GLdouble)vn[f[i][6+2]][_X_],(GLdouble)vn[f[i][6+2]][_Y_],(GLdouble)vn[f[i][6+2]][_Z_]);
+
+    glVertex3dv(&(v[f[i][2]][_X_]));
+
+    if ( f[i][6+3] == 0 )
+      glNormal3d( (GLdouble)normal[_X_],(GLdouble)normal[_Y_],(GLdouble)normal[_Z_]);
+    else
+      glNormal3d((GLdouble)vn[f[i][6+3]][_X_],(GLdouble)vn[f[i][6+3]][_Y_],(GLdouble)vn[f[i][6+3]][_Z_]);
+
+    glVertex3dv(&(v[f[i][3]][_X_]));
+
+    glEnd();
+
+  }
+  glEndList();
+
+  // clean up
+  my_free_matrix(v,1,n_v,1,3);
+  my_free_matrix(vn,1,n_vn,1,3);
+  my_free_imatrix(f,1,n_f,1,9);
+
+  return index;
 
 }
 
