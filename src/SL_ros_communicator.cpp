@@ -97,8 +97,9 @@ bool SL_ros_communicator::publish()
     pose_stamped_msg_->pose.position.x = cart_state[i].x[_X_];
     pose_stamped_msg_->pose.position.y = cart_state[i].x[_Y_];
     pose_stamped_msg_->pose.position.z = cart_state[i].x[_Z_];
+    nrt_endeffector_publisher_.publish(pose_stamped_msg_);
 
-    //ros::spinOnce();
+//    ros::spinOnce();
     return true;
 }
 

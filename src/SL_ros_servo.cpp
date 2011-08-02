@@ -30,6 +30,7 @@
 #include "SL_common.h"
 #include "SL_oscilloscope.h"
 #include "SL_kinematics.h"
+#include "SL_dynamics.h"
 
 #define TIME_OUT_NS  1000000
 
@@ -88,6 +89,10 @@ init_ros_servo(void)
 
   // initialize shared memories and shared semaphores
   if (!init_shared_memory())
+    return;
+
+  /* inverse dynamics and other basic kinematic stuff*/
+  if (!init_dynamics())
     return;
 
   // initialize kinematics
