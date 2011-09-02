@@ -41,6 +41,8 @@ long count_xenomai_mode_switches = -1;
 // local functions
 static void 
 action_upon_switch(int sig __attribute__((unused)));
+static void warn_upon_switch(int sig, siginfo_t *si, void *context);
+
 
 /*!*****************************************************************************
  *******************************************************************************
@@ -75,7 +77,28 @@ initXeno(char *task_name)
   rt_task_shadow(NULL, name, 0, 0);
 
   // what to do when mode switches happen
-  signal(SIGDEBUG, action_upon_switch);
+  if(!strcmp(task_name, "motor"))
+  {
+    printf("motor signaling.");
+    sigemptyset(&sa.sa_mask);
+    sa.sa_sigaction = warn_upon_switch;
+    sa.sa_flags = SA_SIGINFO;
+    sigaction(SIGDEBUG, &sa, NULL);
+
+  }
+  else if(!strcmp(task_name, "task"))
+  {
+    printf("task signaling.");
+    sigemptyset(&sa.sa_mask);
+    sa.sa_sigaction = warn_upon_switch;
+    sa.sa_flags = SA_SIGINFO;
+    sigaction(SIGDEBUG, &sa, NULL);
+
+  }
+  else
+  {
+    signal(SIGDEBUG, action_upon_switch);
+  }
 
   // start the non real-time printing library
   rt_print_auto_init(1);
@@ -128,4 +151,29 @@ action_upon_switch(int sig __attribute__((unused)))
   getchar();
   */
 
+}
+
+
+static const char *reason_str[] = {
+    [SIGDEBUG_UNDEFINED] = "undefined",
+    [SIGDEBUG_MIGRATE_SIGNAL] = "received signal",
+    [SIGDEBUG_MIGRATE_SYSCALL] = "invoked syscall",
+    [SIGDEBUG_MIGRATE_FAULT] = "triggered fault",
+    [SIGDEBUG_MIGRATE_PRIOINV] = "affected by priority inversion",
+    [SIGDEBUG_NOMLOCK] = "missing mlockall",
+    [SIGDEBUG_WATCHDOG] = "runaway thread",
+};
+
+static void warn_upon_switch(int sig, siginfo_t *si, void *context)
+{
+    unsigned int reason = si->si_value.sival_int;
+    void *bt[32];
+    int nentries;
+
+    printf("\nSIGDEBUG received, reason %d: %s\n", reason,
+           reason <= SIGDEBUG_WATCHDOG ? reason_str[reason] : "<unknown>");
+    /* Dump a backtrace of the frame which caused the switch to
+       secondary mode: */
+    nentries = backtrace(bt,sizeof(bt) / sizeof(bt[0]));
+    backtrace_symbols_fd(bt,nentries,fileno(stdout));
 }
