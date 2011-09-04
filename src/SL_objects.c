@@ -1043,6 +1043,7 @@ checkContacts(void)
 	contacts[i].tanvel[j] = 0.0;
 	contacts[i].viscvel[j] = 0.0;
 	contacts[i].f[j] = 0.0;
+	contacts[i].n[j] = 0.0;
       }
     }
 
@@ -1688,23 +1689,47 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr)
 
   }
 
-  /* convert the object centered forces into global coordinates */
+  /* convert the object centered forces and normals into global coordinates */
+
+  // assign the normal
+  aux = 0.0;
+  for (i=1; i<=N_CART; ++i)  {
+    cptr->n[i] = cptr->normal[i];
+    aux += sqr(cptr->n[i]);
+  }
+  aux = sqrt(aux);
+  for (i=1; i<=N_CART; ++i)
+    cptr->n[i] /= aux;
+
+
   if (optr->rot[_G_] != 0.0) {
     aux    =  cptr->f[_X_]*cos(optr->rot[_G_])-cptr->f[_Y_]*sin(optr->rot[_G_]);
     cptr->f[_Y_] =  cptr->f[_X_]*sin(optr->rot[_G_])+cptr->f[_Y_]*cos(optr->rot[_G_]);
     cptr->f[_X_] = aux;
+
+    aux          =  cptr->n[_X_]*cos(optr->rot[_G_])-cptr->n[_Y_]*sin(optr->rot[_G_]);
+    cptr->n[_Y_] =  cptr->n[_X_]*sin(optr->rot[_G_])+cptr->n[_Y_]*cos(optr->rot[_G_]);
+    cptr->n[_X_] = aux;
   }
 
   if (optr->rot[_B_] != 0.0) {
     aux    =  cptr->f[_X_]*cos(optr->rot[_B_])+cptr->f[_Z_]*sin(optr->rot[_B_]);
     cptr->f[_Z_] = -cptr->f[_X_]*sin(optr->rot[_B_])+cptr->f[_Z_]*cos(optr->rot[_B_]);
     cptr->f[_X_] = aux;
+
+    aux    =  cptr->n[_X_]*cos(optr->rot[_B_])+cptr->n[_Z_]*sin(optr->rot[_B_]);
+    cptr->n[_Z_] = -cptr->n[_X_]*sin(optr->rot[_B_])+cptr->n[_Z_]*cos(optr->rot[_B_]);
+    cptr->n[_X_] = aux;
   }
   
   if (optr->rot[_A_] != 0.0) {
     aux    =  cptr->f[_Y_]*cos(optr->rot[_A_])-cptr->f[_Z_]*sin(optr->rot[_A_]);
     cptr->f[_Z_] =  cptr->f[_Y_]*sin(optr->rot[_A_])+cptr->f[_Z_]*cos(optr->rot[_A_]);
     cptr->f[_Y_] = aux;
+
+    aux    =  cptr->n[_Y_]*cos(optr->rot[_A_])-cptr->n[_Z_]*sin(optr->rot[_A_]);
+    cptr->n[_Z_] =  cptr->n[_Y_]*sin(optr->rot[_A_])+cptr->n[_Z_]*cos(optr->rot[_A_]);
+    cptr->n[_Y_] = aux;
   }
 
 
@@ -2290,4 +2315,5 @@ computeContactPoint(ContactPtr cptr, double *x)
   }
 
 }
+
 

@@ -268,8 +268,19 @@ receive_contacts(void)
 
   for (i=0; i<=n_contacts; ++i) {
     contacts[i].status = sm_contacts->contact[i].status;
-    for (j=1; j<=N_CART; ++j)
-      contacts[i].f[j] = sm_contacts->contact[i].f[j];
+    if (contacts[i].status) {
+      for (j=1; j<=N_CART; ++j) {
+	contacts[i].f[j] = sm_contacts->contact[i].f[j];
+	contacts[i].n[j] = sm_contacts->contact[i].n[j];
+      }
+      contacts[i].optr = getObjPtrByName(sm_contacts->contact[i].name);
+    } else {
+      for (j=1; j<=N_CART; ++j) {
+	contacts[i].f[j] = 0.0;
+	contacts[i].n[j] = 0.0;
+      }
+      contacts[i].optr = NULL;
+    }
   }
   
   semGive(sm_contacts_sem);

@@ -63,6 +63,7 @@ typedef struct Contact {
   double     tanvel[N_CART+1];                 /*!< tangential velocity vector */
   double     viscvel[N_CART+1];                /*!< velocity vector for viscous friction */
   double     f[N_CART+1];                      /*!< contact forces in world coordinates */
+  double     n[N_CART+1];                      /*!< contact normal in world coordinates */
   double     face_index;                       /*!< _X_, _Y_, or _Z_ to indicate with which face we are in contact */
   int        n_connected_links;                /*!< number of connected links */
   int        connected_links[MAX_CONNECTED+1]; /*!< list of connected links (only used for link end points, not intermediate points */
