@@ -111,8 +111,10 @@ typedef struct smJointSimStates {
 } smJointSimStates;
 
 typedef struct contactShort {
-  int             status;
-  float           f[N_CART+1];
+  int             status;            /*!< contact status */
+  float           f[N_CART+1];       /*!< contact force */
+  float           n[N_CART+1];       /*!< contact normal */
+  char            name[STRING100];   /*!< object name in contact */
 } contactShort;
 
 typedef struct smContacts {

@@ -46,7 +46,7 @@ typedef struct Contact {
   int        active;                           /*!< TRUE/FALSE: indicates whether this point should be checked for contacts */
   int        status;                           /*!< contact is true or false */
   int        friction_flag;                    /*!< flag for switching between different friction models */
-  ObjectPtr  optr;                             /*!< ptr of object that is contacted */
+  ObjectPtr  optr;                             /*!< ptr ofx object that is contacted */
   int        base_dof_start;                   /*!< to which DOF does this point connect? */
   int        off_link_start;                   /*!< which link should be used for moment arm */
   int        base_dof_end;                     /*!< to which DOF does this point connect? */
@@ -63,6 +63,7 @@ typedef struct Contact {
   double     tanvel[N_CART+1];                 /*!< tangential velocity vector */
   double     viscvel[N_CART+1];                /*!< velocity vector for viscous friction */
   double     f[N_CART+1];                      /*!< contact forces in world coordinates */
+  double     n[N_CART+1];                      /*!< contact normal in world coordinates */
   double     face_index;                       /*!< _X_, _Y_, or _Z_ to indicate with which face we are in contact */
   int        n_connected_links;                /*!< number of connected links */
   int        connected_links[MAX_CONNECTED+1]; /*!< list of connected links (only used for link end points, not intermediate points */
@@ -110,7 +111,7 @@ extern "C" {
   ObjectPtr  getObjPtrByName(char *name);
 
   int        read_extra_contact_points(char *fname);
-  void       computeContactPoint(ContactPtr cptr, double *x);
+  void       computeContactPoint(ContactPtr cptr, double **lp, double ***al, double *x);
 
 
 

@@ -1074,8 +1074,20 @@ send_contacts(void)
 
   for (i=0; i<=n_contacts; ++i) {
     sm_contacts->contact[i].status = contacts[i].status;
-    for (j=1; j<=N_CART; ++j)
-      sm_contacts->contact[i].f[j] = contacts[i].f[j];
+    if (contacts[i].status) {
+
+      for (j=1; j<=N_CART; ++j) {
+	sm_contacts->contact[i].f[j] = contacts[i].f[j];
+	sm_contacts->contact[i].n[j] = contacts[i].n[j];
+      }
+      strncpy(sm_contacts->contact[i].name,contacts[i].optr->name,STRING100);
+    } else {
+      for (j=1; j<=N_CART; ++j) {
+	sm_contacts->contact[i].f[j] = 0.0;
+	sm_contacts->contact[i].n[j] = 0.0;
+      }
+      strncpy(sm_contacts->contact[i].name,"\0",STRING100);
+    }
   }
   
   semGive(sm_contacts_sem);

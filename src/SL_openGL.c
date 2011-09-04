@@ -1670,7 +1670,7 @@ drawContacts(double fscale)
       continue;
 
     // compute the point of contact
-    computeContactPoint(&(contacts[i]),x);
+    computeContactPoint(&(contacts[i]),link_pos_sim,Alink_sim,x);
 
 
     // draw a blob at the point of contact
@@ -1696,6 +1696,18 @@ drawContacts(double fscale)
 	       contacts[i].f[_Y_]*fscale,
 	       contacts[i].f[_Z_]*fscale);  
     glEnd();
+
+    /*
+    glColor4f (1.0,0.0,0.0,1.0);      
+    glBegin(GL_LINES);     
+    //printf("%f %f %f\n",contacts[i].n[_X_],contacts[i].n[_Y_],contacts[i].n[_Z_]);
+    glVertex3d(0.0,0.0,0.0);       
+    glVertex3d(contacts[i].n[_X_],
+	       contacts[i].n[_Y_],
+	       contacts[i].n[_Z_]);  
+    glEnd();
+    */
+
     glEnable(GL_LIGHTING);   
 
     glPopMatrix();
