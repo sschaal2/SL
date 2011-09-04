@@ -46,7 +46,7 @@ typedef struct Contact {
   int        active;                           /*!< TRUE/FALSE: indicates whether this point should be checked for contacts */
   int        status;                           /*!< contact is true or false */
   int        friction_flag;                    /*!< flag for switching between different friction models */
-  ObjectPtr  optr;                             /*!< ptr of object that is contacted */
+  ObjectPtr  optr;                             /*!< ptr ofx object that is contacted */
   int        base_dof_start;                   /*!< to which DOF does this point connect? */
   int        off_link_start;                   /*!< which link should be used for moment arm */
   int        base_dof_end;                     /*!< to which DOF does this point connect? */
@@ -111,7 +111,7 @@ extern "C" {
   ObjectPtr  getObjPtrByName(char *name);
 
   int        read_extra_contact_points(char *fname);
-  void       computeContactPoint(ContactPtr cptr, double *x);
+  void       computeContactPoint(ContactPtr cptr, double **lp, double ***al, double *x);
 
 
 

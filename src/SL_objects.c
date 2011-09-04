@@ -662,7 +662,7 @@ checkContacts(void)
 	 coordinates */
 
       // compute the current contact point
-      computeContactPoint(&(contacts[i]),x);
+      computeContactPoint(&(contacts[i]),link_pos_sim,Alink_sim,x);
 
       // convert to local coordinates
       for (j=1; j<=N_CART; ++j)
@@ -2288,11 +2288,13 @@ structure
  Function Parameters: [in]=input,[out]=output
 
  \param[in]   cptr: pointer to contact structure
+ \param[in]   lp  : pointer to link_pos array
+ \param[in]   al  : pointer to Alink array
  \param[out]  x   : contact point in global coordinates
 
  ******************************************************************************/
 void
-computeContactPoint(ContactPtr cptr, double *x)
+computeContactPoint(ContactPtr cptr, double **lp, double ***al, double *x)
 
 {
   int    i,j;
@@ -2302,15 +2304,15 @@ computeContactPoint(ContactPtr cptr, double *x)
 
     // convert the local contact point to global coordinates
     for (i=1; i<=N_CART; ++i) {
-      x[i] = Alink_sim[cptr->id_start][i][4];
+      x[i] = al[cptr->id_start][i][4];
       for (j=1; j<=N_CART; ++j)
-	x[i] += Alink_sim[cptr->id_start][i][j]*cptr->local_point_pos[j];
+	x[i] += al[cptr->id_start][i][j]*cptr->local_point_pos[j];
     }
 
   } else { // a line contact
     for (j=1; j<=N_CART; ++j)
-      x[j] = (link_pos_sim[cptr->id_start][j]*cptr->fraction_start + 
-	      link_pos_sim[cptr->id_end][j]*cptr->fraction_end);
+      x[j] = (lp[cptr->id_start][j]*cptr->fraction_start + 
+	      lp[cptr->id_end][j]*cptr->fraction_end);
 
   }
 

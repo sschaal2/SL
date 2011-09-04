@@ -1670,7 +1670,7 @@ drawContacts(double fscale)
       continue;
 
     // compute the point of contact
-    computeContactPoint(&(contacts[i]),x);
+    computeContactPoint(&(contacts[i]),link_pos_sim,Alink_sim,x);
 
 
     // draw a blob at the point of contact
