@@ -2683,7 +2683,7 @@ parseWindowSpecs(char *string, int dw, int dh, char *xstring, int *x, int *y, in
   *w = rw;
   *h = rh;
 
-  sprintf(xstring,"%dx%d+%d+%d",*w,*h,*x,*y);
+  sprintf(xstring,"%dx%d%+d%+d",*w,*h,*x,*y);
 
   return TRUE;
 }
