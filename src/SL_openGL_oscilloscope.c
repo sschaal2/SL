@@ -292,7 +292,7 @@ osc_display(void)
   }
 
   if ( i > osc_data[0].n_active ) {
-    if (osc_data[0].n_active > 0)
+    if (osc_data[0].n_active > 1000)
       printf("Could not find D2A_task in oscilloscope data\n");
     glutSwapBuffers();
     return;
