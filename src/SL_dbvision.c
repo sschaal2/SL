@@ -122,7 +122,7 @@ init_dbvision_interface(void)
 {
 
   serial_fd = open_serial(SERIALPORT1,BAUD115K,O_RDONLY);
-  if (serial_fd == FALSE) {
+  if (serial_fd < 0) {
     printf("Error when opening Serial Port\n");
     return FALSE;
   }
