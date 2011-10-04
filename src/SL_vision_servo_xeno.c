@@ -95,7 +95,6 @@ main(int argc, char**argv)
   servo_time              = 0;
   vision_servo_errors     = 0;
   vision_servo_rate       = VISION_SERVO_RATE;
-  no_hardware_flag        = TRUE;
   changeCollectFreq(vision_servo_rate);
 
   // get the servo parameters
@@ -105,7 +104,6 @@ main(int argc, char**argv)
 
   // initialize all vision variables to safe values
   init_vision_states();
-  init_learning();
 
   // make this process real-time
   if (use_spawn) {
@@ -181,14 +179,30 @@ vision_servo(void *dummy)
     if (delay_ns > 0)
       taskDelay(ns2ticks(delay_ns));
 
-    // wait to take semaphore 
-    if (semTake(sm_vision_servo_sem,WAIT_FOREVER) == ERROR)
-      stop("semTake Time Out -- Servo Terminated");
-   
-    // reset the blob status
-    for (i=1; i<=max_blobs; ++i) {
-      raw_blobs2D[i][1].status = FALSE;
-      raw_blobs2D[i][2].status = FALSE;
+    // check whether there is some hardware interaction -- the vision hardware would
+    // provide the clocking
+    if (!no_hardware_flag && !raw_blob_overwrite_flag) {
+
+      // this is just added to notice when SL is aborted
+      if (semGet(sm_vision_servo_sem,&rc) == ERROR)
+	stop("semTake Time Out -- Servo Terminated");
+
+      if (!acquire_blobs(raw_blobs2D)) {
+	no_hardware_flag = TRUE;
+      }
+
+    } else { // with no hardware, we rely on the internal clock
+
+      // wait to take semaphore 
+      if (semTake(sm_vision_servo_sem,WAIT_FOREVER) == ERROR)
+	stop("semTake Time Out -- Servo Terminated");
+      
+      // reset the blob status
+      for (i=1; i<=max_blobs; ++i) {
+	raw_blobs2D[i][1].status = FALSE;
+	raw_blobs2D[i][2].status = FALSE;
+      }
+      
     }
 
     // lock out the keyboard interaction

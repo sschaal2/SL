@@ -68,7 +68,8 @@ INSTALL_HEADERS = \
 		  ../include/SL_user_idle_core.h \
 		  ../include/SL_user_main_core.h \
 		  ../include/SL_vision_servo.h \
-		  ../include/SL_vx_serial.h \
+		  ../include/SL_serial_unix.h \
+		  ../include/SL_serial_xeno.h \
 		  ../include/SL_vx_wrappers.h \
 		  ../include/SL_xeno_common.h \
 		  ../include/SL_xeno_headers.h 

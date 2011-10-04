@@ -132,11 +132,15 @@ SRCS_GL_SERVO = \
 OBJS_VISION_SERVO = \
 	SL_vision_servo.o \
 	SL_vision_servo_unix.o \
+	SL_dbvision.o \
+	SL_serial_unix.o \
 	SL_vision_proc.o 
 
 SRCS_VISION_SERVO = \
 	SL_vision_servo.c \
 	SL_vision_servo_unix.c \
+	SL_dbvision.c \
+	SL_serial_unix.c \
 	SL_vision_proc.c 
 
 /* ------------------------------------------------------------------------*/

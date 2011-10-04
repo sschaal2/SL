@@ -108,17 +108,9 @@ init_vision_servo()
   /* the servo name */
   sprintf(servo_name,"vision");
 
-#ifdef VX
-  /* vxworks specific initialization */
-  if (!init_vxworks()) 
-    return;
-
-  /* init the QuickMag communication */
+  /* init the color vision */
   if (!init_vision_hardware())
     no_hardware_flag = TRUE;
-#else
-  no_hardware_flag = TRUE;
-#endif
 
   /* initialize shared memories and shared semaphores */
   if (!init_shared_memory())
@@ -245,7 +237,8 @@ run_vision_servo(void)
    * this allows to overwrite the blobs, e.g., by simulated information
    */
   
-  setOsc(d2a_cv,0.0);
+  setOsc(d2a_cv,00.0);
+
   /* reset the blob status if there is no hardware */
   if (no_hardware_flag) {
     for (i=1; i<=max_blobs; ++i) {
@@ -503,7 +496,6 @@ init_learning( void )
 {
   int i, j;
 
-#ifdef VX  
   if (models_read) {
     ;
   } else {
@@ -516,7 +508,7 @@ init_learning( void )
   for (i=1; i<=max_blobs; ++i) {
     blob_is_endeffector[i] = FALSE;
   }
-#endif
+
   models_read = TRUE;
 
   return TRUE;
@@ -548,7 +540,6 @@ reset_learning( void )
     return FALSE;
   }
 
-#ifdef VX  
   if (models_read) {
     deleteLWPR(BLOB2ROBOT);
   }
@@ -560,7 +551,7 @@ reset_learning( void )
   for (i=1; i<=max_blobs; ++i) {
     blob_is_endeffector[i] = FALSE;
   }
-#endif
+
   models_read = TRUE;
 
   return TRUE;
@@ -656,7 +647,6 @@ learn_transformation(void )
   if (semTake(sm_learn_blob2body_sem,NO_WAIT) == ERROR)
     return TRUE;
 
-#ifdef VX
   for (i=1; i<=max_blobs; ++i) {
     if (blob_is_endeffector[i] != 0 && 
 	raw_blobs2D[i][1].status &&
@@ -673,7 +663,7 @@ learn_transformation(void )
       addDataToLWPR(BLOB2ROBOT, x, x, y,FALSE,&rfID);
     }
   }
-#endif  
+
   return TRUE;
   
 }    

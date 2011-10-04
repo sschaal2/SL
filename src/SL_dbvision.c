@@ -4,35 +4,34 @@
   \file    SL_dbvision.c
 
   \author  Stefan Schaal
-  \date    Jan. 2005
+  \date    Oct. 2011
 
   ==============================================================================
   \remarks
 
-      handles the I/O with the DBvision system of Ales Ude
+  handles the I/O with the DBVision vision system of Ales Ude
 
   ============================================================================*/
 
-#include "vxWorks.h"
-#include "stdio.h"
-#include "string.h"
-#include "intLib.h"
-#include "timers.h"
+// SL general includes of system headers
+#include "SL_system_headers.h"
 
-/* private includes */
+// private includes
 #include "SL.h"
-#include "SL_user.h"
 #include "utility.h"
 #include "SL_vision_servo.h"
-#include "SL_vx_serial.h"
+#ifdef __XENO__
+#include "SL_serial_xeno.h"
+#else
+#include "SL_serial_unix.h"
+#endif
+#include "fcntl.h"
 
-#define N_TIME_OUT 5000    /*!< a counter to detect time out */
-                           /*! 200 seems to be minimum to not forget a frame */
 #define CAMERA_1  1
 #define CAMERA_2  2
 #define N_CAMERAS 2        /*!< binocular */
 
-#define nanosleep(x,y) {int ii; for (ii=1; ii<=10; ++ii);};
+#define WAIT_IN_NS 100000
 
 typedef struct Blob2DInfo {
   int status;
@@ -49,29 +48,28 @@ typedef struct Blob2DInfo {
 
 typedef struct Frame {
   int counter;  /*!< the frame counter */
-  Blob2DInfo blobinfo[MAX_BLOBS+1][N_CAMERAS+1];
+  Blob2DInfo **blobinfo;
 } Frame;
 
 static Frame           the_frame;
 static int             last_counter;
 static int             frame_counter;
-static struct timespec nsleep;
 static int             serial_fd;
 
-/* global variables */
+// global variables
 
-/* local functions */
-static int  init_newtonlabs_interface(void);
-static int  read_frame(void);
+// local functions
+static int  init_dbvision_interface(void);
+static int  read_frame(char *,int );
 
 /*!*****************************************************************************
  *******************************************************************************
 \note  init_vision_hardware
-\date  Jan. 2005
+\date  June 1999
    
 \remarks 
 
-        initializes communication with the QuickMag system
+        initializes communication with the DBVision system
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -82,15 +80,24 @@ static int  read_frame(void);
 int
 init_vision_hardware(void)
 {
+  int i;
+
+  printf("Initializing vision hardware ...");
+
+  // allocate memory for the blobs
+  the_frame.blobinfo = 
+    my_calloc((max_blobs+1),sizeof(Blob2DInfo *),MY_STOP);
   
-  /* initialize the interface */
+  for (i=1; i<=max_blobs; ++i)
+    the_frame.blobinfo[i] = 
+      my_calloc((N_CAMERAS+1),sizeof(Blob2DInfo),MY_STOP);
+  
+  // initialize the interface
   if (!init_dbvision_interface())
     return FALSE;
 
-  /* the sleep structure */
-  nsleep.tv_sec  = 0;
-  nsleep.tv_nsec = 100;
-  
+  printf("done\n");  
+
   return TRUE;
   
 }
@@ -98,7 +105,7 @@ init_vision_hardware(void)
 /*!*****************************************************************************
  *******************************************************************************
 \note  init_dbvision_interface
-\date  Jan. 2005
+\date  Oct 2000
    
 \remarks 
 
@@ -111,10 +118,10 @@ init_vision_hardware(void)
 
  ******************************************************************************/
 static int
-init_newtonlabs_interface(void)
+init_dbvision_interface(void)
 {
 
-  serial_fd = open_serial(SERIALPORT2,BAUD115K,"ro",TRUE);
+  serial_fd = open_serial(SERIALPORT1,BAUD115K,O_RDONLY);
   if (serial_fd == FALSE) {
     printf("Error when opening Serial Port\n");
     return FALSE;
@@ -139,39 +146,90 @@ read the current information about the blobs
  \param[in]     blobs  : array of blob structures
 
  ******************************************************************************/
+#define MAX_CHARS 10000
 int
 acquire_blobs(Blob2D blobs[][2+1])
 
 {
-  int   i,j;
-  int   rc;
-  char  buffer[2];
+  int    i,j,r,m;
+  int    rc;
+  static char buffer[MAX_CHARS];
+  static int  n_buffer = 0; 
+  char   buffer2[MAX_CHARS];
+  int    n_buffer2 = 0;
+  int    count = 0;
+  int    run = TRUE;
   
-  /* reset all the blobs to be non existent */
-
-  for (i = 1; i<=MAX_BLOBS; ++i) {
+  // reset all the blobs to be non existent
+  for (i = 1; i<=max_blobs; ++i) {
     the_frame.blobinfo[i][CAMERA_1].status = FALSE;
     the_frame.blobinfo[i][CAMERA_2].status = FALSE;
   }
-  
-  while( TRUE ) {		/* Wait for data in the serial buffer */
-    if (check_serial(serial_fd) > 0) {
-      if (read_serial(serial_fd,1,buffer)==1)
-	if (buffer[0] == '^')  /* this is the start of frame character */
-	  break;
+
+  while( run ) {  
+
+    // check for data in the serial port buffer
+    if ( (rc=check_serial(serial_fd)) > 0) {
+      if (rc > MAX_CHARS-n_buffer) {
+	rc = MAX_CHARS-n_buffer;
+	printf("buffer overflow\n");
+      }
+      rc = read_serial(serial_fd,rc,&(buffer[n_buffer]));
+      n_buffer += rc;
     }
-    nanosleep(&nsleep,NULL);
+
+    // look for a complete frame in the data
+    for (j=n_buffer-1; j>=0; --j) {
+      if (buffer[j] == '\n')  // found the end of a frame at j
+	break;
+    }
+
+    for (i=j; i>=0; --i) {
+      if (buffer[i] == '^') { // found the beginning of a frame at i
+	run = FALSE;
+	break;
+      }
+    }
+
+    if (i<0 && j>=0) { // no beginning of frame found despite end of frame
+      for (r = j+1; r<n_buffer; ++r)
+	buffer[r-(j+1)] = buffer[r];
+      n_buffer -= j+1;
+      printf("discard early buffer\n");
+    }
+
+    if (!run)
+      break;
+
+    taskDelay(ns2ticks(WAIT_IN_NS));
+
+    if (++count > 10000) {
+      printf("Error: Timeout when reading from vision hardware\n");
+      printf("Switch to no-hardware mode\n");
+      no_hardware_flag = TRUE;
+      return TRUE;
+    }
   }
+
+  // re-arrange the buffer
+  for (r = i+1; r<j; ++r)
+    buffer2[r-(i+1)] = buffer[r];
+  buffer2[j-(i+1)] = '\0';
+  n_buffer2 = j-(i+1);
+
+  for (r = j+1; r<n_buffer; ++r)
+    buffer[r-(j+1)] = buffer[r];
+  n_buffer -= j+1;
 
   /* now we are at the beginning of a frame */
   last_counter = the_frame.counter;
   
    /* read the entire frame */
-  rc = read_frame();
+  rc = read_frame(buffer2,n_buffer2);
 
   ++frame_counter;
 
-  if (vision_servo_calls == 0) {
+  if (vision_servo_calls < 10) {
     /* synchronize the v->frame_counter and the_frame.counter */
     frame_counter = the_frame.counter;
     last_counter = frame_counter - 1;
@@ -192,7 +250,7 @@ acquire_blobs(Blob2D blobs[][2+1])
   } else {
     
     /* reset all the blobs to be non existent */
-    for (i = 1; i<=MAX_BLOBS; ++i) {
+    for (i = 1; i<=max_blobs; ++i) {
       the_frame.blobinfo[i][CAMERA_1].status = FALSE;
       the_frame.blobinfo[i][CAMERA_2].status = FALSE;
     }
@@ -201,8 +259,8 @@ acquire_blobs(Blob2D blobs[][2+1])
   
   /* copy the data into the global structures */
 
-  for (i=1; i<=MAX_BLOBS; ++i) {
-    
+  for (i=1; i<=max_blobs; ++i) {
+    /*
     if (the_frame.blobinfo[i][CAMERA_1].status &&
 	the_frame.blobinfo[i][CAMERA_2].status) {
 
@@ -216,6 +274,21 @@ acquire_blobs(Blob2D blobs[][2+1])
 
       blobs[i][CAMERA_1].status = blobs[i][CAMERA_2].status = FALSE;
 
+      } */
+
+    if (the_frame.blobinfo[i][CAMERA_1].status) {
+      blobs[i][CAMERA_1].status = TRUE;
+      blobs[i][CAMERA_1].x[_X_] = the_frame.blobinfo[i][CAMERA_1].x;
+      blobs[i][CAMERA_1].x[_Y_] = the_frame.blobinfo[i][CAMERA_1].y;
+    } else {
+      blobs[i][CAMERA_1].status = FALSE;
+    }
+    if (the_frame.blobinfo[i][CAMERA_2].status) {
+      blobs[i][CAMERA_2].status = TRUE;
+      blobs[i][CAMERA_2].x[_X_] = the_frame.blobinfo[i][CAMERA_2].x;
+      blobs[i][CAMERA_2].x[_Y_] = the_frame.blobinfo[i][CAMERA_2].y;
+    } else {
+      blobs[i][CAMERA_2].status = FALSE;
     }
   }
 
@@ -240,8 +313,8 @@ acquire_blobs(Blob2D blobs[][2+1])
 	end of channel   : ;
 	end of number    : space
 	
-	For the following readings, the NewtonLabs hardware needs to
-	be set to: 
+	For the following readings, the DBvision hardware needs to
+	be set to DrScheme communication. This means:
 	- report frame counter (otherwise this function reports errors)
 	- only report x and y of the blobs, no other data
           (this could be changed if needed)
@@ -262,68 +335,88 @@ acquire_blobs(Blob2D blobs[][2+1])
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
-     none
+     \param[in]  buffer   : charcter buffer with frame
+     \param[in]  n_buffer : number of characters in frame
+
      returns the number of bytes read
 
  ******************************************************************************/
 static int
-read_frame(void)
+read_frame(char *buffer, int n_buffer)
 
 {
   int   i,j;
-  char *start_camera[N_CAMERAS+1];
+  int   start_camera[N_CAMERAS+1];
   char *startbuf;
   int   rc;
-  char  buffer[1000];
   char  store_char;
+  int   iaux;
   char *cptr;
 
-  while (TRUE) {
-    if ((rc=check_serial(serial_fd)) > 0) {
-      rc=read_serial(serial_fd,rc,buffer);
-      if (buffer[rc-1]=='\n')
-	break;
-      else
-	printf("Last character was not CR in LINE mode serial connection\n");
-    }
-    nanosleep(&nsleep,NULL);
-  }
-
   /* where is the start of camera 2 data: at the first "/"  */
-  start_camera[CAMERA_2] = strchr(buffer,'/');
-  if (start_camera[CAMERA_2]==NULL) {
-    printf("Invalid Frame: / character not found\n");
-    printf("Frame = >%s<\n",buffer);
+  for (j=0; j<n_buffer; ++j)
+    if (buffer[j] == '/')
+      break;
+
+  if (j >= n_buffer)
+    start_camera[CAMERA_2] = FALSE;
+  else
+    start_camera[CAMERA_2] = j;
+
+  if (start_camera[CAMERA_2]==FALSE) {
+    printf("Invalid Frame: / character not found: ");
+    printf("Frame = >");
+    for (i=0; i<n_buffer; ++i)
+      printf("%c",buffer[i]);
+    printf("<\n");
     return FALSE;
   }
-  *(start_camera[CAMERA_2]) = '\0';
+  buffer[start_camera[CAMERA_2]] = '\0';
   ++start_camera[CAMERA_2];
 
   /* where is the start of camera 1 data: more tricky: it is 
      before the first ";", and after the first space, if blob1
      exists */
-  cptr = strchr(buffer,';');
-  start_camera[CAMERA_1] = strchr(buffer,' ');
-  if (start_camera[CAMERA_1]==NULL) 
-    start_camera[CAMERA_1]=cptr;
-  else
-    if (cptr<start_camera[CAMERA_1])
-      start_camera[CAMERA_1]=cptr;
-  store_char = *(start_camera[CAMERA_1]);
-  *(start_camera[CAMERA_1])='\0';
+  for (j=0; j<n_buffer; ++j)
+    if (buffer[j] == ';')
+      break;
+
+  if (j >= n_buffer) {
+    printf("Invalid Frame: ; character not found: ");
+    printf("Frame = >");
+    for (i=0; i<n_buffer; ++i)
+      printf("%c",buffer[i]);
+    printf("<\n");
+    return FALSE;
+  } else
+    iaux = j;
+
+  for (j=0; j<n_buffer; ++j)
+    if (buffer[j] == ' ')
+      break;
+
+  if (j >= n_buffer)
+    start_camera[CAMERA_1]=iaux;
+  else {
+    start_camera[CAMERA_1]=j;
+    if (iaux<start_camera[CAMERA_1])
+      start_camera[CAMERA_1]=iaux;
+  }
+  store_char = buffer[start_camera[CAMERA_1]];
+  buffer[start_camera[CAMERA_1]] = ' ';
   
   /* read the frame counter and the first blob of camera 1 */
   if (sscanf(buffer,"%d",&the_frame.counter) == 0) {
     printf("Invalid Frame: frame counter not found\n");
     return FALSE;
   }
-  *(start_camera[CAMERA_1])=store_char;
+  buffer[start_camera[CAMERA_1]] = store_char;
 
   /* loop through both cameras and parse the data */
 
   for (i=1; i<=N_CAMERAS; ++i) {
-    startbuf=start_camera[i];
-    for (j=1; j<=MAX_BLOBS; ++j) {
+    startbuf=&(buffer[start_camera[i]]);
+    for (j=1; j<=max_blobs; ++j) {
 
       /* find the next semicolon */
       cptr = strchr(startbuf,';');
