@@ -121,7 +121,7 @@ static int read_file(char *fname);
 static int filter_data(void);
 static int regress_parameters(void);
 static void do_math(SL_endeff *eff);
-static int project_parameters(void);
+static int project_parameters(int metric_flag);
 static double project_parameters_opt_func(double *vb);
 static void project_parameters_gradient_func(double *vb, double *grad);
 static void project_parameters_predict(double *vb, double *bp, double *b_m_bp);
@@ -153,6 +153,7 @@ main(int argc, char **argv)
   int  ans = 0;
   char fname[100]="ATA_ATb.mat";
   FILE *fid;
+  int  metric_flag = FALSE;
   
   /* copy the input arguments */
 
@@ -284,6 +285,11 @@ main(int argc, char **argv)
       use_parm_file = FALSE;
   }
 
+  if (!get_int("Use full ATA metric for parameter projection?",metric_flag,&metric_flag))
+    exit(-1);
+
+
+
   if (!use_parm_file) {
 
     if (!get_int("Filter data cutoff [%]? (0 or 100 for no filter)",filt_data,&filt_data))
@@ -371,7 +377,7 @@ main(int argc, char **argv)
     regress_parameters();
 
   // create physically consistent parameters
-  project_parameters();
+  project_parameters(metric_flag);
 
   return TRUE;
 	
@@ -1276,12 +1282,17 @@ do_math(SL_endeff *eff) {
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
-  none
+ \param[in] metric_flag : use ATA as metric int the cost function. While this
+                          is theoretcially correct, it turns out to create a
+                          very sensitive optimization problem. Using the 
+			  identity matrix in steady essentially projects the
+                          parameters per DOF in the minimal reconstruction error
+                          way, which seem to be more sane.
 
  ******************************************************************************/
 #define RIDGE 1.e-6
 static int 
-project_parameters(void)
+project_parameters(int metric_flag)
 {
   int j,i,m,n;
   FILE *fp;
@@ -1300,9 +1311,16 @@ project_parameters(void)
 
   // for all parameters that are essentially zero, kill the elements in ATA
   for (i=1; i<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++i)
-    for (j=1; j<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++j)
+    for (j=1; j<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++j) {
+      if (!metric_flag)  // make the ATA metric the identity matrix
+	if (i!=j)
+	  ATA[i][j] = 0.0;
+	else
+	  ATA[i][j] = 1.0;
+
       if (fabs(beta[i]) < 1.e-6 || fabs(beta[j]) < 1.e-6)
 	ATA[i][j] = 0.0;
+    }
 
   // create the frobenious norm of ATA and devide ATA by it, for numerical stabilty
   aux = 0.0;
