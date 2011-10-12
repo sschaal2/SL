@@ -61,7 +61,7 @@ open_serial(char *fname, int baud, int mode)
   serial_fd = rt_dev_open( fname, mode  | O_NOCTTY | O_NDELAY );
 
   if (serial_fd < 0) {
-    printf("Can't open serial port %s for %d (err=%d)\n",fname,mode,serial_fd);
+    printf("Can't open serial port %s for mode %d (err=%d)\n",fname,mode,serial_fd);
     return FALSE;
   }
 

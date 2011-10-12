@@ -1312,11 +1312,13 @@ project_parameters(int metric_flag)
   // for all parameters that are essentially zero, kill the elements in ATA
   for (i=1; i<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++i)
     for (j=1; j<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++j) {
-      if (!metric_flag)  // make the ATA metric the identity matrix
-	if (i!=j)
+      if (!metric_flag) {  // make the ATA metric the identity matrix
+	if (i!=j) {
 	  ATA[i][j] = 0.0;
-	else
+	} else {
 	  ATA[i][j] = 1.0;
+	}
+      }
 
       if (fabs(beta[i]) < 1.e-6 || fabs(beta[j]) < 1.e-6)
 	ATA[i][j] = 0.0;
@@ -1670,29 +1672,25 @@ read_parm_file(void) {
 
   //see if there is a weighting matrix out there
   //it is used to make a weighted least square for param est
-  if(!find_keyword(in, "least_square_weight"))
-  {
-	  printf("Cannot read any least square weight, using 1s\n");
+  if(!find_keyword(in, "least_square_weight"))  {
+
+      printf("Cannot read any least square weight, using 1s\n");
+
+  }  else  {
+    
+    for(i = 1; i<=N_DOFS+2*N_CART; i++)	{
+      float tmp;
+      rc = fscanf(in, "%f", &tmp);
+      if(rc != 1) {
+	printf("error there should be %d weights but found only %d\n", N_DOFS+2*N_CART, i);
+	return FALSE;
+      } else {
+	least_square_weight[i] = 1.0/(double)tmp;
+      }
+    }
+    print_vec("least_square_weight", least_square_weight);
   }
-  else
-  {
-	  for(i = 1; i<=N_DOFS+2*N_CART; i++)
-	  {
-		  float tmp;
-		  rc = fscanf(in, "%f", &tmp);
-		  if(rc != 1)
-		  {
-			  printf("error there should be %d weights but found only %d\n", N_DOFS+2*N_CART, i);
-			  return FALSE;
-		  }
-		  else
-		  {
-			  least_square_weight[i] = 1.0/(double)tmp;
-		  }
-	  }
-	  print_vec("least_square_weight", least_square_weight);
-  }
- 
+  
   fclose(in);
   
   return TRUE;

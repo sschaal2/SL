@@ -346,7 +346,8 @@ process_blobs(Blob2D raw[][2+1])
 	    pos = blobpp[i].predicted_state.x[j];
 	    vel = blobpp[i].predicted_state.xd[j];
 	    acc = blobpp[i].predicted_state.xdd[j];
-	    blobs[i].status   = TRUE;
+	    // Note: leave blobs[i].status as is, as we don't want 
+	    // to set something true which was not true before
 	  } else {
 	    pos = blobs[i].blob.x[j];
 	    vel = 0.0;

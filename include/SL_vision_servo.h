@@ -66,6 +66,7 @@ int  init_vxworks( void );
 int  init_learning( void );
 int  init_user_vision(void);
 int  stop(char *msg);
+int  sendUserGraphics(char *name, void *buf, int n_bytes);
 
 
 #ifdef __cplusplus

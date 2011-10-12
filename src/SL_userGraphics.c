@@ -28,13 +28,11 @@
 #include "string.h"
 #include "SL_userGraphics.h"
 
-// openGL includes
-#ifdef powerpc
-#include <GLUT/glut.h>
-#else
-#include "GL/glut.h"
-#endif
-
+// openGL headers
+#include "GL/freeglut_std.h"
+#include "GL/freeglut_ext.h"
+#include "GL/glu.h"
+#include <X11/Xlib.h>
 
 #define TIME_OUT_NS  1000000000
 
@@ -49,6 +47,11 @@ typedef struct userGraphicsEntry {
   char *nptr;                                 //!< next pointer
 } UserGraphicsEntry;
 
+struct {
+  char     name[20];
+  float    blob[N_CART+1];
+} blob_data;
+
 // global variables
 int  user_graphics_update = FALSE;
 
@@ -57,6 +60,8 @@ static UserGraphicsEntry *ugraphs = NULL;
 
 // local functions
 static void displayBall(void *b);
+static void displayVisionBlob(void *b);
+
 static void listUserGraphics(void);
 
 /*!*****************************************************************************
@@ -153,6 +158,8 @@ initializes the user graphics with a default entry
 void
 initUserGraph(void)
 {
+  int i;
+  char string[20];
 
   // a simple tool to display existing user graphics functions
   addToMan("listUserGraphics","list all user graphics entries",listUserGraphics);
@@ -160,7 +167,10 @@ initUserGraph(void)
 
   // add some generally hand display function
   addToUserGraphics("ball","Display a 6cm diameter ball",displayBall,N_CART*sizeof(float));
-
+  for (i=1; i<=max_blobs; ++i) {
+    sprintf(string,"blob-%d",i);
+    addToUserGraphics(string,"Display a 3cm diameter blob",displayVisionBlob,sizeof(blob_data));
+  }
 
 }
 
@@ -368,4 +378,47 @@ clearUserGraphics(void)
 }
 
 
+
+/*!*****************************************************************************
+ *******************************************************************************
+ \note  displayVisionBlob
+ \date  Oct 2011
+ 
+ \remarks 
+
+ displays a vision blob with label
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]      b      : the general array of bytes
+
+ ******************************************************************************/
+static void
+displayVisionBlob(void *b)
+{
+  GLfloat  col[4]={(float)0.9,(float)0.9,(float)0.9,(float)1.0};
+
+  // assign the blob position and name from b array
+  memcpy(&blob_data,b,sizeof(blob_data));
+
+  /* here is the drawing rountines */
+  glPushMatrix();
+  glTranslated((GLdouble)blob_data.blob[_X_],
+	       (GLdouble)blob_data.blob[_Y_],
+	       (GLdouble)blob_data.blob[_Z_]);
+  
+  glColor4fv(col);
+  glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, col);
+  glutSolidSphere(0.015,8,8);
+
+  glPopMatrix();
+  glPushMatrix();
+
+  glRasterPos3f(blob_data.blob[_X_],blob_data.blob[_Y_],blob_data.blob[_Z_]+0.05);
+  glutBitmapString(GLUT_BITMAP_HELVETICA_18,(const unsigned char *)blob_data.name);
+
+  glPopMatrix();
+
+}
 

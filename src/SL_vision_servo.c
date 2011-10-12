@@ -32,6 +32,7 @@
 #include "lwpr.h"
 #include "SL_man.h"
 #include "SL_common.h"
+#include "SL_unix_common.h"
 
 #define TIME_OUT_NS  100000
 
@@ -61,12 +62,15 @@ static int  receive_cartesian(void);
 static int  learn_transformation(void );
 static int  check_raw_blob_overwrite(void);
 static int  checkForMessages(void);
+static void reset_hardware_flag(void);
+static int  visualize_active_blobs(void);
+
 
 
 /* global functions */
-int  reset_learning( void );
-int  save_learning( void );
-int  set_learning( void );
+void reset_learning( void );
+void save_learning( void );
+void set_learning( void );
 void status(void);
 int  stop(char *msg);
 
@@ -176,6 +180,10 @@ init_vision_servo()
   // add to man pages 
   addToMan("dvs","disables the vision servo",dvs);
   addToMan("status","displays status information about servo",status);
+  addToMan("reset_hardware_flag","resets the no-hardware flag",reset_hardware_flag);
+  addToMan("reset_learning","resets the vision->3D models",reset_learning);
+  addToMan("save_learning","saves learning models to disk",save_learning);
+  addToMan("set_learning","allows selecting which blobs are used by learning",set_learning);
 
   /* initialize user specific things */
   if (!init_user_vision())
@@ -284,6 +292,12 @@ run_vision_servo(void)
   setOsc(d2a_cv,100.0);
   writeToBuffer();
   sendOscilloscopeData();
+
+  /*************************************************************************
+   * visuzalize active blobs
+   */
+  
+  visualize_active_blobs();
   
   /*************************************************************************
    * end of program sequence
@@ -330,8 +344,9 @@ broadcast_blobs(void)
 		      max_blobs,DOUBLE2FLOAT);
     
     for (i=1; i<=max_blobs; ++i) {
-      if (sm_vision_blobs_data[i].status) 
+      if (sm_vision_blobs_data[i].status) {
 	sm_vision_blobs->blobs[i] = sm_vision_blobs_data[i];
+      }
       else
 	sm_vision_blobs->blobs[i].status = sm_vision_blobs_data[i].status;
 
@@ -529,33 +544,38 @@ resets the learning model
 none
 
  ******************************************************************************/
-int
+void
 reset_learning( void )
 
 {
   int i, j;
 
-  if (servo_enabled) {
-    printf("To reinitialize the learning the vision servo has to be stopped\n");
-    return FALSE;
-  }
+
+
+  // make sure not to intefer with servo running
+  sl_rt_mutex_lock(&mutex1);
 
   if (models_read) {
     deleteLWPR(BLOB2ROBOT);
   }
   if (!readLWPRScript(BLOB2ROBOT_SCRIPT,1,BLOB2ROBOT)) {
+
       printf("Error when reading script file >%s<\n",BLOB2ROBOT_SCRIPT);
-      return FALSE;
+
+  } else {
+
+    for (i=1; i<=max_blobs; ++i) 
+      blob_is_endeffector[i] = FALSE;
+
+    models_read = TRUE;
+
+    printf("Learning models were reset\n");
+    
   }
 
-  for (i=1; i<=max_blobs; ++i) {
-    blob_is_endeffector[i] = FALSE;
-  }
 
-  models_read = TRUE;
+  sl_rt_mutex_unlock(&mutex1);
 
-  return TRUE;
-  
 }    
 
 /*!*****************************************************************************
@@ -572,7 +592,7 @@ saves the learned model
 none
 
  ******************************************************************************/
-int
+void
 save_learning( void )
 
 {
@@ -582,8 +602,6 @@ save_learning( void )
     writeLWPR(BLOB2ROBOT);
   }
 
-  return TRUE;
-  
 }    
 
 /*!*****************************************************************************
@@ -600,7 +618,7 @@ allows setting which endeffector corresponds to which blob
 none
 
  ******************************************************************************/
-int
+void
 set_learning( void )
 
 {
@@ -613,8 +631,6 @@ set_learning( void )
     if (blob_is_endeffector[i] < 1 || blob_is_endeffector[i] > n_endeffs)
       blob_is_endeffector[i] = FALSE;
   }
-  
-  return TRUE;
   
 }    
 
@@ -643,6 +659,10 @@ learn_transformation(void )
   double x[2+2+1];
   double y[N_CART+1];
   int    rfID;
+
+  // the transformation can only be learned on the pysical robot
+  if (!real_robot_flag)
+    return TRUE;
   
   if (semTake(sm_learn_blob2body_sem,NO_WAIT) == ERROR)
     return TRUE;
@@ -836,5 +856,151 @@ checkForMessages(void)
   semGive(sm_vision_message_sem);
 
 
+  return TRUE;
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  reset_hardware_flag
+\date  Oct 2011
+   
+\remarks 
+
+ reset the no_hardware_flag to FALSE, such that the vision system can be used
+ if it spits out data
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static void
+reset_hardware_flag(void )
+{
+  no_hardware_flag = FALSE;
+  printf("no_hardware_flag is reset to FALSE\n");
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  visualize_active_blobs
+\date  Oct 2011
+   
+\remarks 
+
+ send all active blob positions to openGl for visualization
+	
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static int 
+visualize_active_blobs(void)
+{
+  int i,j,k;
+  struct {
+    char     name[20];
+    float    blob[N_CART+1];
+  } blob_data;
+
+  for (i=1; i<=max_blobs; ++i) {
+    if (blobs[i].status == TRUE) {
+      sprintf(blob_data.name,"blob-%d",i);
+      for (j=1; j<=N_CART; ++j)
+	blob_data.blob[j] = blobs[i].blob.x[j];
+
+      sendUserGraphics(blob_data.name,&blob_data,sizeof(blob_data));      
+    }
+  }
+    
+  return TRUE;
+  
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  sendUserGraphics
+\date  Nov. 2007
+   
+\remarks 
+
+      sends out information for user graphics to shared memory
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     name   : name of graphics
+ \param[in]     buf    : byte buffer with information
+ \param[in]     n_bytes: number of bytest in buffer
+
+ ******************************************************************************/
+int
+sendUserGraphics(char *name, void *buf, int n_bytes)
+{
+  int i,j;
+  
+  // send the user graphics data
+  if (semTake(sm_user_graphics_sem,ns2ticks(1000000)) == ERROR) {
+    return FALSE;
+  }
+
+  // first, check whether there is an older graphics object with the same
+  // name -- it will be overwritten, as only the latest graphics objects
+  // matters for visualization
+  for (i=1; i<=sm_user_graphics->n_entries; ++i) {
+    if (strcmp(name,sm_user_graphics->name[i]) == 0) {
+
+      // just overwrite the data
+      memcpy(sm_user_graphics->buf+sm_user_graphics->moff[i],buf,n_bytes);
+
+      // give semaphores
+      semGive(sm_user_graphics_sem);
+      semGive(sm_user_graphics_ready_sem);
+
+      return TRUE;
+
+    }
+  }
+
+  // make sure the pointer offset buffer is correct
+  if (sm_user_graphics->n_entries == 0) {
+    sm_user_graphics->moff[1] = 0;
+    sm_user_graphics->n_bytes_used = 0;
+  }
+
+  // check whether there is space for the graphics object
+  if (sm_user_graphics->n_entries >= MAX_N_MESSAGES) {
+    printf("User graphics buffer exhausted in sendUserGraphics\n");
+    semGive(sm_user_graphics_sem);
+    return FALSE;
+  }
+  
+  if (MAX_BYTES_USER_GRAPHICS-sm_user_graphics->n_bytes_used < n_bytes) {
+    printf("User Graphics memory buffer exhausted in sendUserGraphics\n");
+    semGive(sm_user_graphics_sem);
+    return FALSE;
+  }
+  
+  // update the logistics
+  ++sm_user_graphics->n_entries;
+  sm_user_graphics->n_bytes_used += n_bytes;
+  
+  // specify the name and info of this entry
+  strcpy(sm_user_graphics->name[sm_user_graphics->n_entries],name);
+  memcpy(sm_user_graphics->buf+sm_user_graphics->moff[sm_user_graphics->n_entries],buf,n_bytes);
+  
+  // prepare pointer buffer for next entry
+  if (sm_user_graphics->n_entries < MAX_N_MESSAGES)
+    sm_user_graphics->moff[sm_user_graphics->n_entries+1]=
+      sm_user_graphics->moff[sm_user_graphics->n_entries]+n_bytes;
+
+  // give semaphores
+  semGive(sm_user_graphics_sem);
+  semGive(sm_user_graphics_ready_sem);
+  
   return TRUE;
 }
