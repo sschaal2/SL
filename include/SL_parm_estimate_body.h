@@ -1364,8 +1364,13 @@ project_parameters(int metric_flag)
 	}
       }
 
-      if (fabs(beta[i]) < 1.e-6 || fabs(beta[j]) < 1.e-6)
-	ATA[i][j] = 0.0;
+      if (j >=5 && j <=10) {// inertial parameters have a smaller cutoff
+	if (fabs(beta[i]) < 1.e-6 || fabs(beta[j]) < 1.e-6)
+	  ATA[i][j] = 0.0;
+      } else {
+	  if (fabs(beta[i]) < 1.e-3 || fabs(beta[j]) < 1.e-3)
+	    ATA[i][j] = 0.0;
+      }
     }
 
   // create the frobenious norm of ATA and devide ATA by it, for numerical stabilty
