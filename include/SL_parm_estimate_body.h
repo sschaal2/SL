@@ -94,6 +94,8 @@ static int        filt_data_dofs[N_DOFS+1];
 static int        vis_flag_dofs[N_DOFS+1];
 static int        coul_flag_dofs[N_DOFS+1];
 static int        spring_flag_dofs[N_DOFS+1];
+static char       parm_file_name[100]="xpest_parameters.cf";
+
 
 static Vector	  least_square_weight=NULL; //used to perform a weighted least square for param est
 
@@ -149,22 +151,42 @@ extern SL_link    links[N_DOFS+1];
 int
 main(int argc, char **argv)
 {
-  int   i,j,n;
+  int   i,j,n,rc;
   int  ans = 0;
   char fname[100]="ATA_ATb.mat";
   FILE *fid;
   int  metric_flag = FALSE;
+  FILE *fp;
   
   /* copy the input arguments */
-
   argc_global    = argc;
   argv_global    = argv;
   argv_prog_name = argv[0];
   
   /* subtract 1 from argv to get rid of the 0-th argument which is the
      function name itself */
-  
   argc_global -= 1;
+
+  /* read the most recent settings */
+  if ((fp=fopen(".xpest_prefs","r")) == NULL) 
+    ;
+  else {
+    rc = fscanf(fp,"%d %d %d %d %d %d %d %s %d %d %d %d %d",
+	   &real_robot_flag,
+	   &get_mse,
+	   &use_floating_base,
+	   &constraint_estimation_type,
+	   &use_commands,
+	   &down_sample,
+	   &use_parm_file,
+	   parm_file_name,
+	   &metric_flag,
+	   &filt_data,
+	   &vis_flag,
+	   &coul_flag,
+	   &spring_flag);
+    fclose(fp);
+  }
 
   /* read the configration file names */
   real_robot_flag = TRUE;
@@ -312,6 +334,28 @@ main(int argc, char **argv)
     }
 
   }
+
+  /* remember the most recent settings */
+  if ((fp=fopen(".xpest_prefs","w")) == NULL) 
+    ;
+  else {
+    fprintf(fp,"%d %d %d %d %d %d %d %s %d %d %d %d %d",
+	   real_robot_flag,
+	   get_mse,
+	   use_floating_base,
+	   constraint_estimation_type,
+	   use_commands,
+	   down_sample,
+	   use_parm_file,
+	   parm_file_name,
+	   metric_flag,
+	   filt_data,
+	   vis_flag,
+	   coul_flag,
+	   spring_flag);
+    fclose(fp);
+  }
+
 
   if (write_data)
     datafp = fopen("AbData.mat","w");
@@ -1635,18 +1679,17 @@ static int
 read_parm_file(void) {
 
   int j,i,n,rc;
-  char   string[100]="xpest_parameters.cf";
   FILE  *in;
   double dum;
 
   // get the file name
-  if (!get_string("Name of xpest parameters",string,string))
+  if (!get_string("Name of xpest parameters",parm_file_name,parm_file_name))
     return FALSE;
 
   // read the link parameters
-  in = fopen(string,"r");
+  in = fopen(parm_file_name,"r");
   if (in == NULL) {
-    printf("ERROR: Cannot open file >%s<!\n",string);
+    printf("ERROR: Cannot open file >%s<!\n",parm_file_name);
     return FALSE;
   }
 
