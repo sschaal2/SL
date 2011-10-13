@@ -1356,6 +1356,7 @@ project_parameters(int metric_flag)
   // for all parameters that are essentially zero, kill the elements in ATA
   for (i=1; i<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++i)
     for (j=1; j<=N_RBD_PARMS*(N_DOFS-N_DOFS_EST_SKIP+1); ++j) {
+
       if (!metric_flag) {  // make the ATA metric the identity matrix
 	if (i!=j) {
 	  ATA[i][j] = 0.0;
@@ -1364,7 +1365,7 @@ project_parameters(int metric_flag)
 	}
       }
 
-      if (j >=5 && j <=10) {// inertial parameters have a smaller cutoff
+      if ( (j%N_RBD_PARMS) >=5 && (j%N_RBD_PARMS) <=10) {// inertial parameters have smaller cutoff
 	if (fabs(beta[i]) < 1.e-6 || fabs(beta[j]) < 1.e-6)
 	  ATA[i][j] = 0.0;
       } else {
