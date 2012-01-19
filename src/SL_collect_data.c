@@ -621,8 +621,13 @@ outMenu(void)
   }
 
   if (save_data_flag) {
-    printf("You cannot change output variables while data collection is running\n");
-    return;
+    int ans = 0;
+    printf("You cannot change output variables while data collection is running!\n");
+    get_int("Do you want to abort on-going data collection? No=0, Yes=1",ans,&ans);
+    if (ans == 1) 
+      stopcd();
+    else
+      return;
   }
 
   AGAIN:

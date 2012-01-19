@@ -42,6 +42,7 @@ extern "C" {
   void  printSLBanner(void);
   void  printPrompt(void);
   void  parseOptions(int argc, char**argv);
+  void  sendCommandLineCmd(char *name);
   
 #ifdef __cplusplus
 }

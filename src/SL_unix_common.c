@@ -33,6 +33,7 @@
 
 //! defines
 #define   MAX_ITEMS             100
+#define   MAX_CHARS_COMMAND     20
 
 // global variables
 #ifdef __XENO__
@@ -53,11 +54,13 @@ char **global_argv;
 static pthread_t       cthread;  // thread for the command interface
 
 
-static char       command[MAX_ITEMS+1][20];
+static char       command[MAX_ITEMS+1][MAX_CHARS_COMMAND];
 static int        n_command=0;
 static void       (*command_ptr[MAX_ITEMS+1])(void);
 
 static int	  time_reset_detected=FALSE;
+
+static char       user_command[MAX_CHARS_COMMAND] = "";  // this command can be set by user
 
 // global functions
 int sl_readline_callback();
@@ -92,7 +95,7 @@ checkKeyboard(void *initial_command)
   long            nchars=0;
   int             i=0;
   char            prompt[1000];
-  char		*string;
+  char	         *string;
   char           *ptr, *fptr;
   extern double   servo_time;
   int             rc;
@@ -148,6 +151,13 @@ checkKeyboard(void *initial_command)
       add_history(string);
     checkUserCommand(string);
     free(string);
+
+    // this allows the user to run a command line command from a program, 
+    // and in partciular a real-time program
+    if (strlen(user_command) > 0) {
+      checkUserCommand(user_command);
+      strcpy(user_command,"\0");
+    }
 
   } 
 
@@ -530,6 +540,34 @@ parseOptions(int argc, char**argv)
       break;
     }
   }
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  sendCommandLineCmd
+\date  Jan 2012
+   
+\remarks 
+
+sends a command to the executed in the command-line thread. Note that this 
+should not be called at high frequency as this won't work.
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in]     name : name of the command
+
+
+******************************************************************************/
+void
+sendCommandLineCmd(char *name) 
+
+{
+  int i;
+
+  strncpy(user_command, name, MAX_CHARS_COMMAND);
+  rl_stuff_char('\n');
 
 }
 
