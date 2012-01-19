@@ -854,8 +854,8 @@ add_to_regression(void)
     /* if data is too close to the joint range, ignore the data */
     flag = FALSE;
     for (j=1; j<=N_DOFS-N_DOFS_EST_SKIP; ++j) {
-      if (data_pos[j][i] > joint_range[j][MAX_THETA]-.05 ||
-	  data_pos[j][i] < joint_range[j][MIN_THETA]+.05) {
+      if (data_pos[j][i] > joint_range[j][MAX_THETA]-.025 ||
+	  data_pos[j][i] < joint_range[j][MIN_THETA]+.025) {
 	flag = TRUE;
       }
     }
@@ -1687,16 +1687,22 @@ read_parm_file(void) {
   int j,i,n,rc;
   FILE  *in;
   double dum;
+  char   string[100];
 
   // get the file name
   if (!get_string("Name of xpest parameters",parm_file_name,parm_file_name))
     return FALSE;
 
   // read the link parameters
-  in = fopen(parm_file_name,"r");
-  if (in == NULL) {
-    printf("ERROR: Cannot open file >%s<!\n",parm_file_name);
-    return FALSE;
+  // first try to read from config directory
+  sprintf(string,"%s%s",CONFIG,parm_file_name);
+  in = fopen(string,"r");
+  if (in == NULL) { 
+    in = fopen(parm_file_name,"r"); // try local directory
+    if (in == NULL) {
+      printf("ERROR: Cannot open file >%s<!\n",parm_file_name);
+      return FALSE;
+    }
   }
 
   // find all joint variables and read the relevant parameters

@@ -485,7 +485,6 @@ go_target_wait(SL_DJstate *target)
   for (i=1; i<=n_dofs; ++i)
     joint_special_state[i] = target[i];
 
-
   if (!setTaskByName("Goto Task")) {
     special_posture_flag = FALSE;
     return FALSE;
