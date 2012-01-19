@@ -191,11 +191,10 @@ init_goto_task(void)
   if (n_goto_steps == 0) {
     for (i=1; i<=n_dofs; ++i) {
       if (fabs(joint_goto_state[i].uff - joint_des_state[i].uff) != 0)
-	n_goto_steps = task_servo_rate;
+	n_goto_steps = 2*task_servo_rate; // this is two second for just ramping ff commands
     }
     if (n_goto_steps == 0) {
-      special_posture_flag = FALSE;
-      return FALSE;
+      n_goto_steps = task_servo_rate/10; // if no movement at all, just do 0.1 second movement
     } 
   }
   
