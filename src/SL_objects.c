@@ -2237,7 +2237,10 @@ read_extra_contact_points(char *fname)
 
       // initialize the current contact structure
       for (i=1; i<=n_checks; ++i) {
-	++count;
+	if (++count > n_contacts) {
+	  printf("BUG: not enough contact elements allocated\n");
+	  return FALSE;
+	}
 	contacts[count].id_start = id1;
 	contacts[count].id_end   = id2;
 	contacts[count].off_link_start = contacts[id1].off_link_start;

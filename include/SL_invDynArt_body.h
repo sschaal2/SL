@@ -93,12 +93,18 @@ SL_InvDynArt(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
     }
     for (j=1; j<=N_CART; ++j) 
       ux[i].f[j] = ux[i].t[j] = 0.0;
+
   }
+
+  // zero out the base forces
+  for (j=1; j<=N_CART; ++j) 
+      ux[0].f[j] = ux[0].t[j] = 0.0;
 
   eff    = leff;
   basec  = cbase;
   baseo  = obase;
   uex    = ux;
+
   
 #include "InvDynArt_math.h"
 

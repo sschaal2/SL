@@ -2744,6 +2744,8 @@ count_extra_contact_points(char *fname) {
 
   fclose(in);
 
+  //printf("Found %d extract contact points",count);
+
   return count;
 }
 

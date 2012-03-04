@@ -535,7 +535,8 @@ go_target_wait_ID(SL_DJstate *target)
 
   SL_InvDyn(NULL,target,endeff,&base_state,&base_orient);
 
-  return go_target_wait(target);
+
+   return go_target_wait(target);
   
 }
 
