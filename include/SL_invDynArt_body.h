@@ -25,6 +25,7 @@
 
 /* private includes */
 #include "utility.h"
+#include "utility_macros.h"
 #include "SL.h"
 #include "SL_user.h"
 #include "mdefs.h"
@@ -34,14 +35,6 @@
 /* global variables */ 
 
 /* local variables */
-#include "InvDynArt_declare.h"
-
-static SL_DJstate  state[N_DOFS+1];
-static SL_endeff  *eff;
-static SL_Cstate  *basec;
-static SL_quat    *baseo;
-static SL_uext    *uex;
-
 
 /* global functions */
 
@@ -73,14 +66,17 @@ SL_InvDynArt(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
 	     SL_Cstate *cbase, SL_quat *obase)
 
 {
+#include "InvDynArt_declare.h"
   int i,j;
-  static int firsttime = TRUE; 
   SL_uext ux[N_DOFS+1];
 
-  /* initializations */
-  if (firsttime) {
-    firsttime = FALSE;
-  }
+  SL_DJstate  state[N_DOFS+1];
+  SL_endeff  *eff;
+  SL_Cstate  *basec;
+  SL_quat    *baseo;
+  SL_uext    *uex;
+
+#include "InvDynArt_functions.h"
 
   /* the following assignments make the arguments global variables */ 
 
@@ -120,8 +116,6 @@ SL_InvDynArt(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
   }
 
 } 
-
-#include "InvDynArt_functions.h"
 
 /*!*****************************************************************************
  *******************************************************************************

@@ -24,6 +24,7 @@
 
 // private includes
 #include "utility.h"
+#include "utility_macros.h"
 #include "SL.h"
 #include "SL_user.h"
 #include "SL_common.h"
@@ -31,13 +32,6 @@
 #include "SL_dynamics.h"
 
 // local variables
-static SL_DJstate state[N_DOFS+1];
-static SL_endeff  *eff; 
-static SL_Cstate  *basec;
-static SL_quat    *baseo;
-static SL_uext    *uex;
-
-#include "InvDynNE_declare.h"
 
 // global functions
 
@@ -188,13 +182,22 @@ SL_InvDynNEGeneral(SL_Jstate *cstate,SL_DJstate *lstate,SL_endeff *leff,
 		   double *fbase)
 
 {
+#include "InvDynNE_declare.h"
   int i;
 
+  SL_DJstate state[N_DOFS+1];
+  SL_endeff  *eff; 
+  SL_Cstate  *basec;
+  SL_quat    *baseo;
+  SL_uext    *uex;
+  
   // this makes the arguments global variables
   eff    = leff;
   basec  = cbase;
   baseo  = obase;
   uex    = ux;
+
+#include "InvDynNE_functions.h"
 
   // create a mixed desired/current state for proper inverse dynamics
   for (i=1; i<=N_DOFS; ++i) {
@@ -217,6 +220,7 @@ SL_InvDynNEGeneral(SL_Jstate *cstate,SL_DJstate *lstate,SL_endeff *leff,
       state[i].uff = 0.0;
     lstate[i].uff = state[i].uff;
   }
+
 }
 
-#include "InvDynNE_functions.h"
+

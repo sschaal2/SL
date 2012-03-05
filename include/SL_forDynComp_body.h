@@ -23,6 +23,7 @@
 
 /* private includes */
 #include "utility.h"
+#include "utility_macros.h"
 #include "SL.h"
 #include "SL_user.h"
 #include "SL_dynamics.h"
@@ -33,13 +34,6 @@
 /* global variables */ 
 
 /* local variables */
-#include "ForDynComp_declare.h"
-
-static SL_Jstate  *state;
-static SL_endeff  *eff;
-static SL_Cstate  *basec;
-static SL_quat    *baseo;
-static SL_uext    *uex;
 
 /* global functions */
 
@@ -79,32 +73,27 @@ SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
 	      Matrix rbdM, Vector rbdCG)
 
 {
+#include "ForDynComp_declare.h"
   int i,j;
-  static int firsttime = TRUE; 
-  static Matrix Hmat; 
-  static Vector cvec; 
-  static Vector ucvec; 
+  MY_MATRIX(Hmat,1,N_DOFS+6,1,N_DOFS+6);
+  MY_VECTOR(cvec,1,N_DOFS+6); 
+  MY_VECTOR(ucvec,1,N_DOFS+6);
   double fbase[2*N_CART+1];  
+
+  SL_Jstate  *state;
+  SL_endeff  *eff;
+  SL_Cstate  *basec;
+  SL_quat    *baseo;
+  SL_uext    *uex;
   
+#include "ForDynComp_functions.h"
+
   /* this makes the arguments global variables */ 
   state  = lstate;
   eff    = leff;
   basec  = cbase;
   baseo  = obase;
   uex    = ux;
-  
-  if (firsttime) {
-    firsttime = FALSE;
-    Hmat = my_matrix(1,N_DOFS+6,1,N_DOFS+6);
-    cvec = my_vector(1,N_DOFS+6);
-    ucvec   = my_vector(1,N_DOFS+6);
-    for (i=1; i<=N_DOFS+6; ++i) {
-      cvec[i]=0.0;
-      ucvec[i]=0.0;
-      for (j=1; j<=N_DOFS+6; ++j)
-	 Hmat[i][j] = 0.0;
-    } 
-  }
   
   /* subtract the friction term temporarily */
   for (i=1; i<=N_DOFS; ++i) {
@@ -126,4 +115,3 @@ SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
 } 
 
 
-#include "ForDynComp_functions.h"

@@ -23,6 +23,7 @@
 
 /* private includes */
 #include "utility.h"
+#include "utility_macros.h"
 #include "SL.h"
 #include "SL_user.h"
 #include "SL_dynamics.h"
@@ -33,14 +34,6 @@
 /* global variables */ 
 
 /* local variables */
-#include "ForDynArt_declare.h"
-
-static SL_Jstate  *state;
-static SL_endeff  *eff;
-static SL_Cstate  *basec;
-static SL_quat    *baseo;
-static SL_uext    *uex;
-
 
 /* global functions */
 
@@ -75,8 +68,14 @@ void
 SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
 	     SL_quat *obase, SL_uext *ux, SL_endeff *leff)
 {
+#include "ForDynArt_declare.h"
   int i,j;
   double fbase[2*N_CART+1];  
+  SL_Jstate  *state;
+  SL_endeff  *eff;
+  SL_Cstate  *basec;
+  SL_quat    *baseo;
+  SL_uext    *uex;
   
   // this makes the arguments global variables 
   state  = lstate;
@@ -84,6 +83,8 @@ SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
   basec  = cbase;
   baseo  = obase;
   uex    = ux;
+
+#include "ForDynArt_functions.h"
 
   // subtract the friction term temporarily 
   for (i=1; i<=N_DOFS; ++i) {
@@ -99,4 +100,4 @@ SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
 
 } 
 
-#include "ForDynArt_functions.h"
+

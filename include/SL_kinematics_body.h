@@ -356,38 +356,19 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
   
   int            i,j,n;
   int            count;
-  static Matrix  Jac;
-  static Matrix  Jreal;
-  static Matrix  B;
-  static Matrix  O;
-  static iVector ind;
-  static Matrix  local_link_pos_des;
-  static Matrix  local_joint_cog_mpos_des;
-  static Matrix  local_joint_origin_pos_des;
-  static Matrix  local_joint_axis_pos_des;
-  static Matrix  local_Alink_des[N_LINKS+1];
-  static int     firsttime = TRUE;
+  MY_MATRIX(Jac,1,6*N_ENDEFFS,1,N_DOFS);
+  MY_MATRIX(Jreal,1,6*N_ENDEFFS,1,N_DOFS);
+  MY_IVECTOR(ind,1,6*N_ENDEFFS);
+  MY_MATRIX(B,1,N_DOFS,1,6*N_ENDEFFS);
+  MY_MATRIX(O,1,N_DOFS,1,N_DOFS);
+  MY_MATRIX(local_link_pos_des,0,N_LINKS,1,3);
+  MY_MATRIX(local_joint_cog_mpos_des,0,N_DOFS,1,3);
+  MY_MATRIX(local_joint_origin_pos_des,0,N_DOFS,1,3);
+  MY_MATRIX(local_joint_axis_pos_des,0,N_DOFS,1,3);
+  MY_MATRIX_ARRAY(local_Alink_des,1,4,1,4,N_LINKS+1);
   double         ralpha = 2.0;
   double         condnr;
   double         condnr_cutoff = 70.0;  // this corresponds to condnr_cutoff^2 in invere space
-
-  /* initialization of static variables */
-  if (firsttime) {
-    firsttime = FALSE;
-    Jac  = my_matrix(1,6*N_ENDEFFS,1,N_DOFS);
-    Jreal= my_matrix(1,6*N_ENDEFFS,1,N_DOFS);
-    ind  = my_ivector(1,6*N_ENDEFFS);
-    B    = my_matrix(1,N_DOFS,1,6*N_ENDEFFS);
-    O    = my_matrix(1,N_DOFS,1,N_DOFS);
-    
-    local_link_pos_des         = my_matrix(0,N_LINKS,1,3);
-    local_joint_cog_mpos_des   = my_matrix(0,N_DOFS,1,3);
-    local_joint_origin_pos_des = my_matrix(0,N_DOFS,1,3);
-    local_joint_axis_pos_des   = my_matrix(0,N_DOFS,1,3);
-    
-    for (i=0; i<=N_LINKS; ++i)
-      local_Alink_des[i] = my_matrix(1,4,1,4);
-  }
 
   /* compute the Jacobian */
   linkInformationDes(state,&base_state,&base_orient,eff,
