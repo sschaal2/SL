@@ -25,6 +25,7 @@
 
 /* private includes */
 #include "utility.h"
+#include "utility_macros.h"
 #include "SL.h"
 #include "SL_user.h"
 #include "mdefs.h"
