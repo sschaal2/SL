@@ -1638,6 +1638,36 @@ followBase(void)
 
 /*!*****************************************************************************
  *******************************************************************************
+\note  toggleShowAxes
+\date  Nov. 2005
+   
+\remarks 
+
+sends message to openGL_servo to show coordinate axes
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+  none
+
+ ******************************************************************************/
+void 
+toggleShowAxes(int status) 
+{
+  int buf[1+1];
+  unsigned char cbuf[sizeof(int)];
+
+  buf[1] = status;
+
+  memcpy(cbuf,(void *)&(buf[1]),sizeof(int));
+
+  sendMessageOpenGLServo("toggleShowAxes",(void *)cbuf,sizeof(int));
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
 \note  checkForMessages
 \date  Nov. 2007
    

@@ -1532,6 +1532,37 @@ followBaseByName(char *name, int follow)
   }
 
 }
+/*!*****************************************************************************
+*******************************************************************************
+\note  toggleShowAxesByName
+\date  March 2012
+   
+\remarks 
+
+toggle show-axes status of windows by window name
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in]     name    : string containing the name of the window
+\param[in]     status  : TRUE/FALSE = draw or not
+
+******************************************************************************/
+void
+toggleShowAxesByName(char *name, int status)
+{
+  OpenGLWPtr ptr = first_window_ptr;
+  int i;
+
+  while (ptr != NULL) {
+    if (strcmp(name,ptr->name)==0) {
+      toggleShowAxesByPtr(ptr,status);
+      return;
+    }
+    ptr = (OpenGLWPtr) ptr->next_wptr;
+  }
+
+}
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -1565,6 +1596,38 @@ followBaseByPtr(OpenGLWPtr ptr, int follow)
     for (i=1; i<=N_CART; ++i)
       ptr->center[i] = base_state.x[i];
     printf("Return to global view\n");
+  }
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  toggleShowAxesByPtr
+\date  March 2003
+   
+\remarks 
+
+toggle show axes status of windows by window ptr
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in]     ptr     : string containing the nae of the window
+\param[in]     status  : TRUE/FALSE = draw or not
+
+******************************************************************************/
+void
+toggleShowAxesByPtr(OpenGLWPtr ptr,int status)
+{
+  int i;
+
+  ptr->draw_axis=status;
+
+  if (ptr->draw_axis){
+    printf("Show axes ON\n");
+  }
+  else  {
+    printf("Show axes OFF\n");
   }
 
 }

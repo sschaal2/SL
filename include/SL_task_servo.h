@@ -75,6 +75,8 @@ extern "C" {
   void switchCometDisplayVars(int endeffID, int endeffStatus, int linkID, int linkStatus);
   void resetCometDisplayVars(void);
   void scdMotor(void);
+  void toggleShowAxes(int status);
+
 
   
 #ifdef __cplusplus

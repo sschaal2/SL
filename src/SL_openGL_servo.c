@@ -402,7 +402,17 @@ checkForMessages(void)
     // ---------------------------------------------------------------------------
     if (strcmp(name,"followBase") == 0) { 
       
-      followBaseByName("1", TRUE);
+      followBaseByName(robot_name, TRUE);
+      
+    // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"toggleShowAxes") == 0) { 
+      struct {
+	int  status;
+      } data;
+
+      memcpy(&data,sm_openGL_message->buf+sm_openGL_message->moff[k],sizeof(data));
+
+      toggleShowAxesByName(robot_name,data.status);
       
     // ---------------------------------------------------------------------------
     } else if (strcmp(name,"addObject") == 0) {
