@@ -3311,7 +3311,7 @@ displayListFromObjFile(char *fname, double scale)
   int     n_f=0;
   int     n_vn=0;
   Matrix  v;
-  Matrix  vn;
+  Matrix  vn=NULL;
   iMatrix f;
   double  max_v[N_CART+1] = {0.0,-1.e10,-1.e10,-1.e10};
   double  min_v[N_CART+1] = {0.0,+1.e10,+1.e10,+1.e10};
