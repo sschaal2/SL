@@ -3293,7 +3293,7 @@ displayCoord(void)
  returns the ID of the display list, or FALSE
 
  ******************************************************************************/
-#define MAX_STRING_LEN 100
+#define MAX_STRING_LEN 1000
 int
 displayListFromObjFile(char *fname, double scale)
 {
@@ -3342,7 +3342,7 @@ displayListFromObjFile(char *fname, double scale)
       return FALSE;
     }
     
-    printf("Procdessing %s ...\n",fname);
+    printf("Processing %s ...\n",fname);
     
     // count the number of faces, vertices, normals in file
     while (TRUE) {
@@ -3379,7 +3379,8 @@ displayListFromObjFile(char *fname, double scale)
     // allocate memory
     v  = my_matrix(1,n_v,1,3);
     f  = my_imatrix(1,n_f,1,9); // first 3 for vertex, next for texture, last 3 for normal
-    vn = my_matrix(1,n_vn,1,3);
+    if (n_vn > 0)
+      vn = my_matrix(1,n_vn,1,3);
     
     // get the data
     n_v = n_f = n_vn = 0;
@@ -3471,7 +3472,8 @@ displayListFromObjFile(char *fname, double scale)
     fprintf(fp,"%d %d %d\n",n_v,n_vn,n_f);
 
     fwrite_mat(fp,v);
-    fwrite_mat(fp,vn);
+    if (n_vn > 0)
+      fwrite_mat(fp,vn);
     fwrite_imat(fp,f);
 
     fclose(fp);
@@ -3486,11 +3488,13 @@ displayListFromObjFile(char *fname, double scale)
     // allocate memory
     v  = my_matrix(1,n_v,1,3);
     f  = my_imatrix(1,n_f,1,9); // first 3 for vertex, next for texture, last 3 for normal
-    vn = my_matrix(1,n_vn,1,3);
+    if (n_vn > 0)
+      vn = my_matrix(1,n_vn,1,3);
     
     // binary read
     fread_mat(fp,v);
-    fread_mat(fp,vn);
+    if (n_vn > 0)
+      fread_mat(fp,vn);
     fread_imat(fp,f);
 
     fclose(fp);
@@ -3545,7 +3549,8 @@ displayListFromObjFile(char *fname, double scale)
 
   // clean up
   my_free_matrix(v,1,n_v,1,3);
-  my_free_matrix(vn,1,n_vn,1,3);
+  if (n_vn > 0)
+    my_free_matrix(vn,1,n_vn,1,3);
   my_free_imatrix(f,1,n_f,1,9);
 
   return index;
