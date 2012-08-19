@@ -26,6 +26,7 @@ extern "C" {
 #endif
 
   void   init_kinematics(void);
+  void   genJacobian(Vector point, int link, Matrix jop, Matrix jap, Matrix J);
   void   jacobian(Matrix lp, Matrix jop, Matrix jap, Matrix J);
   void   baseJacobian(Matrix lp, Matrix jop, Matrix jap, Matrix Jb);
   double inverseKinematics(SL_DJstate *state, SL_endeff *endeff, SL_OJstate *rest,
