@@ -3276,7 +3276,7 @@ displayCoord(void)
 
 /*!*****************************************************************************
  *******************************************************************************
-\note  displayListFromObjFile
+\note  displayListFromObjFileFlag
 \date  April 2011
    
 \remarks 
@@ -3289,13 +3289,20 @@ displayCoord(void)
 
  \param[in]     fname   : file name
  \param[in]     scale   : scale multiplier for converting units
+ \param[in]     flag    : invert normal of faces (TRUE or FALSE)
 
  returns the ID of the display list, or FALSE
 
  ******************************************************************************/
 #define MAX_STRING_LEN 1000
 int
-displayListFromObjFile(char *fname, double scale)
+displayListFromObjFile(char *fname, double scale) 
+{
+  return displayListFromObjFileFlag(fname, scale, FALSE);
+}
+
+int
+displayListFromObjFileFlag(char *fname, double scale,int flag)
 {
   int     i,j,k,r,rc;
   FILE   *fp;
@@ -3493,8 +3500,11 @@ displayListFromObjFile(char *fname, double scale)
     
     // binary read
     fread_mat(fp,v);
-    if (n_vn > 0)
+    if (n_vn > 0) {
       fread_mat(fp,vn);
+      if (flag) 
+	mat_mult_scalar(vn,-1.0,vn);
+    }
     fread_imat(fp,f);
 
     fclose(fp);
@@ -3513,10 +3523,13 @@ displayListFromObjFile(char *fname, double scale)
 
     // compute default normal vector if needed
     for (j=1; j<=N_CART; ++j) {
-      v1[j] = v[f[i][2]][j] - v[f[i][1]][j];
-      v2[j] = v[f[i][3]][j] - v[f[i][2]][j];
+      v1[j] = (v[f[i][2]][j] - v[f[i][1]][j]);
+      v2[j] = (v[f[i][3]][j] - v[f[i][2]][j]);
     }
     vec_mult_outer_size(v1, v2, N_CART, normal);
+    if (flag)
+      for (j=1; j<=N_CART; ++j)
+	normal[j] *= -1.0;
 
     // draw the face
     glBegin(GL_TRIANGLES);

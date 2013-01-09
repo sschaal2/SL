@@ -108,6 +108,7 @@ extern "C" {
   void       receiveOscilloscopeData(void);
   int        initOscWindow(void);
   int        displayListFromObjFile(char *fname, double scale);
+  int        displayListFromObjFileFlag(char *fname, double scale, int flag);
   void       toggleShowAxesByName(char *name, int status);
   void       toggleShowAxesByPtr(OpenGLWPtr ptr,int status);
 
