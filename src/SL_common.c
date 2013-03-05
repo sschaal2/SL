@@ -1335,6 +1335,7 @@ where_cog(void)
 \remarks 
 
  computes the quaternian from its rotation matrix
+ WARNING: This algorithm is known to have numerical instabilities!
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -1345,7 +1346,7 @@ where_cog(void)
                       to the previous quaternion
 
  ******************************************************************************/
-void
+/**void
 linkQuat(Matrix R, SL_quat *q)
 {
   int i,j;
@@ -1365,25 +1366,25 @@ linkQuat(Matrix R, SL_quat *q)
 
   } else {
 
-    if ((R[1][1] > R[2][2]) && (R[1][1] > R[3][3])) { 
-      S = sqrt( 1.0 + R[1][1] - R[2][2] - R[3][3] ) * 2; 
+    if ((R[1][1] > R[2][2]) && (R[1][1] > R[3][3])) {
+      S = sqrt( 1.0 + R[1][1] - R[2][2] - R[3][3] ) * 2;
       qx = 0.25 * S;
-      qy = (R[1][2] + R[2][1] ) / S; 
-      qz = (R[1][3] + R[3][1] ) / S; 
+      qy = (R[1][2] + R[2][1] ) / S;
+      qz = (R[1][3] + R[3][1] ) / S;
       qw = (R[2][3] - R[3][2] ) / S;
-    } else if (R[2][2] > R[3][3]) { 
-      S = sqrt( 1.0 + R[2][2] - R[1][1] - R[3][3] ) * 2; 
-      qx = (R[1][2] + R[2][1] ) / S; 
+    } else if (R[2][2] > R[3][3]) {
+      S = sqrt( 1.0 + R[2][2] - R[1][1] - R[3][3] ) * 2;
+      qx = (R[1][2] + R[2][1] ) / S;
       qy = 0.25 * S;
-      qz = (R[2][3] + R[3][2] ) / S; 
+      qz = (R[2][3] + R[3][2] ) / S;
       qw = (R[1][3] - R[3][1] ) / S;
-    } else { 
-      S = sqrt( 1.0 + R[3][3] - R[1][1] - R[2][2] ) * 2; 
-      qx = (R[1][3] + R[3][1] ) / S; 
-      qy = (R[2][3] + R[3][2] ) / S; 
+    } else {
+      S = sqrt( 1.0 + R[3][3] - R[1][1] - R[2][2] ) * 2;
+      qx = (R[1][3] + R[3][1] ) / S;
+      qy = (R[2][3] + R[3][2] ) / S;
       qz = 0.25 * S;
       qw = (R[1][2] - R[2][1] ) / S;
-    } 
+    }
 
   }
 
@@ -1395,8 +1396,8 @@ linkQuat(Matrix R, SL_quat *q)
 
   // fix the sign of quaternion
   if ( fabs(1.-aux) < 0.01) {
-    quat_sign = 
-      q->q[_Q0_] * qw + 
+    quat_sign =
+      q->q[_Q0_] * qw +
       q->q[_Q1_] * qx +
       q->q[_Q2_] * qy +
       q->q[_Q3_] * qz;
@@ -1408,12 +1409,96 @@ linkQuat(Matrix R, SL_quat *q)
       qz *= -1.0;
     }
   }
-  
+
   q->q[_Q0_] = qw;
   q->q[_Q1_] = qx;
   q->q[_Q2_] = qy;
   q->q[_Q3_] = qz;
-  
+
+}
+**/
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  linkQuat
+\date  March 2013
+\remarks
+
+ computes the quaternian from its rotation matrix
+ from: "Quaternion Calculus and Fast Animation",
+       Ken Shoemake, 1987 SIGGRAPH course notes
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     R   : rotation matrix
+ \param[in,out] q   : quaternian structure for output -- the output is chosen
+                      such that the new quaternion does not flip sign relative
+                      to the previous quaternion
+
+ ******************************************************************************/
+void
+linkQuat(Matrix R, SL_quat *q)
+{
+  int r;
+  double T,q_aux[5];
+  double quat_sign;
+  double aux;
+
+  T = R[1][1] + R[2][2] + R[3][3];
+
+  if ( T > 0.0 ) {
+    T  = sqrt(T+1.0);
+    q_aux[1] = 0.5*T;
+    T = 0.5/T;
+    q_aux[2] = ( R[3][2] - R[2][3] ) * T;
+    q_aux[3] = ( R[1][3] - R[3][1] ) * T;
+    q_aux[4] = ( R[2][1] - R[1][2] ) * T;
+
+  } else {
+    int i = 0;
+    if (R[2][2] > R[1][1])
+      i = 1;
+    if (R[3][3] > R[i+1][i+1])
+      i = 2;
+    int j = (i+1)%3;
+    int k = (j+1)%3;
+
+    T = sqrt(R[i+1][i+1]-R[j+1][j+1]-R[k+1][k+1] + 1.0);
+    q_aux[i+2] = 0.5 * T;
+    T = 0.5/T;
+    q_aux[1] = (R[k+1][j+1]-R[j+1][k+1])*T;
+    q_aux[j+2] = (R[j+1][i+1]+R[i+1][j+1])*T;
+    q_aux[k+2] = (R[k+1][i+1]+R[i+1][k+1])*T;
+  }
+
+  // check whether we have a valid reference quaternion
+  aux = 0.0;
+  for (r=1;r<=N_QUAT;r++)
+    aux += sqr(q->q[r]);
+  aux = sqrt(aux);
+
+  // fix the sign of quaternion
+  if ( fabs(1.-aux) < 0.01) {
+    quat_sign =
+      q->q[_Q0_] * q_aux[1] +
+      q->q[_Q1_] * q_aux[2] +
+      q->q[_Q2_] * q_aux[3] +
+      q->q[_Q3_] * q_aux[4];
+
+    if (quat_sign < 0.0) {
+      q_aux[1] *= -1.0;
+      q_aux[2] *= -1.0;
+      q_aux[3] *= -1.0;
+      q_aux[4] *= -1.0;
+    }
+  }
+
+  q->q[_Q0_] = q_aux[1];
+  q->q[_Q1_] = q_aux[2];
+  q->q[_Q2_] = q_aux[3];
+  q->q[_Q3_] = q_aux[4];
+
 }
 
 /*!*****************************************************************************
