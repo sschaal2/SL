@@ -158,6 +158,8 @@ controllerKind()
 
       if (controller_kind != PIDFF && aux == PIDFF)
 	zero_integrator();
+      if(controller_kind != PID && aux == PID)
+        zero_integrator();
       controller_kind = aux;
 
     }
