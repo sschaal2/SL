@@ -76,6 +76,9 @@ extern "C" {
   Matrix        Alink[N_LINKS+1];               /* homogeneous transformation matrices for all links */
   Matrix        Alink_des[N_LINKS+1];           /* homogeneous transformation matrices for all links */
   Matrix        Alink_sim[N_LINKS+1];           /* homogeneous transformation matrices for all links */
+  Matrix        Adof[N_LINKS+1];                /* homogeneous transformation matrices for all dofs */
+  Matrix        Adof_des[N_LINKS+1];            /* homogeneous transformation matrices for all dofs */
+  Matrix        Adof_sim[N_LINKS+1];            /* homogeneous transformation matrices for all dofs */
   SL_Cstate     cart_state[N_ENDEFFS+1];        /* endeffector state */
   SL_quat       cart_orient[N_ENDEFFS+1];       /* endeffector orientation */
   SL_Cstate     cart_des_state[N_ENDEFFS+1];    /* endeff.state based on des.state */

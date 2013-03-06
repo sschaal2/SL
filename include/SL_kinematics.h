@@ -38,11 +38,11 @@ extern "C" {
   void   linkInformation(SL_Jstate *state,SL_Cstate *basec,
 			 SL_quat *baseo, SL_endeff *eff, 
 			 double **Xmcog, double **Xaxis, double **Xorigin, 
-			 double **Xlink, double ***Ahmat);
+			 double **Xlink, double ***Ahmat, double ***Ahmatdof);
   void linkInformationDes(SL_DJstate *state,SL_Cstate *basec,
 			  SL_quat *baseo, SL_endeff *eff, 
 			  double **Xmcog, double **Xaxis, double **Xorigin, 
-			  double **Xlink, double ***Ahmat);
+			  double **Xlink, double ***Ahmat, double ***Ahmatdof);
   void 
   computeLinkVelocity(int lID, Matrix lp, Matrix jop, Matrix jap, 
 		      SL_Jstate *js, double *v);

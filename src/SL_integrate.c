@@ -133,7 +133,7 @@ SL_IntegrateEuler(SL_Jstate *state, SL_Cstate *cbase,
   // update the simulated link positions such that contact forces are correct
   linkInformation(state,cbase,obase,leff,
 		  joint_cog_mpos_sim,joint_axis_pos_sim,joint_origin_pos_sim,
-		  link_pos_sim,Alink_sim);
+		  link_pos_sim,Alink_sim,Adof_sim);
   
   // check for contacts with objects
   checkContacts();

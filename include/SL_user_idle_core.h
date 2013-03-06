@@ -14,7 +14,7 @@ if (clmcplot_mode || playback_mode || userGraphics_mode) {
   
   linkInformation(joint_sim_state,&base_state,&base_orient,endeff,
 		  joint_cog_mpos_sim,joint_axis_pos_sim,joint_origin_pos_sim,
-		  link_pos_sim,Alink_sim);
+		  link_pos_sim,Alink_sim,Adof_sim);
 
 
   // compute COG
@@ -73,7 +73,7 @@ receiveOscilloscopeData();
 // compute link info
 linkInformation(joint_sim_state,&base_state,&base_orient,endeff,
 		joint_cog_mpos_sim,joint_axis_pos_sim,joint_origin_pos_sim,
-		link_pos_sim,Alink_sim);
+		link_pos_sim,Alink_sim,Adof_sim);
 
 // compute COG
 for (i=0; i<=N_DOFS; ++i)

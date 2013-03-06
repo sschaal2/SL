@@ -362,6 +362,9 @@ extern "C" {
   extern Matrix        Alink[];
   extern Matrix        Alink_des[];
   extern Matrix        Alink_sim[];
+  extern Matrix        Adof[];
+  extern Matrix        Adof_des[];
+  extern Matrix        Adof_sim[];
   extern int           link2endeffmap[];
   extern char          current_vision_pp[];
   extern char          blob_names[][20];

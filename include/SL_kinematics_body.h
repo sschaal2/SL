@@ -94,6 +94,12 @@ init_kinematics(void)
     Alink_sim[i] = my_matrix(1,4,1,4);
   }
 
+  for (i=0; i<=N_DOFS; ++i) {
+    Adof[i]     = my_matrix(1,4,1,4);
+    Adof_des[i] = my_matrix(1,4,1,4);
+    Adof_sim[i] = my_matrix(1,4,1,4);
+  }
+
   // initialize indicators for prismatic joints
   for (i=0; i<=N_DOFS; ++i)
     prismatic_joint_flag[i] = FALSE;
@@ -127,13 +133,14 @@ L
  \param[out]    Xorigin : array of coord.sys. origin vectors
  \param[out]    Xlink   : array of link position
  \param[out]    Ahmat   : homogeneous transformation matrices of each link
+ \param[out]    Ahmatdof: homogeneous transformation matrices of each dof
 
  ******************************************************************************/
 void 
 linkInformation(SL_Jstate *state,SL_Cstate *basec,
 		SL_quat *baseo, SL_endeff *eff, 
 		double **Xmcog, double **Xaxis, double **Xorigin, double **Xlink,
-		double ***Ahmat)
+		double ***Ahmat, double ***Ahmatdof)
 
 {
 
@@ -168,13 +175,14 @@ linkInformation(SL_Jstate *state,SL_Cstate *basec,
  \param[out]    Xorigin : array of coord.sys. origin vectors
  \param[out]    Xlink   : array of link position
  \param[out]    Ahmat   : homogeneous transformation matrices of each link
+ \param[out]    Ahmatdof: homogeneous transformation matrices of each dof
 
  ******************************************************************************/
 void 
 linkInformationDes(SL_DJstate *state,SL_Cstate *basec,
 		   SL_quat *baseo, SL_endeff *eff, 
 		   double **Xmcog, double **Xaxis, double **Xorigin, 
-		   double **Xlink, double ***Ahmat)
+		   double **Xlink, double ***Ahmat, double ***Ahmatdof)
 
 {
 
@@ -418,6 +426,7 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
   MY_MATRIX(local_joint_origin_pos_des,0,N_DOFS,1,3);
   MY_MATRIX(local_joint_axis_pos_des,0,N_DOFS,1,3);
   MY_MATRIX_ARRAY(local_Alink_des,1,4,1,4,N_LINKS+1);
+  MY_MATRIX_ARRAY(local_Adof_des,1,4,1,4,N_DOFS+1);
   double         ralpha = 2.0;
   double         condnr;
   double         condnr_cutoff = 70.0;  // this corresponds to condnr_cutoff^2 in invere space
@@ -428,7 +437,8 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
 		     local_joint_axis_pos_des,
 		     local_joint_origin_pos_des,
 		     local_link_pos_des,
-		     local_Alink_des);
+		     local_Alink_des,
+		     local_Adof_des);
 
   jacobian(local_link_pos_des,local_joint_origin_pos_des,local_joint_axis_pos_des,Jac);
 
@@ -691,6 +701,7 @@ computeConstraintJacobian(SL_Jstate *state,SL_Cstate *basec,
   MY_MATRIX(Xorigin,0,N_DOFS,1,3);
   MY_MATRIX(Xlink,0,N_LINKS,1,3);
   MY_MATRIX_ARRAY(Ahmat,1,4,1,4,N_LINKS);
+  MY_MATRIX_ARRAY(Ahmatdof,1,4,1,4,N_DOFS);
   MY_MATRIX(Ec,1,(N_CART*2),1,(N_CART*2));
   MY_MATRIX(Jac,1,(N_ENDEFFS*2*N_CART),1,N_DOFS);
   
@@ -698,7 +709,7 @@ computeConstraintJacobian(SL_Jstate *state,SL_Cstate *basec,
   
   // compute the link information for this state
   linkInformation(state, basec, baseo, eff, 
-		  Xmcog, Xaxis, Xorigin, Xlink, Ahmat);
+		  Xmcog, Xaxis, Xorigin, Xlink, Ahmat, Ahmatdof);
   
   // compute Jacobian
   jacobian(Xlink, Xorigin, Xaxis, Jac);
@@ -863,6 +874,7 @@ checkIKTarget(SL_DJstate *js, SL_Cstate *bs, SL_quat *bo, SL_endeff *eff,
   MY_MATRIX(local_joint_origin_pos_des,0,N_DOFS,1,3);
   MY_MATRIX(local_joint_axis_pos_des,0,N_DOFS,1,3);
   MY_MATRIX_ARRAY(local_Alink_des,1,4,1,4,n_links+1);
+  MY_MATRIX_ARRAY(local_Adof_des,1,4,1,4,n_dofs+1);
 
   // compute the current cartesian positions
   linkInformationDes(js,bs,bo,eff,
@@ -870,7 +882,8 @@ checkIKTarget(SL_DJstate *js, SL_Cstate *bs, SL_quat *bo, SL_endeff *eff,
 		     local_joint_axis_pos_des,
 		     local_joint_origin_pos_des,
 		     local_link_pos_des,
-		     local_Alink_des);
+		     local_Alink_des,
+		     local_Adof_des);
 
   for (j=1; j<=n_endeffs; ++j)
     for (i=1; i<=N_CART; ++i)
@@ -942,7 +955,8 @@ checkIKTarget(SL_DJstate *js, SL_Cstate *bs, SL_quat *bo, SL_endeff *eff,
 		       local_joint_axis_pos_des,
 		       local_joint_origin_pos_des,
 		       local_link_pos_des,
-		       local_Alink_des);
+		       local_Alink_des,
+		       local_Adof_des);
     
     for (j=1; j<=n_endeffs; ++j)
       for (i=1; i<=N_CART; ++i)
