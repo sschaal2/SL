@@ -571,7 +571,7 @@ compute_kinematics(void)
   /* compute the desired link positions */
   linkInformationDes(joint_des_state,&base_state,&base_orient,endeff,
 		     joint_cog_mpos_des,joint_axis_pos_des,joint_origin_pos_des,
-		     link_pos_des,Alink_des);
+		     link_pos_des,Alink_des,Adof_des);
 
   /* the desired endeffector information */
   for (i=1; i<=N_CART; ++i) {
@@ -589,7 +589,7 @@ compute_kinematics(void)
   /* addititional link information */
   linkInformation(joint_state,&base_state,&base_orient,endeff,
 		  joint_cog_mpos,joint_axis_pos,joint_origin_pos,
-		  link_pos,Alink);
+		  link_pos,Alink,Adof);
 
   /* create the endeffector information */
   for (i=1; i<=N_CART; ++i) {
