@@ -21,8 +21,7 @@
 
 // system includes
 #include "sys/ioctl.h"
-#include "readline/readline.h"
-#include "readline/history.h" 
+#include "editline/readline.h"
 
 // private includes
 #include "SL.h"
@@ -145,7 +144,7 @@ checkKeyboard(void *initial_command)
     }
 
     snprintf(prompt, 1000, "%s.%s> ",robot_name,servo_name);
-    rl_event_hook = &sl_readline_callback;
+    //rl_event_hook = &sl_readline_callback;
     string = readline(prompt);
     if (string && *string)
       add_history(string);
@@ -173,7 +172,7 @@ int sl_readline_callback()
   static double   prev_servo_time = 999.0;
 
   if (prev_servo_time - servo_time > 10.0) {  // 10 seconds slack parameter to trust this
-    rl_done = 1;
+    //rl_done = 1;
     time_reset_detected = 1;
   }
   prev_servo_time = servo_time;
@@ -309,8 +308,8 @@ static void
 initializeReadLine()
 {
   rl_attempted_completion_function = sl_completion;
-  rl_catch_signals = 0;
-  rl_catch_sigwinch = 0;
+  //rl_catch_signals = 0;
+  //rl_catch_sigwinch = 0;
 }
 
 /*!*****************************************************************************
