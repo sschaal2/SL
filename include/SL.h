@@ -390,6 +390,7 @@ extern "C" {
   extern double        gravity;
   extern int           n_contacts;
   extern int           prismatic_joint_flag[]; 
+  extern int           jointPredecessor[];
 
   /* Function prototypes */
   void  where(void);

@@ -108,6 +108,7 @@ extern "C" {
 
   int           n_contacts = N_LINKS;           /* number of contacts and default initialization */
   int           prismatic_joint_flag[N_DOFS+1]; /* TRUE/FALSE indicator for prismatic joints */
+  int           jointPredecessor[N_DOFS+1];     /* lists for each joint its predessor joint ID */
 
 #ifdef __cplusplus
 }
