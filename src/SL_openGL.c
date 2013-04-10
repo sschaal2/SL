@@ -96,8 +96,6 @@ static void  toggleCoordDisplay(void);
 static void  toggleContactDisplay(void);
 static void  updateWindowHide(int status);
 static void  drawCoordSystem(double length, double **A, char *name);
-static void  drawArrow(double *sp, double *ep, double width);
-
 
 // global variables 
 int        solid = TRUE;
@@ -3305,7 +3303,6 @@ drawCoordSystem(double length, double **A, char *name)
   
   // draw the coordinate systems
   glPushMatrix();
-  glDisable(GL_LIGHTING); /*to have constant colors */
   glLineWidth(2.0);
 
   v[_X_] = length;
@@ -3361,7 +3358,6 @@ drawCoordSystem(double length, double **A, char *name)
   glRasterPos3f(A[_X_][4],A[_Y_][4],A[_Z_][4]+0.1);
   glutBitmapString(GLUT_BITMAP_HELVETICA_18,(const unsigned char *)name);
   
-  glEnable(GL_LIGHTING);   
   glLineWidth(1.0);
   glPopMatrix();
 
@@ -3681,7 +3677,7 @@ displayListFromObjFileFlag(char *fname, double scale,int flag)
 
 
  ******************************************************************************/
-static void
+void
 drawArrow(double *sp, double *ep, double width)
 {
   double gamma;

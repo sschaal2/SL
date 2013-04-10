@@ -111,7 +111,7 @@ extern "C" {
   int        displayListFromObjFileFlag(char *fname, double scale, int flag);
   void       toggleShowAxesByName(char *name, int status);
   void       toggleShowAxesByPtr(OpenGLWPtr ptr,int status);
-
+  void       drawArrow(double *sp, double *ep, double width);
 
   
   /* exported variables */
@@ -130,7 +130,6 @@ extern "C" {
   extern SL_Cstate userGraphics_base_state;
   extern SL_quat userGraphics_base_orient;
   extern int cometDisplay;
-
   
 #ifdef __cplusplus
 }
