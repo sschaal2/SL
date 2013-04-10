@@ -3199,7 +3199,7 @@ toggleCoordDisplay(void)
 	for (i=0; i<=n_links; ++i)
 	  coordDisplayFlagsLinks[i] = TRUE;
       } else {
-	if (iaux > 0 && iaux < n_links) {
+	if (iaux > 0 && iaux <= n_links) {
 	  for (i=0; i<=n_links; ++i)
 	    coordDisplayFlagsLinks[i] = FALSE;
 	  coordDisplayFlagsLinks[iaux] = TRUE;
@@ -3218,7 +3218,7 @@ toggleCoordDisplay(void)
 	for (i=0; i<=n_dofs; ++i)
 	  coordDisplayFlagsDOFs[i] = TRUE;
       } else {
-	if (iaux > 0 && iaux < n_dofs) {
+	if (iaux > 0 && iaux <= n_dofs) {
 	  for (i=0; i<=n_dofs; ++i)
 	    coordDisplayFlagsDOFs[i] = FALSE;
 	  coordDisplayFlagsDOFs[iaux] = TRUE;
