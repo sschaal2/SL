@@ -315,9 +315,9 @@ test_NEvsForComp( void )
   MY_MATRIX(rbdM,1,n_dofs+6,1,n_dofs+6);
   MY_VECTOR(rbdCG,1,n_dofs+6);
 
-  bzero((void *)jts,sizeof(SL_Jstate)*n_dofs+1);
-  bzero((void *)djts,sizeof(SL_DJstate)*n_dofs+1);
-  bzero((void *)ux,sizeof(SL_uext)*n_dofs+1);
+  bzero((void *)jts,sizeof(SL_Jstate)*(n_dofs+1));
+  bzero((void *)djts,sizeof(SL_DJstate)*(n_dofs+1));
+  bzero((void *)ux,sizeof(SL_uext)*(n_dofs+1));
   bzero((void *)&bs,sizeof(bs));
   bzero((void *)&bo,sizeof(bo));
   bo.q[_Q0_] = 1.0;
@@ -412,9 +412,9 @@ test_ForArtvsForComp( void )
   SL_uext   ux[n_dofs+1];
   double    aux;
 
-  bzero((void *)jts,sizeof(SL_Jstate)*n_dofs+1);
-  bzero((void *)jts2,sizeof(SL_Jstate)*n_dofs+1);
-  bzero((void *)ux,sizeof(SL_uext)*n_dofs+1);
+  bzero((void *)jts,sizeof(SL_Jstate)*(n_dofs+1));
+  bzero((void *)jts2,sizeof(SL_Jstate)*(n_dofs+1));
+  bzero((void *)ux,sizeof(SL_uext)*(n_dofs+1));
   bzero((void *)&bs,sizeof(bs));
   bzero((void *)&bo,sizeof(bo));
   bo.q[_Q0_] = 1.0;
