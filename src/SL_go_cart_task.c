@@ -416,8 +416,8 @@ go_cart_target_wait(SL_Cstate *ctar,int *stat, double mt)
 
   last_time = last_draw_time = task_servo_time;
   while (strcmp(current_task_name,NO_TASK) != 0) {
-    if (task_servo_time - last_time > 5) {
-      printf("time out in go0_wait\n");
+    if (task_servo_time - last_time > 2*mt) {
+      printf("time out in go_cart_target_wait\n");
       special_flag = FALSE;
       return FALSE;
     }
