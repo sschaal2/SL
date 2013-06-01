@@ -2497,6 +2497,8 @@ checkContactSpecifics(ContactSpecs cspecs)
     
   case TERRAIN: //---------------------------------------------------------------
 
+    getContactTerrainInfo(x[1], x[2], optr->name, &z, n, &no_go);
+
     // remember which object we are contacting, and also the 
     // contact point in object centered coordinates
     if (!contacts[i].status || contacts[i].optr != optr ) {
