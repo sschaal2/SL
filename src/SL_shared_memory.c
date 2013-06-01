@@ -527,6 +527,7 @@ init_shared_memory(void)
   if (!init_sm_sem("smInitProcReadySem", SEM_EMPTY,(void**)&sm_init_process_ready_sem))
     return FALSE;
 
+
   /********************************************************************/
   /********************************************************************/
 

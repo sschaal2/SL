@@ -26,6 +26,10 @@
 #include "SL_kinematics.h"
 #include "SL_simulation_servo.h"
 #include "SL_shared_memory.h"
+#include "SL_unix_common.h"
+
+// defines
+#define N_CSPECS_THREADS 8
 
 // contact related defines
 enum ForceConditions {
@@ -53,6 +57,18 @@ SL_uext   *ucontact;
 int        n_contacts;
 
 // local variables
+typedef struct {
+  int i;
+  ObjectPtr optr;
+  double x[N_CART+1];
+} ContactSpecs;
+
+static   int            use_threads = TRUE;
+static   pthread_t      cspecs_thread[N_CSPECS_THREADS+1];  // threads for contact checking
+static   ContactSpecs  *cspecs_data[N_CSPECS_THREADS+1];    // data used for thread communication
+static   sl_rt_cond     cspecs_status[N_CSPECS_THREADS+1];  // conditional variable of thread
+static   sl_rt_mutex    cspecs_mutex[N_CSPECS_THREADS+1];   // mutex of threads
+static   int            n_cspecs_data[N_CSPECS_THREADS+1];  // counter of how much to do per thread
 
 // global functions 
 
@@ -67,6 +83,10 @@ static void  changeObjPosByNameSync(char *name, double *pos, double *rot);
 static void  convertGlobal2Object(ObjectPtr optr, double *xg, double *xl);
 static void  computeStart2EndNorm(double *xs, double *xe, ObjectPtr optr, double *n);
 static void  projectForce(ContactPtr cptr, ObjectPtr optr);
+static void  checkContactSpecifics(ContactSpecs cspecs);
+static void *contactThread(void *num);
+static void  spawnContactSpecsThread(long num) ;
+static void  accumulateFinalForces(ContactPtr cptr);
 
 
 // external functions
@@ -88,7 +108,7 @@ static void  projectForce(ContactPtr cptr, ObjectPtr optr);
 int
 initObjects(void) 
 {
-  int n;
+  int i,n;
 
   // check how may contact points we need
   n=count_extra_contact_points(config_files[CONTACTS]);
@@ -101,6 +121,19 @@ initObjects(void)
   readObjects(config_files[OBJECTS]);
 
   n_contacts = n+n_links;
+
+  // allocate thread related data
+  for (i=1; i<=N_CSPECS_THREADS; ++i) 
+    cspecs_data[i]=my_calloc(n_contacts+1,sizeof(ContactSpecs),MY_STOP);
+
+  // start contact threads
+  if (strcmp(servo_name,"sim")==0 && use_threads) {
+    for (n=1; n<=N_CSPECS_THREADS; ++n) {
+      sl_rt_mutex_init(&(cspecs_mutex[n]));
+      sl_rt_cond_init(&(cspecs_status[n]));
+      spawnContactSpecsThread(n);
+    }
+  }
 
   return TRUE;
 
@@ -624,6 +657,11 @@ checkContacts(void)
   char      tfname[100];
   double    no_go;
   double    dist_z;
+  ContactSpecs cspecs;
+  int       count_thread=0;
+  int       n_threads_used = N_CSPECS_THREADS;
+  int       threads_ready_flag;
+
 
   /* zero contact forces */
   bzero((void *)ucontact,sizeof(SL_uext)*(n_dofs+1));
@@ -639,6 +677,10 @@ checkContacts(void)
       optr->f[i] = optr->t[i] = 0.0;
     optr = (ObjectPtr) optr->nptr;
   } while (optr != NULL);
+
+  // zero thread counters
+  for (i=1; i<=N_CSPECS_THREADS; ++i)
+    n_cspecs_data[i] = 0;
   
   
   for (i=0; i<=n_contacts; ++i) { /* loop over all contact points */
@@ -677,80 +719,28 @@ checkContacts(void)
 	if (fabs(x[1]) < optr->scale[1]/2. &&
 	    fabs(x[2]) < optr->scale[2]/2. &&
 	    fabs(x[3]) < optr->scale[3]/2.) {
-	  
-	  // remember which object we are contacting, and also the 
-	  // contact point in object centered coordinates
-	  
-	  if (!contacts[i].status || contacts[i].optr != optr ) {
-	    for (j=1; j<=N_CART; ++j) {
-	      contacts[i].x_start[j] = x[j];
-	      contacts[i].x[j] = x[j];
-	    }
-	    contacts[i].friction_flag = FALSE;
-	    first_contact_flag = TRUE;
-	  }
-	  contacts[i].status = contact_flag = TRUE;
-	  contacts[i].optr   = optr;
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].x[j] = x[j];
-	  }
-	  
-	  // compute relevant geometric information
-	  
-	  if (first_contact_flag) {
-	    // what is the closest face of the cube
-	    if ( (optr->scale[1]/2.-fabs(x[1]) ) < (optr->scale[2]/2.-fabs(x[2]) ) &&
-		 (optr->scale[1]/2.-fabs(x[1]) ) < (optr->scale[3]/2.-fabs(x[3]) )) {
-	      ind = 1;
-	    } else if ( (optr->scale[2]/2.-fabs(x[2]) ) < (optr->scale[1]/2.-fabs(x[1]) ) &&
-			(optr->scale[2]/2.-fabs(x[2]) ) < (optr->scale[3]/2.-fabs(x[3]) )) {
-	      ind = 2;
-	    } else {
-	      ind = 3;
-	    }
-	    contacts[i].face_index = ind;
+
+	  cspecs.i = i;
+	  cspecs.optr = optr;
+	  for (j=1; j<=N_CART; ++j)
+	    cspecs.x[j] = x[j];
+
+	  if (use_threads) {
+
+	    if (++count_thread > n_threads_used)
+	      count_thread = 1;
+	   
+	    cspecs_data[count_thread][++n_cspecs_data[count_thread]] = cspecs;
+
+
 	  } else {
-	    ind = contacts[i].face_index;
-	  }
-	  
-	  // the local veclocity of the contact point
-	  contactVelocity(i,optr,v);
-	  
-	  // the normal vector
-	  for (j=1; j<=N_CART; ++j) {
-	    if (j==ind) {
-	      // the contact normal never change direction relativ to the start point
-	      contacts[i].normal[j] = 
-		optr->scale[j]/2.*macro_sign(contacts[i].x_start[j]) - x[j];
-	      contacts[i].normvel[j] = -v[j];
-	    } else {
-	      contacts[i].normal[j] = 0.0;
-	      contacts[i].normvel[j] = 0.0;
-	    }
-	  }
-	  
-	  // the tangential vector
-	  for (j=1; j<=N_CART; ++j) {
-	    if (j!=ind) {
-	      contacts[i].tangent[j] = x[j]-contacts[i].x_start[j];
-	      contacts[i].tanvel[j]  = v[j];
-	    } else {
-	      contacts[i].tangent[j] = 0.0;
-	      contacts[i].tanvel[j]  = 0.0;
-	    }
-	  }
-	  
-	  // the tangential velocity for viscous friction
-	  for (j=1; j<=N_CART; ++j) {
-	    if (j!=ind) {
-	      contacts[i].viscvel[j] = v[j];
-	    } else {
-	      contacts[i].viscvel[j]=0.0;
-	    }
+
+	    checkContactSpecifics(cspecs);
+
 	  }
 
-	  // finally apply contact models
-	  computeContactForces(optr,&contacts[i]);
+	  contact_flag = TRUE;
+	  
 	  optr = NULL;
 	  continue; /* only one object can be in contact with a contact point */
 	  
@@ -761,71 +751,27 @@ checkContacts(void)
       case SPHERE: //---------------------------------------------------------------
 	if ((sqr(x[1]/optr->scale[1]*2.) + sqr(x[2]/optr->scale[2]*2.) + 
 	     sqr(x[3]/optr->scale[3]*2.)) < 1.0) {
-	  
-	  if (!contacts[i].status || contacts[i].optr != optr ) {
-	    for (j=1; j<=N_CART; ++j) {
-	      contacts[i].x_start[j] = x[j];
-	      contacts[i].x[j] = x[j];
-	    }
-	    contacts[i].friction_flag = FALSE;
-	    first_contact_flag = TRUE;
-	  }
-	  contacts[i].status = contact_flag = TRUE;
-	  contacts[i].optr   = optr;
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].x[j] = x[j];
-	  }
-	  
-	  // the local veclocity of the contact point
-	  contactVelocity(i,optr,v);
-	  
-	  /* the normal displacement vector: map the current x into the unit sphere,
-	     compute the point where this vector pierces through the unit sphere,
-	     and map it back to the deformed sphere. The difference between this
-	     vector and x is the normal displacement */
-	  aux2 = 1.e-10;
-	  for (j=1; j<=N_CART; ++j) {
-	    aux2 += sqr(x[j]/(optr->scale[j]/2.));
-	  }
-	  aux2 = sqrt(aux2); /* length in unit sphere */
-	  
-	  aux = 1.e-10;
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].normal[j] = x[j]*(1./aux2-1.);
-	    aux += sqr(contacts[i].normal[j]);
-	  }
-	  aux = sqrt(aux);
-	  
-	  // unit vector of contact normal
-	  aux2 = 0.0;
-	  for (j=1; j<=N_CART; ++j) {
-	    n[j] = contacts[i].normal[j]/aux;
-	    aux2 += n[j]*v[j];
-	  }
-	  
-	  // the normal velocity
+
+	  cspecs.i = i;
+	  cspecs.optr = optr;
 	  for (j=1; j<=N_CART; ++j)
-	    contacts[i].normvel[j] = -aux2*n[j];
-	  
-	  /* the tangential vector */
-	  aux1 = 0.0;
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].tangent[j]= x[j]-contacts[i].x_start[j];
-	    aux1 += n[j] * contacts[i].tangent[j];
+	    cspecs.x[j] = x[j];
+
+	  if (use_threads) {
+
+	    if (++count_thread > n_threads_used)
+	      count_thread = 1;
+
+	    cspecs_data[count_thread][++n_cspecs_data[count_thread]] = cspecs;
+	    
+	  } else {
+
+	    checkContactSpecifics(cspecs);
+
 	  }
-	  
-	  // subtract the all components in the direction of the normal
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].tangent[j] -= n[j] * aux1;
-	    contacts[i].tanvel[j]   = v[j] - n[j]*aux2;
-	  }
-	  
-	  /* the vicous velocity */
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].viscvel[j] = v[j] - n[j]*aux2;
-	  }
-	  
-	  computeContactForces(optr,&contacts[i]);
+
+	  contact_flag = TRUE;
+
 	  optr=NULL;
 	  continue; /* only one object can be in contact with a contact point */
 	  
@@ -838,126 +784,27 @@ checkContacts(void)
 	// the cylinder axis is aliged with te Z axis
 	if ((sqr(x[1]/optr->scale[1]*2.) + sqr(x[2]/optr->scale[2]*2.)) < 1.0 &&
 	    fabs(x[3]) < optr->scale[3]/2.) {
-	  
-	  if (!contacts[i].status || contacts[i].optr != optr ) {
-	    for (j=1; j<=N_CART; ++j) {
-	      contacts[i].x_start[j] = x[j];
-	      contacts[i].x[j] = x[j];
-	    }
-	    contacts[i].friction_flag = FALSE;
-	    first_contact_flag = TRUE;
-	  }
-	  contacts[i].status = contact_flag = TRUE;
-	  contacts[i].optr   = optr;
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].x[j] = x[j];
-	  }
-	  
-	  // the local veclocity of the contact point
-	  contactVelocity(i,optr,v);
-	  
-	  if (first_contact_flag || contacts[i].face_index != _Z_) {
-	    /* the normal displacement vector: map the current x into the unit cylinder,
-	       compute the point where this vector pierces through the unit cylinder,
-	       and map it back to the deformed cylinder. The difference between this
-	       vector and x is the normal displacement */
-	    aux2 = 1.e-10;
-	    for (j=1; j<=_Y_; ++j) {
-	      aux2 += sqr(x[j]/(optr->scale[j]/2.));
-	    }
-	    aux2 = sqrt(aux2); // length in unit cylinder
+
+	  cspecs.i = i;
+	  cspecs.optr = optr;
+	  for (j=1; j<=N_CART; ++j)
+	    cspecs.x[j] = x[j];
+
+	  if (use_threads) {
+
+	    if (++count_thread > n_threads_used)
+	      count_thread = 1;
 	    
-	    aux = 1.e-10;
-	    for (j=1; j<=_Y_; ++j) {
-	      contacts[i].normal[j] = x[j]*(1./aux2-1.);
-	      aux += sqr(contacts[i].normal[j]);
-	    }
-	    contacts[i].normal[_Z_] = 0.0;
-	    aux = sqrt(aux);
-	    
-	    // unit vector of contact normal
-	    aux2 = 0.0;
-	    for (j=1; j<=N_CART; ++j) {
-	      n[j] = contacts[i].normal[j]/aux;
-	      aux2 += n[j]*v[j];
-	    }
-	    
-	    // the normal velocity
-	    for (j=1; j<=N_CART; ++j)
-	      contacts[i].normvel[j] = -aux2*n[j];
-	    
-	    /* the tangential vector */
-	    aux1 = 0.0;
-	    for (j=1; j<=N_CART; ++j) {
-	      contacts[i].tangent[j]= x[j]-contacts[i].x_start[j];
-	      aux1 += n[j] * contacts[i].tangent[j];
-	    }
-	    
-	    // subtract the all components in the direction of the normal
-	    for (j=1; j<=N_CART; ++j) {
-	      contacts[i].tangent[j] -= n[j] * aux1;
-	      contacts[i].tanvel[j]   = v[j] - n[j]*aux2;
-	    }
-	    
-	    /* the vicous velocity */
-	    for (j=1; j<=N_CART; ++j) {
-	      contacts[i].viscvel[j] = v[j] - n[j]*aux2;
-	    }
+	    cspecs_data[count_thread][++n_cspecs_data[count_thread]] = cspecs;
+
+	  } else {
+
+	    checkContactSpecifics(cspecs);
 
 	  }
 
-
-	  // now we check which face is the nearest to th surface
-	  if (first_contact_flag) {
-	    // distance from nearest cylinder flat surface
-	    dist_z = optr->scale[3]/2.-fabs(x[3]);
-	    
-	    if (dist_z < aux) 
-	      contacts[i].face_index = _Z_;
-	    else
-	      contacts[i].face_index = _X_; // could also choose _Y_ -- !_Z_ matters
-
-	  }
-
-	  // compute with the cylinder ends as contact face
-
-	  if (contacts[i].face_index == _Z_) {
-	    ind = _Z_;
-	    // the normal vector
-	    for (j=1; j<=N_CART; ++j) {
-	      if (j==ind) {
-		// the contact normal never change direction relativ to the start point
-		contacts[i].normal[j] = 
-		  optr->scale[j]/2.*macro_sign(contacts[i].x_start[j]) - x[j];
-		contacts[i].normvel[j] = -v[j];
-	      } else {
-		contacts[i].normal[j] = 0.0;
-		contacts[i].normvel[j] = 0.0;
-	      }
-	    }
+	  contact_flag = TRUE;
 	  
-	    // the tangential vector
-	    for (j=1; j<=N_CART; ++j) {
-	      if (j!=ind) {
-		contacts[i].tangent[j] = x[j]-contacts[i].x_start[j];
-		contacts[i].tanvel[j]  = v[j];
-	      } else {
-		contacts[i].tangent[j] = 0.0;
-		contacts[i].tanvel[j]  = 0.0;
-	      }
-	    }
-	  
-	    // the tangential velocity for viscous friction
-	    for (j=1; j<=N_CART; ++j) {
-	      if (j!=ind) {
-		contacts[i].viscvel[j] = v[j];
-	      } else {
-		contacts[i].viscvel[j]=0.0;
-	      }
-	    }
-	  }
-
-	  computeContactForces(optr,&contacts[i]);
 	  optr=NULL;
 	  continue; /* only one object can be in contact with a contact point */
 
@@ -971,55 +818,27 @@ checkContacts(void)
 	  break;
 
 	if (x[3] < z) {
-	
-	  // remember which object we are contacting, and also the 
-	  // contact point in object centered coordinates
-	  if (!contacts[i].status || contacts[i].optr != optr ) {
-	    for (j=1; j<=N_CART; ++j) {
-	      contacts[i].x_start[j] = x[j];
-	      contacts[i].x[j] = x[j];
-	    }
-	    contacts[i].friction_flag = FALSE;
-	    first_contact_flag = TRUE;
-	  }
-	  contacts[i].status = contact_flag = TRUE;
-	  contacts[i].optr   = optr;
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].x[j] = x[j];
-	  }
 
-	  // the local veclocity of the contact point
-	  contactVelocity(i,optr,v);
-	  aux1 = n[_X_]*v[_X_]+n[_Y_]*v[_Y_]+n[_Z_]*v[_Z_];
-	  
-	  // compute relevant geometric information
-
-	  // the normal vector
-	  for (j=1; j<=N_CART; ++j) {
-	    // note: n'*[ 0 0 (z-x[3])] = (z-x[3])*n[3] is the effective
-	    // projection of the vertical distance to the surface onto
-	    // the normal
-	    contacts[i].normal[j]   = n[j]*((z-x[3])*n[3]);
-	    contacts[i].normvel[j]  = -aux1*n[j];
-	  }
-
-	  // the tangential vector: project x-x_start into the null-space of normal
-	  aux  = 0.0;
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].tangent[j]=x[j]-contacts[i].x_start[j];
-	    aux  += contacts[i].tangent[j]*n[j];
-	  }
-
-	  for (j=1; j<=N_CART; ++j) {
-	    contacts[i].tangent[j] -= n[j]*aux;
-	    contacts[i].tanvel[j]   = v[j]-n[j]*aux1;
-	  }
-
-	  // the tangential velocity for viscous friction
+	  cspecs.i = i;
+	  cspecs.optr = optr;
 	  for (j=1; j<=N_CART; ++j)
-	    contacts[i].viscvel[j] = v[j]-n[j]*aux1;
+	    cspecs.x[j] = x[j];
 
-	  computeContactForces(optr,&contacts[i]);
+	  if (use_threads) {
+
+	    if (++count_thread > n_threads_used)
+	      count_thread = 1;
+	    
+	    cspecs_data[count_thread][++n_cspecs_data[count_thread]] = cspecs;
+
+	  } else {
+
+	    checkContactSpecifics(cspecs);
+
+	  }
+
+	  contact_flag = TRUE;
+	
 	  optr = NULL;
 	  continue; /* only one object can be in contact with a contact point */
 
@@ -1033,9 +852,7 @@ checkContacts(void)
 
     } while (optr != NULL);
 
-    contacts[i].status = contact_flag;
-
-    if (!contacts[i].status) { // this is just for easy data interpretation
+    if (!contact_flag) { // this is just for easy data interpretation
       for (j=1; j<=N_CART; ++j) {
 	contacts[i].normal[j] = 0.0;
 	contacts[i].normvel[j] = 0.0;
@@ -1044,12 +861,48 @@ checkContacts(void)
 	contacts[i].viscvel[j] = 0.0;
 	contacts[i].f[j] = 0.0;
 	contacts[i].n[j] = 0.0;
+	contacts[i].status = FALSE;
       }
     }
 
   }
 
+  if (use_threads) {
+
+    // start all the threads
+    for (i=1; i<=n_threads_used; ++i) {
+      //printf("start thread %d with %d items\n",i,n_cspecs_data[i]);
+      if (n_cspecs_data[i] > 0)
+	sl_rt_cond_signal(&(cspecs_status[i]));
+    }
+
+    // check for thread completion
+    threads_ready_flag = FALSE;
+
+    while (!threads_ready_flag) {
+
+      threads_ready_flag = TRUE;
+
+      for (i=1; i<=n_threads_used; ++i) {
+	sl_rt_mutex_lock(&(cspecs_mutex[i]));
+	if (n_cspecs_data[i] != 0)
+	  threads_ready_flag = FALSE;
+	sl_rt_mutex_unlock(&(cspecs_mutex[i]));
+      }
+
+    }
+
+  }
+
+  // accumulate forces in global structures
+  for (i=0; i<=n_contacts; ++i) { /* loop over all contact points */
+    if (!contacts[i].status)
+      continue;
+    accumulateFinalForces(&(contacts[i]));
+  }
+
   /* add simulated external forces to contact forces */
+  
   for (i=0; i<=n_dofs; ++i)
     for (j=_X_; j<=_Z_; ++j) {
       ucontact[i].f[j] += uext_sim[i].f[j];
@@ -1733,6 +1586,7 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr)
   }
 
 
+#if 0
   /* add forces to appropriate DOFs and object */
 
   /* first the start link */
@@ -1782,6 +1636,7 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr)
     moment_arm_object[_X_]*cptr->f[_Z_]*cptr->fraction_end;
   optr->t[_G_] += moment_arm_object[_X_]*cptr->f[_Y_]*cptr->fraction_end - 
     moment_arm_object[_Y_]*cptr->f[_X_]*cptr->fraction_end;
+#endif 
 
 }
 
@@ -2320,5 +2175,560 @@ computeContactPoint(ContactPtr cptr, double **lp, double ***al, double *x)
   }
 
 }
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  checkContactSpecifics
+\date  June 1999
+   
+\remarks 
+
+ given an identified contact point and object, the contact specifics are
+ computed
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     cspecs: contact specifications
+
+ ******************************************************************************/
+static void
+checkContactSpecifics(ContactSpecs cspecs)
+
+{
+  int       i,j;
+  double    x[N_CART+1];
+  ObjectPtr optr;
+  double    aux,aux1,aux2;
+  int       ind=0;
+  int       first_contact_flag = FALSE;
+  int       contact_flag = FALSE;
+  double    z;
+  double    n[N_CART+1];
+  double    v[N_CART+1];
+  char      tfname[100];
+  double    no_go;
+  double    dist_z;
+
+  first_contact_flag = FALSE;
+  contact_flag = FALSE;
+
+  i    = cspecs.i;
+  optr = cspecs.optr;
+
+  for (j=1; j<=N_CART; ++j)
+    x[j] = cspecs.x[j];
+    
+  switch (optr->type) {
+  case CUBE: //---------------------------------------------------------------
+
+    // remember which object we are contacting, and also the 
+    // contact point in object centered coordinates
+    
+    if (!contacts[i].status || contacts[i].optr != optr ) {
+      for (j=1; j<=N_CART; ++j) {
+	contacts[i].x_start[j] = x[j];
+	contacts[i].x[j] = x[j];
+      }
+      contacts[i].friction_flag = FALSE;
+      first_contact_flag = TRUE;
+    }
+    contacts[i].status = contact_flag = TRUE;
+    contacts[i].optr   = optr;
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].x[j] = x[j];
+    }
+    
+    // compute relevant geometric information
+    
+    if (first_contact_flag) {
+      // what is the closest face of the cube
+      if ( (optr->scale[1]/2.-fabs(x[1]) ) < (optr->scale[2]/2.-fabs(x[2]) ) &&
+	   (optr->scale[1]/2.-fabs(x[1]) ) < (optr->scale[3]/2.-fabs(x[3]) )) {
+	ind = 1;
+      } else if ( (optr->scale[2]/2.-fabs(x[2]) ) < (optr->scale[1]/2.-fabs(x[1]) ) &&
+		  (optr->scale[2]/2.-fabs(x[2]) ) < (optr->scale[3]/2.-fabs(x[3]) )) {
+	ind = 2;
+      } else {
+	ind = 3;
+      }
+      contacts[i].face_index = ind;
+    } else {
+      ind = contacts[i].face_index;
+    }
+    
+    // the local veclocity of the contact point
+    contactVelocity(i,optr,v);
+    
+    // the normal vector
+    for (j=1; j<=N_CART; ++j) {
+      if (j==ind) {
+	// the contact normal never change direction relativ to the start point
+	contacts[i].normal[j] = 
+	  optr->scale[j]/2.*macro_sign(contacts[i].x_start[j]) - x[j];
+	contacts[i].normvel[j] = -v[j];
+      } else {
+	contacts[i].normal[j] = 0.0;
+	contacts[i].normvel[j] = 0.0;
+      }
+    }
+    
+    // the tangential vector
+    for (j=1; j<=N_CART; ++j) {
+      if (j!=ind) {
+	contacts[i].tangent[j] = x[j]-contacts[i].x_start[j];
+	contacts[i].tanvel[j]  = v[j];
+      } else {
+	contacts[i].tangent[j] = 0.0;
+	contacts[i].tanvel[j]  = 0.0;
+      }
+    }
+    
+    // the tangential velocity for viscous friction
+    for (j=1; j<=N_CART; ++j) {
+      if (j!=ind) {
+	contacts[i].viscvel[j] = v[j];
+      } else {
+	contacts[i].viscvel[j]=0.0;
+      }
+    }
+    
+    // finally apply contact models
+    computeContactForces(optr,&contacts[i]);
+    
+    break;
+	
+  case SPHERE: //---------------------------------------------------------------
+	  
+    if (!contacts[i].status || contacts[i].optr != optr ) {
+      for (j=1; j<=N_CART; ++j) {
+	contacts[i].x_start[j] = x[j];
+	contacts[i].x[j] = x[j];
+      }
+      contacts[i].friction_flag = FALSE;
+      first_contact_flag = TRUE;
+    }
+    contacts[i].status = contact_flag = TRUE;
+    contacts[i].optr   = optr;
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].x[j] = x[j];
+    }
+    
+    // the local veclocity of the contact point
+    contactVelocity(i,optr,v);
+    
+    /* the normal displacement vector: map the current x into the unit sphere,
+       compute the point where this vector pierces through the unit sphere,
+       and map it back to the deformed sphere. The difference between this
+       vector and x is the normal displacement */
+    aux2 = 1.e-10;
+    for (j=1; j<=N_CART; ++j) {
+      aux2 += sqr(x[j]/(optr->scale[j]/2.));
+    }
+    aux2 = sqrt(aux2); /* length in unit sphere */
+    
+    aux = 1.e-10;
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].normal[j] = x[j]*(1./aux2-1.);
+      aux += sqr(contacts[i].normal[j]);
+    }
+    aux = sqrt(aux);
+    
+    // unit vector of contact normal
+    aux2 = 0.0;
+    for (j=1; j<=N_CART; ++j) {
+      n[j] = contacts[i].normal[j]/aux;
+      aux2 += n[j]*v[j];
+    }
+    
+    // the normal velocity
+    for (j=1; j<=N_CART; ++j)
+      contacts[i].normvel[j] = -aux2*n[j];
+    
+    /* the tangential vector */
+    aux1 = 0.0;
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].tangent[j]= x[j]-contacts[i].x_start[j];
+      aux1 += n[j] * contacts[i].tangent[j];
+    }
+    
+    // subtract the all components in the direction of the normal
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].tangent[j] -= n[j] * aux1;
+      contacts[i].tanvel[j]   = v[j] - n[j]*aux2;
+    }
+    
+    /* the vicous velocity */
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].viscvel[j] = v[j] - n[j]*aux2;
+    }
+    
+    computeContactForces(optr,&contacts[i]);
+    
+    break;
+	
+    
+  case CYLINDER: //---------------------------------------------------------------
+    // the cylinder axis is aliged with te Z axis
+    
+    if (!contacts[i].status || contacts[i].optr != optr ) {
+      for (j=1; j<=N_CART; ++j) {
+	contacts[i].x_start[j] = x[j];
+	contacts[i].x[j] = x[j];
+      }
+      contacts[i].friction_flag = FALSE;
+      first_contact_flag = TRUE;
+    }
+    contacts[i].status = contact_flag = TRUE;
+    contacts[i].optr   = optr;
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].x[j] = x[j];
+    }
+    
+    // the local veclocity of the contact point
+    contactVelocity(i,optr,v);
+    
+    if (first_contact_flag || contacts[i].face_index != _Z_) {
+      /* the normal displacement vector: map the current x into the unit cylinder,
+	 compute the point where this vector pierces through the unit cylinder,
+	 and map it back to the deformed cylinder. The difference between this
+	 vector and x is the normal displacement */
+      aux2 = 1.e-10;
+      for (j=1; j<=_Y_; ++j) {
+	aux2 += sqr(x[j]/(optr->scale[j]/2.));
+      }
+      aux2 = sqrt(aux2); // length in unit cylinder
+      
+      aux = 1.e-10;
+      for (j=1; j<=_Y_; ++j) {
+	contacts[i].normal[j] = x[j]*(1./aux2-1.);
+	aux += sqr(contacts[i].normal[j]);
+      }
+      contacts[i].normal[_Z_] = 0.0;
+      aux = sqrt(aux);
+      
+      // unit vector of contact normal
+      aux2 = 0.0;
+      for (j=1; j<=N_CART; ++j) {
+	n[j] = contacts[i].normal[j]/aux;
+	aux2 += n[j]*v[j];
+      }
+      
+      // the normal velocity
+      for (j=1; j<=N_CART; ++j)
+	contacts[i].normvel[j] = -aux2*n[j];
+      
+      /* the tangential vector */
+      aux1 = 0.0;
+      for (j=1; j<=N_CART; ++j) {
+	contacts[i].tangent[j]= x[j]-contacts[i].x_start[j];
+	aux1 += n[j] * contacts[i].tangent[j];
+      }
+      
+      // subtract the all components in the direction of the normal
+      for (j=1; j<=N_CART; ++j) {
+	contacts[i].tangent[j] -= n[j] * aux1;
+	contacts[i].tanvel[j]   = v[j] - n[j]*aux2;
+      }
+      
+      /* the vicous velocity */
+      for (j=1; j<=N_CART; ++j) {
+	contacts[i].viscvel[j] = v[j] - n[j]*aux2;
+      }
+      
+    }
+    
+    
+    // now we check which face is the nearest to th surface
+    if (first_contact_flag) {
+      // distance from nearest cylinder flat surface
+      dist_z = optr->scale[3]/2.-fabs(x[3]);
+      
+      if (dist_z < aux) 
+	contacts[i].face_index = _Z_;
+      else
+	contacts[i].face_index = _X_; // could also choose _Y_ -- !_Z_ matters
+      
+    }
+    
+    // compute with the cylinder ends as contact face
+    
+    if (contacts[i].face_index == _Z_) {
+      ind = _Z_;
+      // the normal vector
+      for (j=1; j<=N_CART; ++j) {
+	if (j==ind) {
+	  // the contact normal never change direction relativ to the start point
+	  contacts[i].normal[j] = 
+	    optr->scale[j]/2.*macro_sign(contacts[i].x_start[j]) - x[j];
+	  contacts[i].normvel[j] = -v[j];
+	} else {
+	  contacts[i].normal[j] = 0.0;
+	  contacts[i].normvel[j] = 0.0;
+	}
+      }
+      
+      // the tangential vector
+      for (j=1; j<=N_CART; ++j) {
+	if (j!=ind) {
+	  contacts[i].tangent[j] = x[j]-contacts[i].x_start[j];
+	  contacts[i].tanvel[j]  = v[j];
+	} else {
+	  contacts[i].tangent[j] = 0.0;
+	  contacts[i].tanvel[j]  = 0.0;
+	}
+      }
+      
+      // the tangential velocity for viscous friction
+      for (j=1; j<=N_CART; ++j) {
+	if (j!=ind) {
+	  contacts[i].viscvel[j] = v[j];
+	} else {
+	  contacts[i].viscvel[j]=0.0;
+	}
+      }
+    }
+    
+    computeContactForces(optr,&contacts[i]);
+    
+    break;
+    
+    
+  case TERRAIN: //---------------------------------------------------------------
+
+    // remember which object we are contacting, and also the 
+    // contact point in object centered coordinates
+    if (!contacts[i].status || contacts[i].optr != optr ) {
+      for (j=1; j<=N_CART; ++j) {
+	contacts[i].x_start[j] = x[j];
+	contacts[i].x[j] = x[j];
+      }
+      contacts[i].friction_flag = FALSE;
+      first_contact_flag = TRUE;
+    }
+    contacts[i].status = contact_flag = TRUE;
+    contacts[i].optr   = optr;
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].x[j] = x[j];
+    }
+    
+    // the local veclocity of the contact point
+    contactVelocity(i,optr,v);
+    aux1 = n[_X_]*v[_X_]+n[_Y_]*v[_Y_]+n[_Z_]*v[_Z_];
+    
+    // compute relevant geometric information
+    
+    // the normal vector
+    for (j=1; j<=N_CART; ++j) {
+      // note: n'*[ 0 0 (z-x[3])] = (z-x[3])*n[3] is the effective
+      // projection of the vertical distance to the surface onto
+      // the normal
+      contacts[i].normal[j]   = n[j]*((z-x[3])*n[3]);
+      contacts[i].normvel[j]  = -aux1*n[j];
+    }
+    
+    // the tangential vector: project x-x_start into the null-space of normal
+    aux  = 0.0;
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].tangent[j]=x[j]-contacts[i].x_start[j];
+      aux  += contacts[i].tangent[j]*n[j];
+    }
+    
+    for (j=1; j<=N_CART; ++j) {
+      contacts[i].tangent[j] -= n[j]*aux;
+      contacts[i].tanvel[j]   = v[j]-n[j]*aux1;
+    }
+    
+    // the tangential velocity for viscous friction
+    for (j=1; j<=N_CART; ++j)
+      contacts[i].viscvel[j] = v[j]-n[j]*aux1;
+    
+    computeContactForces(optr,&contacts[i]);
+    
+    break;
+    
+  }
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  spawnContactSpecsThread
+\date  May, 2013
+ 
+\remarks 
+ 
+spawns a thread for contact specifics computation
+ 
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+ 
+\param[i]   num: the number of the thread
+ 
+******************************************************************************/
+static void
+spawnContactSpecsThread(long num) 
+{
+  int err = 0;
+  int rc;
+  pthread_attr_t pth_attr;
+  size_t stack_size = 0;
+
+  err = pthread_attr_init(&pth_attr);
+  pthread_attr_getstacksize(&pth_attr, &stack_size);
+  double reqd = 1024*1024*8;
+  if (stack_size < reqd)
+    pthread_attr_setstacksize(&pth_attr, reqd);
+
+  // initialize the thread 
+  if ((rc=pthread_create(&(cspecs_thread[num]), &pth_attr, contactThread, (void *)num)))
+      printf("pthread_create returned with %d\n",rc);
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  contactThread
+\date  May 2013
+ 
+\remarks 
+ 
+the thread for contact checking
+ 
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+ 
+\param[in]     num : the ID number of this thread
+ 
+******************************************************************************/
+static void *
+contactThread(void *num)
+{
+
+  int i;
+  long t = (long) num;
+  int ID;
+
+  ID = (int) t;
+  
+  printf("Contact thread #%d started\n",ID);  
+  sl_rt_mutex_lock(&(cspecs_mutex[ID]));
+
+  while ( TRUE ) {
+
+    sl_rt_cond_wait(&(cspecs_status[ID]),&(cspecs_mutex[ID]));
+
+    //printf("running %d for %d\n",ID,cspecs_data[ID].i);
+    for (i=1; i<=n_cspecs_data[ID]; ++i)
+      checkContactSpecifics(cspecs_data[ID][i]);
+
+    // done ...
+    n_cspecs_data[ID] = 0;
+
+    //printf("done %d for %d\n",ID,cspecs_data[ID].i);
+
+  } 
+  
+  printf("Contact thread #%d terminated\n",ID);
+  
+  return NULL;
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  accumulateFinalForces
+\date  June 2013
+   
+\remarks 
+
+      for a given contact point and object, the final forces acting on the
+      joint and objects are accumulated. The force/torque structures must
+      have been zeros before accumulation over all contact points. The forces
+      at the contact point must be pre-computed. This function was separated
+      as it requires writing to memory structures that need to be shared
+      between threads.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     optr  : ptr to object
+ \param[in]     ctpr  : ptr to contact point
+
+ ******************************************************************************/
+static void
+accumulateFinalForces(ContactPtr cptr)
+
+{
+  int i,j;
+  double moment_arm[N_CART+1];
+  double moment_arm_object[N_CART+1];
+  ObjectPtr optr;
+
+  optr = cptr->optr;
+
+  /* first the start link */
+  for (i=1; i<=N_CART; ++i) {
+    ucontact[cptr->base_dof_start].f[i] += cptr->f[i]*cptr->fraction_start;
+    optr->f[i] += cptr->f[i]*cptr->fraction_start;
+    moment_arm[i] = link_pos_sim[cptr->id_start][i]-link_pos_sim[cptr->off_link_start][i];
+    moment_arm_object[i] = link_pos_sim[cptr->id_start][i]-optr->trans[i];
+  }
+
+  /* get the torque at the DOF from the cross product */
+  ucontact[cptr->base_dof_start].t[_A_] += moment_arm[_Y_]*cptr->f[_Z_]*cptr->fraction_start - 
+    moment_arm[_Z_]*cptr->f[_Y_]*cptr->fraction_start;
+  ucontact[cptr->base_dof_start].t[_B_] += moment_arm[_Z_]*cptr->f[_X_]*cptr->fraction_start - 
+    moment_arm[_X_]*cptr->f[_Z_]*cptr->fraction_start;
+  ucontact[cptr->base_dof_start].t[_G_] += moment_arm[_X_]*cptr->f[_Y_]*cptr->fraction_start - 
+    moment_arm[_Y_]*cptr->f[_X_]*cptr->fraction_start;
+
+  /* get the torque at the object center from the cross product */
+  optr->t[_A_] += moment_arm_object[_Y_]*cptr->f[_Z_]*cptr->fraction_start - 
+    moment_arm_object[_Z_]*cptr->f[_Y_]*cptr->fraction_start;
+  optr->t[_B_] += moment_arm_object[_Z_]*cptr->f[_X_]*cptr->fraction_start - 
+    moment_arm_object[_X_]*cptr->f[_Z_]*cptr->fraction_start;
+  optr->t[_G_] += moment_arm_object[_X_]*cptr->f[_Y_]*cptr->fraction_start - 
+    moment_arm_object[_Y_]*cptr->f[_X_]*cptr->fraction_start;
+
+  /* second the end link */
+  for (i=1; i<=N_CART; ++i) {
+    ucontact[cptr->base_dof_end].f[i] += cptr->f[i]*cptr->fraction_end;
+    optr->f[i] += cptr->f[i]*cptr->fraction_end;
+    moment_arm[i] = link_pos_sim[cptr->id_end][i]-link_pos_sim[cptr->off_link_end][i];
+    moment_arm_object[i] = link_pos_sim[cptr->id_end][i]-optr->trans[i];
+  }
+  
+  /* get the torque at the DOF from the cross product */
+  ucontact[cptr->base_dof_end].t[_A_] += moment_arm[_Y_]*cptr->f[_Z_]*cptr->fraction_end - 
+    moment_arm[_Z_]*cptr->f[_Y_]*cptr->fraction_end;
+  ucontact[cptr->base_dof_end].t[_B_] += moment_arm[_Z_]*cptr->f[_X_]*cptr->fraction_end - 
+    moment_arm[_X_]*cptr->f[_Z_]*cptr->fraction_end;
+  ucontact[cptr->base_dof_end].t[_G_] += moment_arm[_X_]*cptr->f[_Y_]*cptr->fraction_end - 
+    moment_arm[_Y_]*cptr->f[_X_]*cptr->fraction_end;
+  
+  /* get the torque at the object center from the cross product */
+  optr->t[_A_] += moment_arm_object[_Y_]*cptr->f[_Z_]*cptr->fraction_end - 
+    moment_arm_object[_Z_]*cptr->f[_Y_]*cptr->fraction_end;
+  optr->t[_B_] += moment_arm_object[_Z_]*cptr->f[_X_]*cptr->fraction_end - 
+    moment_arm_object[_X_]*cptr->f[_Z_]*cptr->fraction_end;
+  optr->t[_G_] += moment_arm_object[_X_]*cptr->f[_Y_]*cptr->fraction_end - 
+    moment_arm_object[_Y_]*cptr->f[_X_]*cptr->fraction_end;
+
+
+}
+
+
+
+
+
+
+
+
+
+
+
 
 

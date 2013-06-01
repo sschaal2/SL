@@ -268,8 +268,6 @@ extern "C" {
   extern smOscilloscope    *sm_oscilloscope;
   extern SEM_ID             sm_oscilloscope_sem;
 
-
-  
   int   init_shared_memory(void);
   void  sendMessageToServo(smMessage *sm_message, SEM_ID sm_message_sem,
 			   SEM_ID ready_sem, 

@@ -151,16 +151,16 @@ init_simulation_servo(void)
   /* initialize kinematicss */
   init_kinematics();
   
+  // get shared memory
+  if (!init_shared_memory())
+    return FALSE;
+
   // object handling
   if (!initObjects())
     return FALSE;
 
   // need sensor offsets
   if (!read_sensor_offsets(config_files[SENSOROFFSETS]))
-    return FALSE;
-
-  // get shared memory
-  if (!init_shared_memory())
     return FALSE;
 
   // initializes user specific issues
