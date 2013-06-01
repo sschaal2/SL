@@ -215,6 +215,8 @@ run_simulation_servo(void)
   double delta;
   double dt;
   int    dtick;
+  double max_vel = 10.;
+  double aux;
 
   static double last_time = 0;
   static double current_time = 0;
@@ -283,18 +285,26 @@ run_simulation_servo(void)
 
   // check limits
   for (i=1; i<=n_dofs; ++i) {
-    
+
+    // use Geyer limited rebound model for (set aux=1 to avoid)
     k  = controller_gain_th[i]*10.0;
     kd = controller_gain_thd[i]*sqrt(10.0);
 
     delta = joint_sim_state[i].th - joint_range[i][MIN_THETA];
+
     if ( delta < 0 ){ // only print at 10Hz
       if ((int)(((double)simulation_servo_calls)/
 		(((double)simulation_servo_rate)/10.))%10 == 0) {
 	printf("-%s",joint_names[i]);
 	fflush(stdout);
       }
-      joint_sim_state[i].u += - delta * k - joint_sim_state[i].thd * kd;
+      
+      if (joint_sim_state[i].thd > max_vel) 
+	aux = 0.0;
+      else 
+	aux = 1.-joint_sim_state[i].thd/max_vel;
+
+      joint_sim_state[i].u += - delta * k * aux - joint_sim_state[i].thd * kd * aux;
     }
 
     delta = joint_range[i][MAX_THETA] - joint_sim_state[i].th;
@@ -304,7 +314,14 @@ run_simulation_servo(void)
 	printf("+%s",joint_names[i]);
 	fflush(stdout);
       }
-      joint_sim_state[i].u += delta * k - joint_sim_state[i].thd * kd;
+
+      if (joint_sim_state[i].thd < -max_vel) 
+	aux = 0.0;
+      else 
+	aux = 1.-joint_sim_state[i].thd/(-max_vel);
+
+      joint_sim_state[i].u += delta * k * aux - joint_sim_state[i].thd * kd * aux;
+
     }
   }
 
