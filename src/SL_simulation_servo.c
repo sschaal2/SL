@@ -485,61 +485,58 @@ initDataCollection(void)
   addVarToCollect((char *)&(base_orient.add[_B_]),"base_bdd","-",DOUBLE,FALSE);
   addVarToCollect((char *)&(base_orient.add[_G_]),"base_gdd","-",DOUBLE,FALSE);
 
-  for (i=1; i<=n_links; ++i) {
+  for (i=0; i<=n_contacts; ++i) {
 
-    if (!contacts[i].active)
-      continue;
-
-    sprintf(string,"%s_cstat",link_names[i]);
+    sprintf(string,"CP%d_cstat",i);
     addVarToCollect((char *)&(contacts[i].status),string,"-",INT,FALSE);
 
-    sprintf(string,"%s_cx",link_names[i]);
+    sprintf(string,"CP%d_cx",i);
     addVarToCollect((char *)&(contacts[i].x[_X_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cy",link_names[i]);
+    sprintf(string,"CP%d_cy",i);
     addVarToCollect((char *)&(contacts[i].x[_Y_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cz",link_names[i]);
+    sprintf(string,"CP%d_cz",i);
     addVarToCollect((char *)&(contacts[i].x[_Z_]),string,"m",DOUBLE,FALSE);
 
-    sprintf(string,"%s_cnx",link_names[i]);
+    sprintf(string,"CP%d_cnx",i);
     addVarToCollect((char *)&(contacts[i].normal[_X_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cny",link_names[i]);
+    sprintf(string,"CP%d_cny",i);
     addVarToCollect((char *)&(contacts[i].normal[_Y_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cnz",link_names[i]);
+    sprintf(string,"CP%d_cnz",i);
     addVarToCollect((char *)&(contacts[i].normal[_Z_]),string,"m",DOUBLE,FALSE);
 
-    sprintf(string,"%s_cnxd",link_names[i]);
+    sprintf(string,"CP%d_cnxd",i);
     addVarToCollect((char *)&(contacts[i].normvel[_X_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cnyd",link_names[i]);
+    sprintf(string,"CP%d_cnyd",i);
     addVarToCollect((char *)&(contacts[i].normvel[_Y_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cnzd",link_names[i]);
+    sprintf(string,"CP%d_cnzd",i);
     addVarToCollect((char *)&(contacts[i].normvel[_Z_]),string,"m",DOUBLE,FALSE);
 
-    sprintf(string,"%s_ctx",link_names[i]);
+    sprintf(string,"CP%d_ctx",i);
     addVarToCollect((char *)&(contacts[i].tangent[_X_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cty",link_names[i]);
+    sprintf(string,"CP%d_cty",i);
     addVarToCollect((char *)&(contacts[i].tangent[_Y_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_ctz",link_names[i]);
+    sprintf(string,"CP%d_ctz",i);
     addVarToCollect((char *)&(contacts[i].tangent[_Z_]),string,"m",DOUBLE,FALSE);
 
-    sprintf(string,"%s_ctxd",link_names[i]);
+    sprintf(string,"CP%d_ctxd",i);
     addVarToCollect((char *)&(contacts[i].tanvel[_X_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_ctyd",link_names[i]);
+    sprintf(string,"CP%d_ctyd",i);
     addVarToCollect((char *)&(contacts[i].tanvel[_Y_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_ctzd",link_names[i]);
+    sprintf(string,"CP%d_ctzd",i);
     addVarToCollect((char *)&(contacts[i].tanvel[_Z_]),string,"m",DOUBLE,FALSE);
 
-    sprintf(string,"%s_cvxd",link_names[i]);
+    sprintf(string,"CP%d_cvxd",i);
     addVarToCollect((char *)&(contacts[i].viscvel[_X_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cvyd",link_names[i]);
+    sprintf(string,"CP%d_cvyd",i);
     addVarToCollect((char *)&(contacts[i].viscvel[_Y_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cvzd",link_names[i]);
+    sprintf(string,"CP%d_cvzd",i);
     addVarToCollect((char *)&(contacts[i].viscvel[_Z_]),string,"m",DOUBLE,FALSE);
 
-    sprintf(string,"%s_cfx",link_names[i]);
+    sprintf(string,"CP%d_cfx",i);
     addVarToCollect((char *)&(contacts[i].f[_X_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cfy",link_names[i]);
+    sprintf(string,"CP%d_cfy",i);
     addVarToCollect((char *)&(contacts[i].f[_Y_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_cfz",link_names[i]);
+    sprintf(string,"CP%d_cfz",i);
     addVarToCollect((char *)&(contacts[i].f[_Z_]),string,"m",DOUBLE,FALSE);
 
   }

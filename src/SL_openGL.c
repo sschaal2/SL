@@ -2396,6 +2396,39 @@ extractState(char **vnames, Vector D, int n_cols)
       break;
     }
   }
+
+  for (i=0; i<=n_contacts; ++i) {
+    contacts[i].status = FALSE;
+    sprintf(string,"CP%d_cstat",i);
+    for (j=1; j<=n_cols; ++j) {
+      if (strcmp(string,vnames[j])==0) {
+	contacts[i].status = D[j];
+	break;
+      }
+    }
+    sprintf(string,"CP%d_cfx",i);
+    for (j=1; j<=n_cols; ++j) {
+      if (strcmp(string,vnames[j])==0) {
+	contacts[i].f[_X_] = D[j];
+	break;
+      }
+    }
+    sprintf(string,"CP%d_cfy",i);
+    for (j=1; j<=n_cols; ++j) {
+      if (strcmp(string,vnames[j])==0) {
+	contacts[i].f[_Y_] = D[j];
+	break;
+      }
+    }
+    sprintf(string,"CP%d_cfz",i);
+    for (j=1; j<=n_cols; ++j) {
+      if (strcmp(string,vnames[j])==0) {
+	contacts[i].f[_Z_] = D[j];
+	break;
+      }
+    }
+  }
+
   
 }
 
