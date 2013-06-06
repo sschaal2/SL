@@ -2304,45 +2304,12 @@ extractState(char **vnames, Vector D, int n_cols)
     }
   }
 
-  for (i=1; i<=n_links; ++i) {
-    sprintf(string,"%s_cstat",link_names[i]);
-    contacts[i].status = FALSE;
-    for (j=1; j<=n_cols; ++j) {
-      if (strcmp(string,vnames[j])==0) {
-	contacts[i].status = D[j];
-	break;
-      }
-    }
-  }
 
-  for (i=1; i<=n_links; ++i) {
-    sprintf(string,"%s_cfx",link_names[i]);
-    contacts[i].f[_X_] = 0.0;
+  for (i=1; i<=n_misc_sensors; ++i) {
+    sprintf(string,"%s",misc_sensor_names[i]);
     for (j=1; j<=n_cols; ++j) {
       if (strcmp(string,vnames[j])==0) {
-	contacts[i].f[_X_] = D[j];
-	break;
-      }
-    }
-  }
-
-  for (i=1; i<=n_links; ++i) {
-    sprintf(string,"%s_cfy",link_names[i]);
-    contacts[i].f[_Y_] = 0.0;
-    for (j=1; j<=n_cols; ++j) {
-      if (strcmp(string,vnames[j])==0) {
-	contacts[i].f[_Y_] = D[j];
-	break;
-      }
-    }
-  }
-
-  for (i=1; i<=n_links; ++i) {
-    sprintf(string,"%s_cfz",link_names[i]);
-    contacts[i].f[_Z_] = 0.0;
-    for (j=1; j<=n_cols; ++j) {
-      if (strcmp(string,vnames[j])==0) {
-	contacts[i].f[_Z_] = D[j];
+	misc_sim_sensor[i] = D[j];
 	break;
       }
     }
