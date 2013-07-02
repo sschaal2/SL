@@ -21,8 +21,7 @@
 
 // system includes
 #include "sys/ioctl.h"
-#include "readline/readline.h"
-#include "readline/history.h" 
+#include "editline/readline.h"
 
 // private includes
 #include "SL.h"
@@ -58,12 +57,9 @@ static char       command[MAX_ITEMS+1][MAX_CHARS_COMMAND];
 static int        n_command=0;
 static void       (*command_ptr[MAX_ITEMS+1])(void);
 
-static int	  time_reset_detected=FALSE;
+static int	  time_reset_detected=TRUE;
 
 static char       user_command[MAX_CHARS_COMMAND] = "";  // this command can be set by user
-
-// global functions
-int sl_readline_callback();
 
 // local functions
 static void initializeReadLine();
@@ -145,7 +141,6 @@ checkKeyboard(void *initial_command)
     }
 
     snprintf(prompt, 1000, "%s.%s> ",robot_name,servo_name);
-    rl_event_hook = &sl_readline_callback;
     string = readline(prompt);
     if (string && *string)
       add_history(string);
@@ -164,20 +159,6 @@ checkKeyboard(void *initial_command)
   printf("Command line thread terminated\n");
 
   return NULL;
-
-}
-
-int sl_readline_callback()
-{
-  extern double   servo_time;
-  static double   prev_servo_time = 999.0;
-
-  if (prev_servo_time - servo_time > 10.0) {  // 10 seconds slack parameter to trust this
-    rl_done = 1;
-    time_reset_detected = 1;
-  }
-  prev_servo_time = servo_time;
-  return 0;
 
 }
 
@@ -309,8 +290,9 @@ static void
 initializeReadLine()
 {
   rl_attempted_completion_function = sl_completion;
+  extern int rl_catch_signals; // for some reason this isn't in editline/readline.h
   rl_catch_signals = 0;
-  rl_catch_sigwinch = 0;
+  rl_initialize();
 }
 
 /*!*****************************************************************************
