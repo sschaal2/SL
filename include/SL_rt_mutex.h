@@ -63,6 +63,7 @@ static int sl_rt_mutex_unlock(sl_rt_mutex* mutex);
 static int sl_rt_cond_init(sl_rt_cond* cond);
 static int sl_rt_cond_destroy(sl_rt_cond* cond);
 static int sl_rt_cond_signal(sl_rt_cond* cond);
+static int sl_rt_cond_broadcast(sl_rt_cond* cond);
 static int sl_rt_cond_wait(sl_rt_cond* cond, sl_rt_mutex* mutex);
 static int sl_rt_cond_timedwait(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_rt_time timeout);
 static int sl_rt_cond_timedwait_relative(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_rt_time timeout);
@@ -169,6 +170,18 @@ static inline int sl_rt_cond_signal(sl_rt_cond* cond)
   return res;
 #else
   return pthread_cond_signal(cond);
+#endif
+}
+
+static inline int sl_rt_cond_broadcast(sl_rt_cond* cond)
+{
+#ifdef __XENO__
+  int res = rt_cond_broadcast(cond);
+  if (SL_RT_MUTEX_WARNINGS && res)
+    sl_rt_warning("rt_cond_signal", res);
+  return res;
+#else
+  return pthread_cond_broadcast(cond);
 #endif
 }
 
