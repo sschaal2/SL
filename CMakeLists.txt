@@ -12,6 +12,9 @@ find_package(X11 REQUIRED)
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 
+# check for xenomai
+find_package(xenomai_ros QUIET)
+
 ###################################
 ## catkin specific configuration ##
 ###################################
@@ -35,7 +38,15 @@ include_directories(
   ${GLUT_INCLUDE_DIR}  
 )
 
-add_library(SLcommon
+set (SL_PLATFORM unix)
+if (Xenomai_FOUND)
+  add_xenomai_flags()
+  set (SL_PLATFORM xeno)
+endif()
+
+# SLcommon
+
+set (SLcommon_FILES
   src/SL_collect_data.c
   src/SL_common.c
   src/SL_filters.c
@@ -44,7 +55,14 @@ add_library(SLcommon
   src/SL_shared_memory.c
   src/SL_terrains.c
   src/SL_unix_common.c
-  src/SL_vx2unix_wrappers.c
+  src/SL_vx2${SL_PLATFORM}_wrappers.c
+)
+if (Xenomai_FOUND)
+  list(APPEND SLcommon_FILES src/SL_xeno_common.c)
+endif()
+
+add_library(SLcommon
+  ${SLcommon_FILES}
 )
 target_link_libraries(SLcommon
   ${utilities_LIBRARIES}
@@ -52,21 +70,25 @@ target_link_libraries(SLcommon
   rt
 )
 
+# SLtask
+
 add_library(SLtask
   src/SL_go_cart_task.c
   src/SL_goto_task.c
   src/SL_objects.c
   src/SL_sine_task.c
   src/SL_task_servo.c
-  src/SL_task_servo_unix.c
+  src/SL_task_servo_${SL_PLATFORM}.c
   src/SL_tasks.c
   src/SL_traj_task.c
 )
 
+# SLmotor
+
 add_library(SLmotor
   src/SL_controller.c
   src/SL_motor_servo.c
-  src/SL_motor_servo_unix.c
+  src/SL_motor_servo_${SL_PLATFORM}.c
   src/SL_sensor_proc.c
 )
 
@@ -74,13 +96,13 @@ add_library(SLsimulation
   src/SL_integrate.c
   src/SL_objects.c
   src/SL_simulation_servo.c
-  src/SL_simulation_servo_unix.c
+  src/SL_simulation_servo_${SL_PLATFORM}.c
   src/SL_userSimulation.c
 )
 
 add_library(SLopenGL
   src/SL_openGL_servo.c
-  src/SL_openGL_servo_unix.c
+  src/SL_openGL_servo_${SL_PLATFORM}.c
   src/SL_openGL.c
   src/SL_openGL_oscilloscope.c
   src/SL_objects.c
@@ -90,15 +112,15 @@ target_link_libraries(SLopenGL ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
 
 add_library(SLvision
   src/SL_dbvision.c
-  src/SL_serial_unix.c
+  src/SL_serial_${SL_PLATFORM}.c
   src/SL_vision_proc.c
   src/SL_vision_servo.c
-  src/SL_vision_servo_unix.c
+  src/SL_vision_servo_${SL_PLATFORM}.c
 )
 
 add_library(SLros
   src/SL_ros_servo.cpp
-  src/SL_ros_servo_unix.cpp
+  src/SL_ros_servo_${SL_PLATFORM}.cpp
   src/SL_ros_communicator.cpp
 )
 
