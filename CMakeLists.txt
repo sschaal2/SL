@@ -38,14 +38,15 @@ include_directories(
   ${GLUT_INCLUDE_DIR}  
 )
 
+# default SL_PLATFORM is unix
 set (SL_PLATFORM unix)
+
 if (Xenomai_FOUND)
   add_xenomai_flags()
   set (SL_PLATFORM xeno)
 endif()
 
 # SLcommon
-
 set (SLcommon_FILES
   src/SL_collect_data.c
   src/SL_common.c
@@ -60,7 +61,6 @@ set (SLcommon_FILES
 if (Xenomai_FOUND)
   list(APPEND SLcommon_FILES src/SL_xeno_common.c)
 endif()
-
 add_library(SLcommon
   ${SLcommon_FILES}
 )
@@ -71,7 +71,6 @@ target_link_libraries(SLcommon
 )
 
 # SLtask
-
 add_library(SLtask
   src/SL_go_cart_task.c
   src/SL_goto_task.c
@@ -84,7 +83,6 @@ add_library(SLtask
 )
 
 # SLmotor
-
 add_library(SLmotor
   src/SL_controller.c
   src/SL_motor_servo.c
@@ -92,6 +90,7 @@ add_library(SLmotor
   src/SL_sensor_proc.c
 )
 
+# SLsimulation
 add_library(SLsimulation
   src/SL_integrate.c
   src/SL_objects.c
@@ -100,6 +99,7 @@ add_library(SLsimulation
   src/SL_userSimulation.c
 )
 
+# SLopenGL
 add_library(SLopenGL
   src/SL_openGL_servo.c
   src/SL_openGL_servo_${SL_PLATFORM}.c
@@ -110,6 +110,7 @@ add_library(SLopenGL
 )
 target_link_libraries(SLopenGL ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
 
+# SLvision
 add_library(SLvision
   src/SL_dbvision.c
   src/SL_serial_${SL_PLATFORM}.c
@@ -118,6 +119,7 @@ add_library(SLvision
   src/SL_vision_servo_${SL_PLATFORM}.c
 )
 
+# SLros
 add_library(SLros
   src/SL_ros_servo.cpp
   src/SL_ros_servo_${SL_PLATFORM}.cpp
