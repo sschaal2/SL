@@ -665,6 +665,7 @@ checkContacts(void)
 
   /* zero contact forces */
   bzero((void *)ucontact,sizeof(SL_uext)*(n_dofs+1));
+  bzero((void *)&cspecs,sizeof(ContactSpecs));
   
   /* if there are no objects, exit */
   if (objs==NULL)
