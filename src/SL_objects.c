@@ -2612,15 +2612,21 @@ contactThread(void *num)
   int i;
   long t = (long) num;
   int ID;
+  char name[100];
 
   ID = (int) t;
   
-  printf("Contact thread #%d started\n",ID);  
+  sprintf(name,"Contact thread #%d",ID);
+  printf("%s started\n",name);  
+#ifdef __XENO__
+  rt_task_shadow(NULL, name, 0, T_CPU(ID));
+#endif
   sl_rt_mutex_lock(&(cspecs_mutex[ID]));
 
   while ( TRUE ) {
 
     sl_rt_cond_wait(&(cspecs_status[ID]),&(cspecs_mutex[ID]));
+    getchar();
 
     //printf("running %d for %d\n",ID,cspecs_data[ID].i);
     for (i=1; i<=n_cspecs_data[ID]; ++i)
