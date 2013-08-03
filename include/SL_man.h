@@ -26,7 +26,7 @@ extern "C" {
 
 void initMan(void);
 void man(void);
-void addToMan(char *abr, char *string, void (*fptr)(void));
+void addToMan(const char *abr, const char *string, void (*fptr)(void));
 
 #ifdef __cplusplus
 }
