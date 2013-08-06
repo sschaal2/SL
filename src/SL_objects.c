@@ -665,6 +665,7 @@ checkContacts(void)
 
   /* zero contact forces */
   bzero((void *)ucontact,sizeof(SL_uext)*(n_dofs+1));
+  bzero((void *)&cspecs,sizeof(ContactSpecs));
   
   /* if there are no objects, exit */
   if (objs==NULL)
@@ -2611,10 +2612,15 @@ contactThread(void *num)
   int i;
   long t = (long) num;
   int ID;
+  char name[100];
 
   ID = (int) t;
   
-  printf("Contact thread #%d started\n",ID);  
+  sprintf(name,"Contact thread #%d",ID);
+  printf("%s started\n",name);  
+#ifdef __XENO__
+  rt_task_shadow(NULL, name, 90, T_CPU((ID-1)));
+#endif
   sl_rt_mutex_lock(&(cspecs_mutex[ID]));
 
   while ( TRUE ) {
