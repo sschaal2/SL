@@ -102,7 +102,7 @@ init_dynamics( void )
       forward_dynamics_comp_flag = FALSE;
   }
   
-  if (read_parameter_pool_int(config_files[PARAMETERPOOL],"coulomb_slope",&aux)) {
+  if (read_parameter_pool_double(config_files[PARAMETERPOOL],"coulomb_slope",&aux)) {
     if (aux >= 0)
       coulomb_slope = aux;
   }
