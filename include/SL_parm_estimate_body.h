@@ -1075,7 +1075,7 @@ add_to_regression(void)
       
       /* coulomb friction */
       if (coul_flag_dofs[j])
-	Kp[j][j*N_RBD_PARMS+COUL] = COULOMB_FUNCTION(state[j].thd);
+	Kp[j][j*N_RBD_PARMS+COUL] = COULOMB_FUNCTION(state[j].thd,coulomb_slope);
 
       /* stiffness due to spring terms */
       if (spring_flag_dofs[j])

@@ -29,10 +29,11 @@
 int    freeze_base               = FALSE;
 double freeze_base_pos[N_CART+1] = {0.0,0.0,0.0,0.0};
 double freeze_base_quat[N_QUAT+1] = {0.0,1.0,0.0,0.0,0.0};
+double coulomb_slope = 10.0;
 
 // local variables
 static int forward_dynamics_comp_flag = FALSE;
-static double coulomb_slope = 10.0;
+
 
 /*!*****************************************************************************
 *******************************************************************************

@@ -80,7 +80,7 @@ extern "C" {
   extern double freeze_base_pos[];
   extern double freeze_base_quat[];
   extern const int floating_base_flag;
-
+  extern double coulomb_slope;
   
 #ifdef __cplusplus
 }
