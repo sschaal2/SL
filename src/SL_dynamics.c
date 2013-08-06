@@ -32,6 +32,7 @@ double freeze_base_quat[N_QUAT+1] = {0.0,1.0,0.0,0.0,0.0};
 
 // local variables
 static int forward_dynamics_comp_flag = FALSE;
+static double coulomb_slope = 10.0;
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -98,6 +99,11 @@ init_dynamics( void )
       forward_dynamics_comp_flag = TRUE;
     else
       forward_dynamics_comp_flag = FALSE;
+  }
+  
+  if (read_parameter_pool_int(config_files[PARAMETERPOOL],"coulomb_slope",&aux)) {
+    if (aux >= 0)
+      coulomb_slope = aux;
   }
   
   return TRUE;
@@ -277,7 +283,7 @@ compute_independent_joint_forces(SL_Jstate state, SL_link li)
   double f=0;
 
   f = state.thd*li.vis + 
-    COULOMB_FUNCTION(state.thd)*li.coul +
+    COULOMB_FUNCTION(state.thd,coulomb_slope)*li.coul +
     state.th*li.stiff +
     li.cons;
   

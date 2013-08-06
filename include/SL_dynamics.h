@@ -16,7 +16,7 @@
 #ifndef _SL_dynamics_
 #define _SL_dynamics_
 
-#define COULOMB_FUNCTION(thd) (tanh(thd*10.0))
+#define COULOMB_FUNCTION(thd,slope) (tanh(thd*slope))
 
 enum RBDParms {
   MASS = 1,
