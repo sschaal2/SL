@@ -68,6 +68,8 @@ target_link_libraries(SLcommon
   ${utilities_LIBRARIES}
   ${Libedit_LIBRARIES}
   rt
+  ${Xenomai_LIBRARIES_NATIVE}
+  ${Xenomai_LIBRARY_RTDK}
 )
 
 # SLtask
@@ -108,7 +110,12 @@ add_library(SLopenGL
   src/SL_objects.c
   src/SL_userGraphics.c
 )
-target_link_libraries(SLopenGL ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES})
+target_link_libraries(SLopenGL
+  ${OPENGL_LIBRARIES}
+  ${GLUT_LIBRARIES}
+  ${Xenomai_LIBRARIES_NATIVE}
+  ${Xenomai_LIBRARY_RTDK}
+)
 
 # SLvision
 add_library(SLvision
