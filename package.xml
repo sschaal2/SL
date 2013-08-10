@@ -10,6 +10,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <build_depend>sl_config</build_depend>
+  <build_depend>xenomai_ros</build_depend>
   <build_depend>utilities</build_depend>
   <build_depend>lwpr</build_depend>
   <build_depend>roscpp</build_depend>
