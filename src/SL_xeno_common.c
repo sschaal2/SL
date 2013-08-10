@@ -58,7 +58,7 @@ none
 
  ******************************************************************************/
 void
-initXeno(char *task_name)
+initXeno(const char *task_name)
 {
   int rc;
   struct sigaction sa;
