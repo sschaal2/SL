@@ -16,7 +16,7 @@
 #ifndef _SL_dynamics_
 #define _SL_dynamics_
 
-#define COULOMB_FUNCTION(thd) (tanh(thd*10.0))
+#define COULOMB_FUNCTION(thd,slope) (tanh(thd*slope))
 
 enum RBDParms {
   MASS = 1,
@@ -80,7 +80,7 @@ extern "C" {
   extern double freeze_base_pos[];
   extern double freeze_base_quat[];
   extern const int floating_base_flag;
-
+  extern double coulomb_slope;
   
 #ifdef __cplusplus
 }

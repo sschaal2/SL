@@ -964,12 +964,12 @@ SLGenericDisplay(void)
   /* Draw the global axes (see keys) */
   if (ptr->draw_axis) {
     glDisable(GL_LIGHTING); /*to have constant colors */
-    glColor4f (0.0,1.0,0.0,1.0);      
+    glColor4f (1.0,0.0,0.0,1.0);      
     glBegin(GL_LINES);     
     glVertex3f(-100,0,0);       
     glVertex3f(100,0,0);  
     glEnd();
-    glColor4f (1.0,0.0,0.0,1.0);      
+    glColor4f (0.0,1.0,0.0,1.0);      
     glBegin(GL_LINES);     
     glVertex3f(0,-100,0);       
     glVertex3f(0,100,0);  
@@ -988,12 +988,12 @@ SLGenericDisplay(void)
   /* Draw the rotation point of the camera */
   if (ptr->draw_axis) {
     glDisable(GL_LIGHTING); /*to have constant colors */                
-    glColor4f (0.0,1.0,0.0,1.0);      
+    glColor4f (1.0,0.0,0.0,1.0);      
     glBegin(GL_LINES);     
     glVertex3f(-0.25,0,0);       
     glVertex3f(0.25,0,0);  
     glEnd();
-    glColor4f (1.0,0.0,0.0,1.0);      
+    glColor4f (0.0,1.0,0.0,1.0);      
     glBegin(GL_LINES);     
     glVertex3f(0,-0.25,0);       
     glVertex3f(0,0.25,0);  
@@ -3312,7 +3312,7 @@ drawCoordSystem(double length, double **A, char *name)
   for (i=1; i<=N_CART; ++i)
     s[i] = A[i][4];
 
-  glColor4f (0.0,1.0,0.0,0.0);
+  glColor4f (1.0,0.0,0.0,0.0);
   drawArrow(s,r,arrow_width);
 
   v[_X_] = length+0.1;
@@ -3327,7 +3327,7 @@ drawCoordSystem(double length, double **A, char *name)
   for (i=1; i<=N_CART; ++i)
     s[i] = A[i][4];
 
-  glColor4f (1.0,0.0,0.0,0.0);
+  glColor4f (0.0,1.0,0.0,0.0);
   drawArrow(s,r,arrow_width);
   
   v[_Y_] = length+0.1;
