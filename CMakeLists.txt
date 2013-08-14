@@ -69,6 +69,7 @@ target_link_libraries(SLcommon
   ${Libedit_LIBRARIES}
   rt
   ${Xenomai_LIBRARIES_NATIVE}
+  pthread
   ${Xenomai_LIBRARY_RTDK}
 )
 
