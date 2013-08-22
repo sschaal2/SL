@@ -4,7 +4,8 @@ project(sl)
 set(SL_CATKIN_REQ_COMPS
   sl_config
   utilities
-  lwpr)
+  lwpr
+)
 
 # check	for ros
 find_package(roscpp QUIET)
@@ -28,7 +29,12 @@ find_package(catkin REQUIRED COMPONENTS
 find_package(Libedit REQUIRED)
 find_package(X11 REQUIRED)
 find_package(OpenGL REQUIRED)
-find_package(GLUT REQUIRED)
+sl_find_package_GLUT()
+
+message(STATUS "GLUT_LIBRARIES=${GLUT_LIBRARIES}")
+message(STATUS "GLUT_INCLUDE_DIR=${GLUT_INCLUDE_DIR}")
+message(STATUS "Libedit_INCLUDE_DIRS=${Libedit_INCLUDE_DIRS}")
+message(STATUS "Libedit_LIBRARIES=${Libedit_LIBRARIES}")
 
 # check for xenomai
 find_package(xenomai_ros QUIET)
@@ -44,6 +50,7 @@ find_package(xenomai_ros QUIET)
 catkin_package(
   INCLUDE_DIRS include
   CATKIN_DEPENDS utilities lwpr
+  DEPENDS X11 OpenGL
 )
 sl_package()
 
@@ -132,6 +139,7 @@ add_library(SLopenGL STATIC
 )
 target_link_libraries(SLopenGL
   ${OPENGL_LIBRARIES}
+  ${X11_LIBRARIES}
   ${GLUT_LIBRARIES}
   ${Xenomai_LIBRARIES_NATIVE}
   ${Xenomai_LIBRARY_RTDK}
@@ -145,6 +153,8 @@ add_library(SLvision STATIC
   src/SL_vision_servo.c
   src/SL_vision_servo_${SL_PLATFORM}.c
 )
+target_link_libraries(SLvision
+  ${lwpr_LIBRARIES})
 
 # SLros
 if(SLros_REQUIREMENTS_FOUND)
