@@ -109,8 +109,8 @@ checkKeyboard(void *initial_command)
   rt_task_shadow(NULL, name, 0, 0);
 
   // we want this task in non real-time mode
-  if ((rc=rt_task_set_mode(T_PRIMARY,0,NULL)))
-    printf("rt_task_set_mode returned %d\n",rc);
+  //if ((rc=rt_task_set_mode(T_PRIMARY,0,NULL)))
+  //  printf("rt_task_set_mode primary returned %d\n",rc);
 
 #endif
 

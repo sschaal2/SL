@@ -597,7 +597,7 @@ receiveOscilloscopeData(void)
 #ifdef __XENO__
   // we want to be in real-time mode here
   //printf("..\n");
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+  rt_task_set_mode(0,T_CONFORMING,NULL);
 #endif
 
   // try to take semaphore with very short time-out -- we don't care if we 
@@ -607,7 +607,7 @@ receiveOscilloscopeData(void)
   {
 #ifdef __XENO__
     // we want to be in secondary mode here
-    rt_task_set_mode(T_PRIMARY,0,NULL);
+    //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
     return;
@@ -624,7 +624,7 @@ receiveOscilloscopeData(void)
 
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
   // update the oscilloscope window

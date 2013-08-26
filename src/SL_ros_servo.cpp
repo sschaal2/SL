@@ -388,7 +388,7 @@ run_ros_servo(void)
 
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
   /**********************************************************************
@@ -407,7 +407,7 @@ run_ros_servo(void)
 
 #ifdef __XENO__
   // we want to be in real-time mode here
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+  rt_task_set_mode(0,T_CONFORMING,NULL);
 #endif
 
   setOsc(d2a_cr,90.0);

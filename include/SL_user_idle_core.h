@@ -40,7 +40,7 @@ if (pause_flag || stand_alone_flag) {
 
 #ifdef __XENO__
   // we want to be in real-time mode here
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+  rt_task_set_mode(0,T_CONFORMING,NULL);
 #endif
 //-------------------------------------------------------------------------
 // get 60Hz semaphore
@@ -64,7 +64,7 @@ checkForUserGraphics();
 checkForMessages();
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 updateComet();
 receiveOscilloscopeData();
