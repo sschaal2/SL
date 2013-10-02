@@ -1,43 +1,42 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(sl)
 
-set(SL_CATKIN_REQ_COMPS
+## find SL dependencies using catkin
+find_package(catkin REQUIRED COMPONENTS
   sl_config
   utilities
   lwpr
 )
-
-# check	for ros
-find_package(roscpp QUIET)
-find_package(sensor_msgs QUIET)
-find_package(geometry_msgs QUIET)
-if(roscpp_FOUND AND sensor_msgs_FOUND AND geometry_msgs_FOUND)
-  set(SLros_REQUIREMENTS_FOUND "TRUE")
-  set(SL_CATKIN_REQ_COMPS
-    ${SL_CATKIN_REQ_COMPS}
-    roscpp
-    sensor_msgs
-    geometry_msgs
-  )
-endif()
-
-## find SL dependencies using catkin
-find_package(catkin REQUIRED COMPONENTS
-  ${SL_CATKIN_REQ_COMPS})
 
 ## find system libraries using standard cmake
 find_package(Libedit REQUIRED)
 find_package(X11 REQUIRED)
 find_package(OpenGL REQUIRED)
 sl_find_package_GLUT()
+set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
+find_package(Threads REQUIRED)
+find_package(LibRt REQUIRED)
 
 message(STATUS "GLUT_LIBRARIES=${GLUT_LIBRARIES}")
 message(STATUS "GLUT_INCLUDE_DIR=${GLUT_INCLUDE_DIR}")
+message(STATUS "GLUT_FOUND: ${GLUT_FOUND}")
 message(STATUS "Libedit_INCLUDE_DIRS=${Libedit_INCLUDE_DIRS}")
 message(STATUS "Libedit_LIBRARIES=${Libedit_LIBRARIES}")
 
 # check for xenomai
 find_package(xenomai_ros QUIET)
+
+# check	for optional ros packages
+find_package(roscpp QUIET)
+find_package(sensor_msgs QUIET)
+find_package(geometry_msgs QUIET)
+if(roscpp_FOUND AND sensor_msgs_FOUND AND geometry_msgs_FOUND)
+  message(STATUS "SLros dependencies found; compiling ROS servo.")
+  set(SLros_REQUIREMENTS_FOUND "TRUE")
+else()
+  message(STATUS "SLros dependencies NOT found.")
+endif()
+
 
 ###################################
 ## catkin specific configuration ##
@@ -87,20 +86,22 @@ if (Xenomai_FOUND)
   list(APPEND SLcommon_FILES src/SL_xeno_common.c)
 endif()
 
-add_library(SLcommon STATIC
+add_library(SLcommon
   ${SLcommon_FILES}
 )
 target_link_libraries(SLcommon
   ${utilities_LIBRARIES}
   ${Libedit_LIBRARIES}
-#  rt
+  ${LibRt_LIBRARIES}
   ${Xenomai_LIBRARIES_NATIVE}
-#  pthread
+  ${CMAKE_THREAD_LIBS_INIT}
   ${Xenomai_LIBRARY_RTDK}
 )
+set(IGNORE_UNDEF_SYMS_LINK_FLAGS "-flat_namespace -undefined dynamic_lookup")
+set_target_properties(SLcommon PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
 
 # SLtask
-add_library(SLtask STATIC
+add_library(SLtask
   src/SL_go_cart_task.c
   src/SL_goto_task.c
   src/SL_objects.c
@@ -110,26 +111,29 @@ add_library(SLtask STATIC
   src/SL_tasks.c
   src/SL_traj_task.c
 )
+set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
 
 # SLmotor 
-add_library(SLmotor STATIC
+add_library(SLmotor
   src/SL_controller.c
   src/SL_motor_servo.c
   src/SL_motor_servo_${SL_PLATFORM}.c
   src/SL_sensor_proc.c
 )
+set_target_properties(SLmotor PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
 
 # SLsimulation
-add_library(SLsimulation STATIC
+add_library(SLsimulation
   src/SL_integrate.c
   src/SL_objects.c
   src/SL_simulation_servo.c
   src/SL_simulation_servo_${SL_PLATFORM}.c
   src/SL_userSimulation.c
 )
+set_target_properties(SLsimulation PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
 
 # SLopenGL
-add_library(SLopenGL STATIC
+add_library(SLopenGL
   src/SL_openGL_servo.c
   src/SL_openGL_servo_${SL_PLATFORM}.c
   src/SL_openGL.c
@@ -144,9 +148,10 @@ target_link_libraries(SLopenGL
   ${Xenomai_LIBRARIES_NATIVE}
   ${Xenomai_LIBRARY_RTDK}
 )
+set_target_properties(SLopenGL PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
 
 # SLvision
-add_library(SLvision STATIC
+add_library(SLvision
   src/SL_dbvision.c
   src/SL_serial_${SL_PLATFORM}.c
   src/SL_vision_proc.c
@@ -155,13 +160,22 @@ add_library(SLvision STATIC
 )
 target_link_libraries(SLvision
   ${lwpr_LIBRARIES})
+set_target_properties(SLvision PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
 
 # SLros
 if(SLros_REQUIREMENTS_FOUND)
+  include_directories(
+    ${roscpp_INCLUDE_DIRS}
+    ${sensor_msgs_INCLUDE_DIRS}
+    ${geometry_msgs_INCLUDE_DIRS}
+  )
   add_library(SLros
     src/SL_ros_servo.cpp
     src/SL_ros_servo_${SL_PLATFORM}.cpp
     src/SL_ros_communicator.cpp
+  )
+  target_link_libraries(SLros
+    ${roscpp_LIBRARIES}
   )
 endif()
 
