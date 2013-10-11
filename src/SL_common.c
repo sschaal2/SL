@@ -767,7 +767,7 @@ parses the servoParameters.cf file for the given keyword
 
  ******************************************************************************/
 int
-read_servoParameters(char *fname, char *keyword, int *priority, int *stacksize,
+read_servoParameters(const char *fname, const char *keyword, int *priority, int *stacksize,
 		     int *cpuID, int *dns) 
 
 {

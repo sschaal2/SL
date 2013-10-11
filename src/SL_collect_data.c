@@ -717,7 +717,7 @@ outMenu(void)
 
  ******************************************************************************/
 void
-addVarToCollect(char *vptr,char *name,char *units, int type, int flag)
+addVarToCollect(char *vptr,const char *name, const char *units, int type, int flag)
 
 {
 
