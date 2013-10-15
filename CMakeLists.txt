@@ -126,7 +126,7 @@ add_library(SLmotor
   src/SL_sensor_proc.c
 )
 if(APPLE)
-  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+  set_target_properties(SLmotor PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
 endif()
 
 # SLsimulation
@@ -138,7 +138,7 @@ add_library(SLsimulation
   src/SL_userSimulation.c
 )
 if(APPLE)
-  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+  set_target_properties(SLsimulation PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
 endif()
 
 # SLopenGL
@@ -158,7 +158,7 @@ target_link_libraries(SLopenGL
   ${Xenomai_LIBRARY_RTDK}
 )
 if(APPLE)
-  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+  set_target_properties(SLopenGL PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
 endif()
 
 
@@ -173,7 +173,7 @@ add_library(SLvision
 target_link_libraries(SLvision
   ${lwpr_LIBRARIES})
 if(APPLE)
-  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+  set_target_properties(SLvision PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
 endif()
 
 # SLros
