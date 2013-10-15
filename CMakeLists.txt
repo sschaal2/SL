@@ -97,8 +97,11 @@ target_link_libraries(SLcommon
   ${CMAKE_THREAD_LIBS_INIT}
   ${Xenomai_LIBRARY_RTDK}
 )
-set(IGNORE_UNDEF_SYMS_LINK_FLAGS "-flat_namespace -undefined dynamic_lookup")
-set_target_properties(SLcommon PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
+if(APPLE)
+  set(IGNORE_UNDEF_SYMBOLS "-flat_namespace -undefined dynamic_lookup")
+set_target_properties(SLcommon PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+endif()
+
 
 # SLtask
 add_library(SLtask
@@ -111,7 +114,9 @@ add_library(SLtask
   src/SL_tasks.c
   src/SL_traj_task.c
 )
-set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
+if(APPLE)
+  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+endif()
 
 # SLmotor 
 add_library(SLmotor
@@ -120,7 +125,9 @@ add_library(SLmotor
   src/SL_motor_servo_${SL_PLATFORM}.c
   src/SL_sensor_proc.c
 )
-set_target_properties(SLmotor PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
+if(APPLE)
+  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+endif()
 
 # SLsimulation
 add_library(SLsimulation
@@ -130,7 +137,9 @@ add_library(SLsimulation
   src/SL_simulation_servo_${SL_PLATFORM}.c
   src/SL_userSimulation.c
 )
-set_target_properties(SLsimulation PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
+if(APPLE)
+  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+endif()
 
 # SLopenGL
 add_library(SLopenGL
@@ -148,7 +157,10 @@ target_link_libraries(SLopenGL
   ${Xenomai_LIBRARIES_NATIVE}
   ${Xenomai_LIBRARY_RTDK}
 )
-set_target_properties(SLopenGL PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
+if(APPLE)
+  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+endif()
+
 
 # SLvision
 add_library(SLvision
@@ -160,7 +172,9 @@ add_library(SLvision
 )
 target_link_libraries(SLvision
   ${lwpr_LIBRARIES})
-set_target_properties(SLvision PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMS_LINK_FLAGS})
+if(APPLE)
+  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
+endif()
 
 # SLros
 if(SLros_REQUIREMENTS_FOUND)
