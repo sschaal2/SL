@@ -97,11 +97,7 @@ target_link_libraries(SLcommon
   ${CMAKE_THREAD_LIBS_INIT}
   ${Xenomai_LIBRARY_RTDK}
 )
-if(APPLE)
-  set(IGNORE_UNDEF_SYMBOLS "-flat_namespace -undefined dynamic_lookup")
-set_target_properties(SLcommon PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
-endif()
-
+set_target_properties(SLcommon PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 
 # SLtask
 add_library(SLtask
@@ -114,9 +110,7 @@ add_library(SLtask
   src/SL_tasks.c
   src/SL_traj_task.c
 )
-if(APPLE)
-  set_target_properties(SLtask PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
-endif()
+set_target_properties(SLtask PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 
 # SLmotor 
 add_library(SLmotor
@@ -125,9 +119,7 @@ add_library(SLmotor
   src/SL_motor_servo_${SL_PLATFORM}.c
   src/SL_sensor_proc.c
 )
-if(APPLE)
-  set_target_properties(SLmotor PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
-endif()
+set_target_properties(SLmotor PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 
 # SLsimulation
 add_library(SLsimulation
@@ -137,9 +129,7 @@ add_library(SLsimulation
   src/SL_simulation_servo_${SL_PLATFORM}.c
   src/SL_userSimulation.c
 )
-if(APPLE)
-  set_target_properties(SLsimulation PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
-endif()
+set_target_properties(SLsimulation PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 
 # SLopenGL
 add_library(SLopenGL
@@ -157,10 +147,7 @@ target_link_libraries(SLopenGL
   ${Xenomai_LIBRARIES_NATIVE}
   ${Xenomai_LIBRARY_RTDK}
 )
-if(APPLE)
-  set_target_properties(SLopenGL PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
-endif()
-
+set_target_properties(SLopenGL PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 
 # SLvision
 add_library(SLvision
@@ -172,9 +159,7 @@ add_library(SLvision
 )
 target_link_libraries(SLvision
   ${lwpr_LIBRARIES})
-if(APPLE)
-  set_target_properties(SLvision PROPERTIES LINK_FLAGS ${IGNORE_UNDEF_SYMBOLS})
-endif()
+set_target_properties(SLvision PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 
 # SLros
 if(SLros_REQUIREMENTS_FOUND)
