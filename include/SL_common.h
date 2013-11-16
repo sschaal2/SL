@@ -58,7 +58,7 @@ extern "C" {
   int  read_config_files(char *fname);
   double quatError(double* q1, double* q2);
   void quatErrorVector(double* q1, double* q2, double *ad);
-  int  read_servoParameters(char *fname, char *keyword, int *priority, 
+  int  read_servoParameters(const char *fname, const char *keyword, int *priority, 
 			    int *stacksize, int *cpuID, int *dns);
 
   int

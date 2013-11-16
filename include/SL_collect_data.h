@@ -31,7 +31,7 @@ extern "C" {
   
   /* shared functions */
   
-  void addVarToCollect(char *ptr,char *name,char *units, int type, int flag);
+  void addVarToCollect(char *ptr,const char *name,const char *units, int type, int flag);
   void initCollectData( int freq );
   void writeToBuffer(void);
   void saveData(void);
