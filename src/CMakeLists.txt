@@ -96,12 +96,12 @@ set(SRCS_TASK_SERVO
 if($ENV{MACHTYPE}  MATCHES "(xeno)")
   set(SRCS_TASK_SERVO
 	SL_task_servo_xeno.c
-	${SRC_TASK_SERVO}
+	${SRCS_TASK_SERVO}
 	)
 else()
   set(SRCS_TASK_SERVO
 	SL_task_servo_unix.c
-	${SRC_TASK_SERVO}
+	${SRCS_TASK_SERVO}
 	)
 endif()
 
@@ -117,12 +117,12 @@ set(SRCS_SIM_SERVO
 if($ENV{MACHTYPE}  MATCHES "(xeno)")
   set(SRCS_SIM_SERVO
 	SL_simulation_servo_xeno.c
-	${SRC_SIM_SERVO}
+	${SRCS_SIM_SERVO}
 	) 
 else()
   set(SRCS_SIM_SERVO
 	SL_simulation_servo_unix.c
-	${SRC_SIM_SERVO}
+	${SRCS_SIM_SERVO}
 	) 
 endif()
 
@@ -160,13 +160,13 @@ if($ENV{MACHTYPE}  MATCHES "(xeno)")
   set(SRCS_VISION_SERVO
 	SL_vision_servo_xeno.c
 	SL_serial_xeno.c
-	${SRC_VISION_SERVO}
+	${SRCS_VISION_SERVO}
 	) 
 else()
   set(SRCS_VISION_SERVO
 	SL_vision_servo_unix.c
 	SL_serial_unix.c
-	${SRC_VISION_SERVO}
+	${SRCS_VISION_SERVO}
 	) 
 endif()
 
