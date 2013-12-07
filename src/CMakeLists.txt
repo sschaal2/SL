@@ -39,7 +39,6 @@ include_directories(../src)
 set(SRCS_SL_COMMON
 	SL_common.c
 	SL_collect_data.c
-	SL_vx2unix_wrappers.c
 	SL_shared_memory.c
 	SL_filters.c
 	SL_unix_common.c
@@ -47,7 +46,7 @@ set(SRCS_SL_COMMON
 	SL_oscilloscope.c
 	SL_man.c 
 	)	
-if($ENV{MACHTYPE}  MATCHES "(xeno)")
+if($ENV{MACHTYPE}$  MATCHES "(xeno)")
   set(SRCS_SL_COMMON
 	SL_vx2xeno_wrappers.c
 	SL_xeno_common.c
