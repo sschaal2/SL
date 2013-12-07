@@ -201,7 +201,7 @@ adds a new task to the task structures, and sets it to active, by default
 
  ******************************************************************************/
 void
-addTask(char *tname, int (*init_function)(void), int (*run_function)(void),
+addTask(const char *tname, int (*init_function)(void), int (*run_function)(void),
 	int (*change_function)(void))
 
 {

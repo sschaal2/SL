@@ -30,8 +30,8 @@ set(CMAKE_BUILD_TYPE RelWithDebInfo) # Optimization with debugging info
 #set(CMAKE_BUILD_TYPE Debug)         # Debug
 
 # local defines
-include_directories(../include)
-include_directories(../src)
+include_directories(BEFORE ../include)
+include_directories(BEFORE ../src)
 
 
 # ------------------------------------------------------------------------
