@@ -37,7 +37,7 @@ extern char current_task_name[100];
 /* functions */
 void setTask(void);
 void st(void);
-void addTask(char *tname, int (*init_function)(void), int (*run_function)(void),
+void addTask(const char *tname, int (*init_function)(void), int (*run_function)(void),
 	     int (*change_function)(void));
 void deleteTask(char *tname);
 void initTasks(void);
