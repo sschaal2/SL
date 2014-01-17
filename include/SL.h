@@ -144,11 +144,13 @@ typedef struct { /*!< desired values for controller */
   float   uex;   /*!< externally imposed torque */
 } SL_fDJstate;
 
-typedef struct {  /*!< desired values for controller: short version for faster communication */
-  char    status; /*!< valid data or not: needed for multi processing */
-  float   th;     /*!< desired theta */
-  float   thd;    /*!< desired velocity */
-  float   uff;    /*!< feedforward command */
+typedef struct {      /*!< desired values for controller: short version for faster communication */
+  char    status;     /*!< valid data or not: needed for multi processing */
+  float   th;         /*!< desired theta */
+  float   thd;        /*!< desired velocity */
+  float   uff;        /*!< feedforward command */
+  int     zero_ufb_P; /*!< zero ufb proportional part */
+  int     zero_ufb_D; /*!< zero ufb derivative part */
 } SL_fSDJstate;
 
 typedef struct { /*!< desired state for optimization */

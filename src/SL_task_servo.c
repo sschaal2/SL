@@ -781,6 +781,18 @@ send_commands(void)
     if (whichDOFs[i]) {
       sm_sjoint_des_state_data[i].status = TRUE;
       sm_sjoint_des_state->sjoint_des_state[i] = sm_sjoint_des_state_data[i];
+
+      // check if user wants to cancel motor_servo PD controller
+      if (joint_des_state[i].th == joint_state[i].th)
+	sm_sjoint_des_state_data[i].zero_ufb_P = TRUE;
+      else
+	sm_sjoint_des_state_data[i].zero_ufb_P = FALSE;
+
+      if (joint_des_state[i].thd == joint_state[i].thd)
+	sm_sjoint_des_state_data[i].zero_ufb_D = TRUE;
+      else
+	sm_sjoint_des_state_data[i].zero_ufb_D = FALSE;
+	
     }
   }
 
