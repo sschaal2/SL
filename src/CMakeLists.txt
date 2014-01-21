@@ -39,7 +39,6 @@ include_directories(BEFORE ../src)
 set(SRCS_SL_COMMON
 	SL_common.c
 	SL_collect_data.c
-	SL_vx2unix_wrappers.c
 	SL_shared_memory.c
 	SL_filters.c
 	SL_unix_common.c
@@ -256,8 +255,8 @@ install(TARGETS SLopenGL ARCHIVE DESTINATION ${LAB_LIBDIR})
 install(TARGETS SLvision ARCHIVE DESTINATION ${LAB_LIBDIR})
 
 if(DEFINED ENV{ROS_ROOT})
-	add_library(SLros ${SRCS_ROS_SERVO})
-	install(TARGETS SLros ARCHIVE DESTINATION ${LAB_LIBDIR})
+  add_library(SLros ${SRCS_ROS_SERVO})
+  install(TARGETS SLros ARCHIVE DESTINATION ${LAB_LIBDIR})
 endif()
 
 
