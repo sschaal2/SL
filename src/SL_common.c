@@ -1318,9 +1318,9 @@ where_cog(void)
   printf("Current COG State:\n");
 
 
-  printf("              x=% 5.3f (% 5.3f)    y=% 5.3f (% 5.3f)    z=% 5.3f (% 5.3f)\n",
+  printf("              x=% 5.3f (% 5.3f)   y=% 5.3f (% 5.3f)   z=% 5.3f (% 5.3f)\n",
 	 cog.x[_X_],cog_des.x[_X_],cog.x[_Y_],cog_des.x[_Y_],cog.x[_Z_],cog_des.x[_Z_]);
-  printf("             xd=% 5.3f (% 5.3f)   yd=% 5.3f (% 5.3f)  zd=% 5.3f (% 5.3f)\n",
+  printf("             xd=% 5.3f (% 5.3f)  yd=% 5.3f (% 5.3f)  zd=% 5.3f (% 5.3f)\n",
 	 cog.xd[_X_],cog_des.xd[_X_],cog.xd[_Y_],cog_des.xd[_Y_],cog.xd[_Z_],cog_des.xd[_Z_]);
   printf("            xdd=% 5.3f (% 5.3f) ydd=% 5.3f (% 5.3f) zdd=% 5.3f (% 5.3f)\n",
 	 cog.xdd[_X_],cog_des.xdd[_X_],cog.xdd[_Y_],cog_des.xdd[_Y_],cog.xdd[_Z_],cog_des.xdd[_Z_]);
