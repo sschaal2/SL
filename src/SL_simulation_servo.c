@@ -571,6 +571,7 @@ status(void)
   printf("            Servo Errors           = %d\n",simulation_servo_errors);
   printf("            Real-Time Flag         = %d\n",real_time);
   printf("            Gravity                = %f\n",gravity);
+  printf("            Integration Rate       = %d\n",n_integration);
 #ifdef __XENO__
   extern long count_xenomai_mode_switches;
   extern int  delay_ns;
