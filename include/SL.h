@@ -349,6 +349,8 @@ extern "C" {
   extern Matrix        Jdes;
   extern Matrix        Jcog;
   extern Matrix        Jcogdes;
+  extern Matrix        Jbasecog;
+  extern Matrix        Jbasecogdes;
   extern Matrix        link_pos;
   extern Matrix        link_pos_des;
   extern Matrix        link_pos_sim;

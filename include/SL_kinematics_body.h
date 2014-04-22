@@ -87,6 +87,8 @@ init_kinematics(void)
   Jbase            = my_matrix(1,N_ENDEFFS*6,1,6);
   dJbasedt         = my_matrix(1,N_ENDEFFS*6,1,6);
   Jbasedes         = my_matrix(1,N_ENDEFFS*6,1,6);
+  Jbasecog         = my_matrix(1,2*N_CART,1,2*N_CART);
+  Jbasecogdes      = my_matrix(1,2*N_CART,1,2*N_CART);
 
   for (i=0; i<=N_LINKS; ++i) {
     Alink[i]     = my_matrix(1,4,1,4);

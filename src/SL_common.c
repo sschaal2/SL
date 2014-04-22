@@ -483,6 +483,7 @@ init_commands(void)
   addToMan("where_base","current state of base coordiante system",where_base);
   addToMan("where_misc","current state of miscellanious sensors",where_misc);
   addToMan("where_cog","current state of the COG",where_cog);
+  addToMan("print_J","current state of Jacobian",print_J);
   if (strcmp(servo_name,"motor") != 0) {
     addToMan("cwhere","cartesian state of endeffectors",cwhere);
     addToMan("lwhere","cartesian state of links",lwhere);
@@ -2958,3 +2959,34 @@ coordinates, too.
   }
 
 }
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  print_J
+\date  Feb 1999
+\remarks 
+
+ prints the current Jacobian of the endeffectors
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+void
+print_J(void)
+{
+  int i,j;
+
+  if (!servo_enabled) {
+    beep(1);
+    printf("WARNING: servo is not running!!\n");
+  }
+
+  print_mat("Jacobian (actual)",J);
+  print_mat("Jacobian (desired)",Jdes);
+
+}
+
+

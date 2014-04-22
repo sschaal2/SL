@@ -18,7 +18,7 @@ if (clmcplot_mode || playback_mode || userGraphics_mode) {
 
 
   // compute COG
-  for (i=0; i<=N_LINKS; ++i) {
+  for (i=0; i<=N_DOFS; ++i) {
     joint_cog_mpos[i] = joint_cog_mpos_sim[i];
     link_pos[i] = link_pos_sim[i];
   }
@@ -32,7 +32,7 @@ if (clmcplot_mode || playback_mode || userGraphics_mode) {
 //-------------------------------------------------------------------------
 // check for pause and stand-alone mode
 if (pause_flag || stand_alone_flag) {
-  receiveOscilloscopeData(); // need to keep on emptying the buffer
+  receiveOscilloscopeData(); // need to keep an emptying the buffer
   usleep(10000);
   return;
 }

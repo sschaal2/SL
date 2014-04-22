@@ -92,6 +92,7 @@ extern "C" {
   compute_local_interface_forces(double *xdd, double *ad, double *add, double *g,
 				 SL_link li, double *f, double *t);
 
+  void print_J(void);
 
 
   // external variables
