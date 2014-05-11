@@ -2820,7 +2820,7 @@ count_extra_contact_points(char *fname) {
     if (rc == 6)
       count += n_checks;
     else {
-      if (rc != EOF)
+      if (rc != EOF) 
 	printf("Parsing error in count_extra_contact_points in SL_common.c (rc=%d)\n",rc);
       break;
     }

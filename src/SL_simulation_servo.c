@@ -701,8 +701,9 @@ checkForMessages(void)
   char name[20];
 
   // check whether a message is available
-  if (semTake(sm_simulation_message_ready_sem,NO_WAIT) == ERROR)
+  if (semTake(sm_simulation_message_ready_sem,NO_WAIT) == ERROR) {
     return FALSE;
+  }
 
   // receive the message
   if (semTake(sm_simulation_message_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {

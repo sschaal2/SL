@@ -205,7 +205,6 @@ set(HEADERS
 	  ../include/SL_invDynArt_body.h
 	  ../include/SL_invDynNE_body.h
 	  ../include/SL_kinematics.h 
-	  ../include/SL_kinematics_body.h 
 	  ../include/SL_man.h
 	  ../include/SL_motor_servo.h
 	  ../include/SL_objects.h

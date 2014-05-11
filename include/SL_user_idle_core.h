@@ -18,10 +18,11 @@ if (clmcplot_mode || playback_mode || userGraphics_mode) {
 
 
   // compute COG
-  for (i=0; i<=N_DOFS; ++i) {
+  for (i=0; i<=N_DOFS; ++i)
     joint_cog_mpos[i] = joint_cog_mpos_sim[i];
+  for (i=0; i<=N_LINKS; ++i)
     link_pos[i] = link_pos_sim[i];
-  }
+
   compute_cog();
   
   // update the graphics
