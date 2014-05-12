@@ -199,11 +199,7 @@ set(HEADERS
 	  ../include/SL_controller.h
 	  ../include/SL_dynamics.h 
 	  ../include/SL_filters.h 
-	  ../include/SL_forDynComp_body.h
-	  ../include/SL_forDynArt_body.h
 	  ../include/SL_integrate.h
-	  ../include/SL_invDynArt_body.h
-	  ../include/SL_invDynNE_body.h
 	  ../include/SL_kinematics.h 
 	  ../include/SL_man.h
 	  ../include/SL_motor_servo.h
@@ -212,7 +208,6 @@ set(HEADERS
 	  ../include/SL_openGL.h
 	  ../include/SL_openGL_servo.h 
 	  ../include/SL_oscilloscope.h
-	  ../include/SL_parm_estimate_body.h
 	  ../include/SL_ros_servo.h
 	  ../include/SL_rt_mutex.h
 	  ../include/SL_sensor_proc.h
