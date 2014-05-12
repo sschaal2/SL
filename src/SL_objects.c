@@ -1612,15 +1612,25 @@ contactVelocity(int cID, ObjectPtr optr, double *v)
   double aux;
   double v_start[N_CART+1];
   double v_end[N_CART+1];
+  double x[N_CART+1];
 
   // get the velocity in world coordinates
-  computeLinkVelocity(contacts[cID].id_start, link_pos_sim, joint_origin_pos_sim, 
-		      joint_axis_pos_sim, joint_sim_state, v_start);
-  computeLinkVelocity(contacts[cID].id_end, link_pos_sim, joint_origin_pos_sim, 
-		      joint_axis_pos_sim, joint_sim_state, v_end);
+  if (contacts[cID].point_contact_flag) {
 
-  for (i=1; i<=N_CART; ++i)
-    v[i] = v_start[i]*contacts[cID].fraction_start + v_end[i]*contacts[cID].fraction_end;
+    computeContactPoint(&(contacts[cID]),link_pos_sim,Alink_sim,x);
+
+    computeLinkVelocityPoint(contacts[cID].id_start, x, link_pos_sim, joint_origin_pos_sim, 
+			     joint_axis_pos_sim, joint_sim_state, v);
+    
+  } else {
+    computeLinkVelocity(contacts[cID].id_start, link_pos_sim, joint_origin_pos_sim, 
+			joint_axis_pos_sim, joint_sim_state, v_start);
+    computeLinkVelocity(contacts[cID].id_end, link_pos_sim, joint_origin_pos_sim, 
+			joint_axis_pos_sim, joint_sim_state, v_end);
+
+    for (i=1; i<=N_CART; ++i)
+      v[i] = v_start[i]*contacts[cID].fraction_start + v_end[i]*contacts[cID].fraction_end;
+  }
 
   // convert the velocity to object coordinates
   if (optr->rot[1] != 0.0) {

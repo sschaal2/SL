@@ -595,6 +595,41 @@ void
 computeLinkVelocity(int lID, Matrix lp, Matrix jop, Matrix jap, 
 		    SL_Jstate *js, double *v)
 {
+
+
+  // this is just a special case for computeLinkVelocityPoint() where the
+  // point coincides with the link position
+
+  computeLinkVelocityPoint(lID, lp[lID], lp, jop, jap,js,v);
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  computeLinkVelocityPoint
+\date  March 2006
+   
+\remarks 
+
+        Computes the velocity of a particular point that is fixed in
+        a particular llink in world coordinates.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     lID    : the ID of the link
+ \param[in]     point  : the point belonging to link lID in world coordinates
+ \param[in]     lp     : the link positions
+ \param[in]     jop    : joint origin positions
+ \param[in]     jap    : joint axix unit vectors
+ \param[in]     js     : joint state
+ \param[out]    v      : velocity vector
+
+ ******************************************************************************/
+void 
+computeLinkVelocityPoint(int lID, double *point, Matrix lp, Matrix jop, Matrix jap, 
+			 SL_Jstate *js, double *v)
+{
   int i,j,r;
   double c[2*N_CART+1];
   MY_MATRIX(Jlink,1,N_CART,1,n_dofs);
@@ -611,12 +646,12 @@ computeLinkVelocity(int lID, Matrix lp, Matrix jop, Matrix jap,
   for (j=1; j<=n_dofs; ++j) {
     if ( Jlist[lID][j] != 0 ) {
       if (prismatic_joint_flag[j]) {
-	prismaticGJacColumn( lp[lID],
-			    jop[j],
-			    jap[j],
-			    c );
+	prismaticGJacColumn( point,
+			     jop[j],
+			     jap[j],
+			     c );
       } else {
-	revoluteGJacColumn( lp[lID],
+	revoluteGJacColumn( point,
 			    jop[j],
 			    jap[j],
 			    c );
@@ -634,7 +669,7 @@ computeLinkVelocity(int lID, Matrix lp, Matrix jop, Matrix jap,
     Jlinkbase[r][r]        = 1.0;
   }
   for (j=1; j<=N_CART; ++j) {
-    revoluteGJacColumn( lp[lID],
+    revoluteGJacColumn( point,
 			base_state.x,
 			Jlinkbase[j], // this is a equivalent to a unit vector
 			c );
