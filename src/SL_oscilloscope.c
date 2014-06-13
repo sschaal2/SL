@@ -392,7 +392,7 @@ readOscVarsScript( char *fn, int flag )
     return TRUE;
 
   sprintf(fname,"%s%s",PREFS,fn);
-  infile = fopen(fname,"r");
+  infile = fopen_strip(fname);
 
   if (infile == NULL) {
     printf("Error when trying to open file >%s< !\n",fname);

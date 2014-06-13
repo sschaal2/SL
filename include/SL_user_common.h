@@ -60,7 +60,9 @@ extern "C" {
   Matrix        Jbasedes;                       /* kinematic Jacobian of base*/
   Matrix        Jdes;		                /* Jacobian based on des. state */
   Matrix        Jcog;		                /* COG Jacobian */
-  Matrix        Jcogdes;		        /* COG Jacobian based on desired states */
+  Matrix        Jcogdes;		        /* COG base Jacobian based on desired states */
+  Matrix        Jbasecog;	                /* COG base Jacobian */
+  Matrix        Jbasecogdes;		        /* COG Jacobian based on desired states */
   Matrix        link_pos;                       /* Cart. pos of links */
   Matrix        link_pos_des;                   /* desired cart. pos of links */
   Matrix        link_pos_sim;                   /* simulated cart. pos of links */

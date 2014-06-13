@@ -47,7 +47,7 @@ static char f_cond_names[][20]= {
   {"full"},
   {"half"},
   {"orth"},
-  {"no_used"}
+  {"not_used"}
 };
 
 // global variables
@@ -1586,59 +1586,6 @@ computeContactForces(ObjectPtr optr, ContactPtr cptr)
     cptr->n[_Y_] = aux;
   }
 
-
-#if 0
-  /* add forces to appropriate DOFs and object */
-
-  /* first the start link */
-  for (i=1; i<=N_CART; ++i) {
-    ucontact[cptr->base_dof_start].f[i] += cptr->f[i]*cptr->fraction_start;
-    optr->f[i] += cptr->f[i]*cptr->fraction_start;
-    moment_arm[i] = link_pos_sim[cptr->id_start][i]-link_pos_sim[cptr->off_link_start][i];
-    moment_arm_object[i] = link_pos_sim[cptr->id_start][i]-optr->trans[i];
-  }
-
-  /* get the torque at the DOF from the cross product */
-  ucontact[cptr->base_dof_start].t[_A_] += moment_arm[_Y_]*cptr->f[_Z_]*cptr->fraction_start - 
-    moment_arm[_Z_]*cptr->f[_Y_]*cptr->fraction_start;
-  ucontact[cptr->base_dof_start].t[_B_] += moment_arm[_Z_]*cptr->f[_X_]*cptr->fraction_start - 
-    moment_arm[_X_]*cptr->f[_Z_]*cptr->fraction_start;
-  ucontact[cptr->base_dof_start].t[_G_] += moment_arm[_X_]*cptr->f[_Y_]*cptr->fraction_start - 
-    moment_arm[_Y_]*cptr->f[_X_]*cptr->fraction_start;
-
-  /* get the torque at the object center from the cross product */
-  optr->t[_A_] += moment_arm_object[_Y_]*cptr->f[_Z_]*cptr->fraction_start - 
-    moment_arm_object[_Z_]*cptr->f[_Y_]*cptr->fraction_start;
-  optr->t[_B_] += moment_arm_object[_Z_]*cptr->f[_X_]*cptr->fraction_start - 
-    moment_arm_object[_X_]*cptr->f[_Z_]*cptr->fraction_start;
-  optr->t[_G_] += moment_arm_object[_X_]*cptr->f[_Y_]*cptr->fraction_start - 
-    moment_arm_object[_Y_]*cptr->f[_X_]*cptr->fraction_start;
-
-  /* second the end link */
-  for (i=1; i<=N_CART; ++i) {
-    ucontact[cptr->base_dof_end].f[i] += cptr->f[i]*cptr->fraction_end;
-    optr->f[i] += cptr->f[i]*cptr->fraction_end;
-    moment_arm[i] = link_pos_sim[cptr->id_end][i]-link_pos_sim[cptr->off_link_end][i];
-    moment_arm_object[i] = link_pos_sim[cptr->id_end][i]-optr->trans[i];
-  }
-  
-  /* get the torque at the DOF from the cross product */
-  ucontact[cptr->base_dof_end].t[_A_] += moment_arm[_Y_]*cptr->f[_Z_]*cptr->fraction_end - 
-    moment_arm[_Z_]*cptr->f[_Y_]*cptr->fraction_end;
-  ucontact[cptr->base_dof_end].t[_B_] += moment_arm[_Z_]*cptr->f[_X_]*cptr->fraction_end - 
-    moment_arm[_X_]*cptr->f[_Z_]*cptr->fraction_end;
-  ucontact[cptr->base_dof_end].t[_G_] += moment_arm[_X_]*cptr->f[_Y_]*cptr->fraction_end - 
-    moment_arm[_Y_]*cptr->f[_X_]*cptr->fraction_end;
-  
-  /* get the torque at the object center from the cross product */
-  optr->t[_A_] += moment_arm_object[_Y_]*cptr->f[_Z_]*cptr->fraction_end - 
-    moment_arm_object[_Z_]*cptr->f[_Y_]*cptr->fraction_end;
-  optr->t[_B_] += moment_arm_object[_Z_]*cptr->f[_X_]*cptr->fraction_end - 
-    moment_arm_object[_X_]*cptr->f[_Z_]*cptr->fraction_end;
-  optr->t[_G_] += moment_arm_object[_X_]*cptr->f[_Y_]*cptr->fraction_end - 
-    moment_arm_object[_Y_]*cptr->f[_X_]*cptr->fraction_end;
-#endif 
-
 }
 
 /*!*****************************************************************************
@@ -1665,15 +1612,25 @@ contactVelocity(int cID, ObjectPtr optr, double *v)
   double aux;
   double v_start[N_CART+1];
   double v_end[N_CART+1];
+  double x[N_CART+1];
 
   // get the velocity in world coordinates
-  computeLinkVelocity(contacts[cID].id_start, link_pos_sim, joint_origin_pos_sim, 
-		      joint_axis_pos_sim, joint_sim_state, v_start);
-  computeLinkVelocity(contacts[cID].id_end, link_pos_sim, joint_origin_pos_sim, 
-		      joint_axis_pos_sim, joint_sim_state, v_end);
+  if (contacts[cID].point_contact_flag) {
 
-  for (i=1; i<=N_CART; ++i)
-    v[i] = v_start[i]*contacts[cID].fraction_start + v_end[i]*contacts[cID].fraction_end;
+    computeContactPoint(&(contacts[cID]),link_pos_sim,Alink_sim,x);
+
+    computeLinkVelocityPoint(contacts[cID].id_start, x, link_pos_sim, joint_origin_pos_sim, 
+			     joint_axis_pos_sim, joint_sim_state, v);
+    
+  } else {
+    computeLinkVelocity(contacts[cID].id_start, link_pos_sim, joint_origin_pos_sim, 
+			joint_axis_pos_sim, joint_sim_state, v_start);
+    computeLinkVelocity(contacts[cID].id_end, link_pos_sim, joint_origin_pos_sim, 
+			joint_axis_pos_sim, joint_sim_state, v_end);
+
+    for (i=1; i<=N_CART; ++i)
+      v[i] = v_start[i]*contacts[cID].fraction_start + v_end[i]*contacts[cID].fraction_end;
+  }
 
   // convert the velocity to object coordinates
   if (optr->rot[1] != 0.0) {
@@ -1950,14 +1907,14 @@ read_extra_contact_points(char *fname)
   FILE  *in;
   int    count;
   char   name1[100],name2[100];
-  int    id1=-999,id2=-999;
+  int    id1,id2;
   char   fcond1[100],fcond2[100];
   int    fcond1ID,fcond2ID;
   int    n_checks;
   int    active;
   int    f_full_flag;
-  double lpos[N_CART+1]={0.0,0.0,0.0,0.0};
-  double lnorm[N_CART+1]={0.0,0.0,0.0,0.0};
+  double lpos[N_CART+1];
+  double lnorm[N_CART+1];
   int    point_contact_flag;
   double aux;
 
@@ -1973,6 +1930,8 @@ read_extra_contact_points(char *fname)
   count = n_links;
   while (TRUE) {
     point_contact_flag = FALSE;
+    id1 = -999;
+    id2 = -999;
     rc = fscanf(in,"%s %s %d %d %s %s",name1,name2,&active,&n_checks,fcond1,fcond2);
     if (rc == 6) { // add the appropriate number of contact points
 
@@ -2003,7 +1962,13 @@ read_extra_contact_points(char *fname)
 
 	strcpy(fcond2,"null"); // to indicate that only the start point will create a force
 
-      }
+      } else { // not a POINT_CONTACT
+	
+	// just zero out for easier debugging
+	for (i=1; i<=N_CART; ++i)
+	  lpos[i] = lnorm[i] = 0.0;
+
+      } 
 
       // convert link names into IDs
       for (i=0; i<=n_links; ++i)
@@ -2046,10 +2011,15 @@ read_extra_contact_points(char *fname)
 
       if (!point_contact_flag) { // point contacts are isolated and do not fill the connect_links array
 
+	// the start point
 	f_full_flag = FALSE;
 	for (i=1; i<=contacts[id1].n_connected_links; ++i)
-	  if (contacts[id1].force_condition[i] == F_FULL)
+	  if (contacts[id1].force_condition[i] == F_FULL) { // a full force conditin overwrites any partial force condition
+	    contacts[id1].force_condition[1] = F_FULL;
+	    contacts[id1].connected_links[1] = id2;
+	    contacts[id1].n_connected_links  = 1;
 	    f_full_flag = TRUE;
+	  }
 	
 	if (!f_full_flag) { // a full force condition overwrites any partial force conditions
 	  if (fcond1ID == F_FULL) {
@@ -2067,10 +2037,15 @@ read_extra_contact_points(char *fname)
 	  }
 	}
 	
+	// the end point
 	f_full_flag = FALSE;
 	for (i=1; i<=contacts[id2].n_connected_links; ++i)
-	  if (contacts[id2].force_condition[i] == F_FULL)
+	  if (contacts[id2].force_condition[i] == F_FULL) { // a full force condition overwrites any partial force conditions
+	    contacts[id2].force_condition[1] = F_FULL;
+	    contacts[id2].connected_links[1] = id1;
+	    contacts[id2].n_connected_links  = 1;
 	    f_full_flag = TRUE;
+	  }
 	
 	if (!f_full_flag) { // a full force condition overwrites any partial force conditions
 	  if (fcond2ID == F_FULL) {
@@ -2673,16 +2648,20 @@ accumulateFinalForces(ContactPtr cptr)
   int i,j;
   double moment_arm[N_CART+1];
   double moment_arm_object[N_CART+1];
+  double x[N_CART+1];
   ObjectPtr optr;
 
   optr = cptr->optr;
+
+  // compute the contact point in global coordinates
+  computeContactPoint(cptr,link_pos_sim,Alink_sim,x);
 
   /* first the start link */
   for (i=1; i<=N_CART; ++i) {
     ucontact[cptr->base_dof_start].f[i] += cptr->f[i]*cptr->fraction_start;
     optr->f[i] += cptr->f[i]*cptr->fraction_start;
-    moment_arm[i] = link_pos_sim[cptr->id_start][i]-link_pos_sim[cptr->off_link_start][i];
-    moment_arm_object[i] = link_pos_sim[cptr->id_start][i]-optr->trans[i];
+    moment_arm[i] = x[i]-link_pos_sim[cptr->off_link_start][i];
+    moment_arm_object[i] = x[i]-optr->trans[i];
   }
 
   /* get the torque at the DOF from the cross product */
@@ -2705,8 +2684,8 @@ accumulateFinalForces(ContactPtr cptr)
   for (i=1; i<=N_CART; ++i) {
     ucontact[cptr->base_dof_end].f[i] += cptr->f[i]*cptr->fraction_end;
     optr->f[i] += cptr->f[i]*cptr->fraction_end;
-    moment_arm[i] = link_pos_sim[cptr->id_end][i]-link_pos_sim[cptr->off_link_end][i];
-    moment_arm_object[i] = link_pos_sim[cptr->id_end][i]-optr->trans[i];
+    moment_arm[i] = x[i]-link_pos_sim[cptr->off_link_end][i];
+    moment_arm_object[i] = x[i]-optr->trans[i];
   }
   
   /* get the torque at the DOF from the cross product */
