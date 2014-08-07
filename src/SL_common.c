@@ -767,7 +767,7 @@ parses the servoParameters.cf file for the given keyword
 
  ******************************************************************************/
 int
-read_servoParameters(char *fname, char *keyword, int *priority, int *stacksize,
+read_servoParameters(const char *fname, const char *keyword, int *priority, int *stacksize,
 		     int *cpuID, int *dns) 
 
 {
@@ -2356,7 +2356,7 @@ reads a double value from the paramter pool configuration file
 
  ******************************************************************************/
 int
-read_parameter_pool_double(char *fname, char *keyword, double *value)
+read_parameter_pool_double(const char *fname, const char *keyword, double *value)
 {
 
   int    j,i,rc;
@@ -2416,7 +2416,7 @@ reads a double array from the paramter pool configuration file
 
  ******************************************************************************/
 int
-read_parameter_pool_double_array(char *fname, char *keyword, int n_values, double *values)
+read_parameter_pool_double_array(const char *fname, const char *keyword, int n_values, double *values)
 {
 
   int    j,i,rc;
@@ -2477,7 +2477,7 @@ reads a int value from the paramter pool configuration file
 
  ******************************************************************************/
 int
-read_parameter_pool_int(char *fname, char *keyword, int *ivalue)
+read_parameter_pool_int(const char *fname, const char *keyword, int *ivalue)
 {
 
   int    j,i,rc;
@@ -2537,7 +2537,7 @@ reads a int array from the paramter pool configuration file
 
  ******************************************************************************/
 int
-read_parameter_pool_int_array(char *fname, char *keyword, int n_values, int *ivalues)
+read_parameter_pool_int_array(const char *fname, const char *keyword, int n_values, int *ivalues)
 {
 
   int    j,i,rc;
@@ -2598,7 +2598,7 @@ reads a string from the paramter pool configuration file
 
  ******************************************************************************/
 int
-read_parameter_pool_string(char *fname, char *keyword, char *svalue)
+read_parameter_pool_string(const char *fname, const char *keyword, char *svalue)
 {
 
   int    j,i,rc;
