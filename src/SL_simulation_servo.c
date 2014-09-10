@@ -571,6 +571,7 @@ status(void)
   printf("            Servo Errors           = %d\n",simulation_servo_errors);
   printf("            Real-Time Flag         = %d\n",real_time);
   printf("            Gravity                = %f\n",gravity);
+  printf("            Integration Rate       = %d\n",n_integration);
 #ifdef __XENO__
   extern long count_xenomai_mode_switches;
   extern int  delay_ns;
@@ -700,8 +701,9 @@ checkForMessages(void)
   char name[20];
 
   // check whether a message is available
-  if (semTake(sm_simulation_message_ready_sem,NO_WAIT) == ERROR)
+  if (semTake(sm_simulation_message_ready_sem,NO_WAIT) == ERROR) {
     return FALSE;
+  }
 
   // receive the message
   if (semTake(sm_simulation_message_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {

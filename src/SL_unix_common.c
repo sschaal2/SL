@@ -142,9 +142,10 @@ checkKeyboard(void *initial_command)
 
     snprintf(prompt, 1000, "%s.%s> ",robot_name,servo_name);
     string = readline(prompt);
-    if (string && *string)
+    if (string && *string) {
       add_history(string);
-    checkUserCommand(string);
+      checkUserCommand(string);
+    }
     free(string);
 
     // this allows the user to run a command line command from a program, 
@@ -289,10 +290,13 @@ none
 static void
 initializeReadLine()
 {
+  extern int rl_catch_signals; // for some reason this isn't in editline/readline.h
+
   rl_attempted_completion_function = sl_completion;
   extern int rl_catch_signals; // for some reason this isn't in editline/readline.h
   rl_catch_signals = 0;
   rl_initialize();
+
 }
 
 /*!*****************************************************************************
