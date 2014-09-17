@@ -668,15 +668,20 @@ computeLinkVelocityPoint(int lID, double *point, Matrix lp, Matrix jop, Matrix j
   for (r=1; r<=N_CART; ++r) {
     Jlinkbase[r][r]        = 1.0;
   }
-  for (j=1; j<=N_CART; ++j) {
-    revoluteGJacColumn( point,
-			base_state.x,
-			Jlinkbase[j], // this is a equivalent to a unit vector
-			c );
-    for (r=1; r<=N_CART; ++r) {
-      Jlinkbase[r][N_CART+j] = c[r];
-    }
-  }
+
+  Jlinkbase[_Y_][N_CART+_X_] = -(point[_Z_] - base_state.x[_Z_]);
+  Jlinkbase[_Z_][N_CART+_X_] =   point[_Y_] - base_state.x[_Y_];
+  
+  Jlinkbase[_X_][N_CART+_Y_] =   point[_Z_] - base_state.x[_Z_];
+  Jlinkbase[_Z_][N_CART+_Y_] = -(point[_X_] - base_state.x[_X_]);
+  
+  Jlinkbase[_X_][N_CART+_Z_] = -(point[_Y_] - base_state.x[_Y_]);
+  Jlinkbase[_Y_][N_CART+_Z_] =   point[_X_] - base_state.x[_X_];
+
+
+  //print_mat("Jlink",Jlink);
+  //print_mat("Jlinkbase",Jlinkbase);
+  //getchar();
 
   // compute the link velocity from Jlink and the base jacobian
   for (i=1; i<=N_CART; ++i) {
@@ -685,16 +690,21 @@ computeLinkVelocityPoint(int lID, double *point, Matrix lp, Matrix jop, Matrix j
 
     /* contributations from the joints */
     for (r=1; r<=n_dofs; ++r) {
-      v[i] += Jlink[i][r] * js[r].thd;
+      if ( Jlist[lID][r] != 0 )
+	v[i] += Jlink[i][r] * js[r].thd;
     }
+    //printf("%d: %f  ",i,v[i]);
 
     /* contributations from the base */
     for (r=1; r<=N_CART; ++r) {
       v[i] += Jlinkbase[i][r] * base_state.xd[r];
-      v[i] += Jlinkbase[i][3+r] * base_orient.ad[r];
+      v[i] += Jlinkbase[i][N_CART+r] * base_orient.ad[r];
     }
+
+    //printf("%f\n",v[i]);
     
   }
+  //printf("\n");
 
 }
 

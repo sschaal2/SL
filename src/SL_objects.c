@@ -1621,6 +1621,14 @@ contactVelocity(int cID, ObjectPtr optr, double *v)
 
     computeLinkVelocityPoint(contacts[cID].id_start, x, link_pos_sim, joint_origin_pos_sim, 
 			     joint_axis_pos_sim, joint_sim_state, v);
+
+
+    //computeLinkVelocity(contacts[cID].id_start, link_pos_sim, joint_origin_pos_sim, 
+    //			     joint_axis_pos_sim, joint_sim_state, v);
+    /*
+    for (i=1; i<=N_CART; ++i)
+      v[i] = base_state.xd[i];
+    */
     
   } else {
     computeLinkVelocity(contacts[cID].id_start, link_pos_sim, joint_origin_pos_sim, 
@@ -1633,21 +1641,21 @@ contactVelocity(int cID, ObjectPtr optr, double *v)
   }
 
   // convert the velocity to object coordinates
-  if (optr->rot[1] != 0.0) {
-    aux  =  v[2]*cos(optr->rot[1])+v[3]*sin(optr->rot[1]);
-    v[3] = -v[2]*sin(optr->rot[1])+v[3]*cos(optr->rot[1]);
+  if (optr->rot[_A_] != 0.0) {
+    aux  =  v[2]*cos(optr->rot[1])+v[3]*sin(optr->rot[_A_]);
+    v[3] = -v[2]*sin(optr->rot[1])+v[3]*cos(optr->rot[_A_]);
     v[2] = aux;
   }
   
-  if (optr->rot[2] != 0.0) {
-    aux  =  v[1]*cos(optr->rot[2])-v[3]*sin(optr->rot[2]);
-    v[3] =  v[1]*sin(optr->rot[2])+v[3]*cos(optr->rot[2]);
+  if (optr->rot[_B_] != 0.0) {
+    aux  =  v[1]*cos(optr->rot[2])-v[3]*sin(optr->rot[_B_]);
+    v[3] =  v[1]*sin(optr->rot[2])+v[3]*cos(optr->rot[_B_]);
     v[1] = aux;
   }
   
-  if (optr->rot[3] != 0.0) {
-    aux  =  v[1]*cos(optr->rot[3])+v[2]*sin(optr->rot[3]);
-    v[2] = -v[1]*sin(optr->rot[3])+v[2]*cos(optr->rot[3]);
+  if (optr->rot[_G_] != 0.0) {
+    aux  =  v[1]*cos(optr->rot[3])+v[2]*sin(optr->rot[_G_]);
+    v[2] = -v[1]*sin(optr->rot[3])+v[2]*cos(optr->rot[_G_]);
     v[1] = aux;
   }
 
