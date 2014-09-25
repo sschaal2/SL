@@ -74,6 +74,11 @@ main(int argc, char**argv)
 
   // initializes the servo
   init_task_servo();
+
+  // reset the simulation... this was moved up to here because otherwise it was stomping on any user tasks that were activated during init_user_task
+  if (!real_robot_flag)
+    reset();
+
   read_whichDOFs(config_files[WHICHDOFS],"task_servo");
 
   // generic computations
@@ -96,9 +101,13 @@ main(int argc, char**argv)
   // spawn command line interface thread
   spawnCommandLineThread(initial_user_command);
 
-  // reset the simulation
-  if (!real_robot_flag)
-    reset();
+
+  printf("SL_task_servo_unix.c:: spawned command line thread\n");
+
+
+//  // reset the simulation
+//  if (!real_robot_flag)
+//    reset();
   
   // signal that this process is initialized
   semGive(sm_init_process_ready_sem);
