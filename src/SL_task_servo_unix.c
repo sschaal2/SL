@@ -102,9 +102,6 @@ main(int argc, char**argv)
   spawnCommandLineThread(initial_user_command);
 
 
-  printf("SL_task_servo_unix.c:: spawned command line thread\n");
-
-
 //  // reset the simulation
 //  if (!real_robot_flag)
 //    reset();
