@@ -147,24 +147,46 @@ else()
 	)
 endif()
 
+# # ------------------------------------------------------------------------
+
+# set(SRCS_VISION_SERVO
+# 	SL_vision_servo.c
+# 	SL_dbvision.c
+# 	SL_vision_proc.c
+# 	) 
+
+# if($ENV{MACHTYPE}  MATCHES "(xeno)")
+#   set(SRCS_VISION_SERVO
+# 	SL_vision_servo_xeno.c
+# 	SL_serial_xeno.c
+# 	${SRCS_VISION_SERVO}
+# 	) 
+# else()
+#   set(SRCS_VISION_SERVO
+# 	SL_vision_servo_unix.c
+# 	SL_serial_unix.c
+# 	${SRCS_VISION_SERVO}
+# 	) 
+# endif()
+
 # ------------------------------------------------------------------------
 
 set(SRCS_VISION_SERVO
 	SL_vision_servo.c
-	SL_dbvision.c
+	SL_kinect_vision.c
 	SL_vision_proc.c
 	) 
 
 if($ENV{MACHTYPE}  MATCHES "(xeno)")
   set(SRCS_VISION_SERVO
 	SL_vision_servo_xeno.c
-	SL_serial_xeno.c
+	SL_socket_xeno.c
 	${SRCS_VISION_SERVO}
 	) 
 else()
   set(SRCS_VISION_SERVO
 	SL_vision_servo_unix.c
-	SL_serial_unix.c
+	SL_socket_unix.c
 	${SRCS_VISION_SERVO}
 	) 
 endif()
@@ -236,6 +258,9 @@ set(HEADERS
 	  ../include/SL_vx_wrappers.h
 	  ../include/SL_xeno_common.h
 	  ../include/SL_xeno_headers.h 
+# TODO: Find a better place when re-factoring
+# Most likley this stuff should move to the user side
+	  ../include/poledata.h 
 	)
 
 # ------------------------------------------------------------------------
