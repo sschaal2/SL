@@ -180,11 +180,13 @@ acquire_blobs(Blob2D blobs[][2+1])
       blobs[BLOB_LOWER][CAMERA_1].status = TRUE;
       blobs[BLOB_LOWER][CAMERA_1].x[_X_] = the_frame.pole->pos_lower[0];
       blobs[BLOB_LOWER][CAMERA_1].x[_Y_] = the_frame.pole->pos_lower[1];
-      
+     
+      /* DEBUG
       printf("listener: pole_angle %.2f \t position upper: %.2f %.2f %.2f\t position lower: %.2f %.2f %.2f\n", 
 	     the_frame.pole->pole_angle,
 	     the_frame.pole->pos_upper[0], the_frame.pole->pos_upper[1], the_frame.pole->pos_upper[2],
 	     the_frame.pole->pos_lower[0], the_frame.pole->pos_lower[1], the_frame.pole->pos_lower[2]);
+      */
   
       count_lost_frames += abs(frame_counter - the_frame.counter);
     
