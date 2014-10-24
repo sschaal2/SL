@@ -261,8 +261,8 @@ run_vision_servo(void)
    * process the blobs (filtering, conversion into our coordinates
    */
   
-  setOsc(d2a_cv,50.0);
-  process_blobs(raw_blobs2D);
+  //setOsc(d2a_cv,50.0);
+  //process_blobs(raw_blobs2D);
   
   /*************************************************************************
    * broadcast the the final blob information in shared memory
@@ -275,22 +275,22 @@ run_vision_servo(void)
    * read the robot state
    */
   
-  setOsc(d2a_cv,70.0);
-  receive_cartesian();
+  //setOsc(d2a_cv,70.0);
+  ///receive_cartesian();
   
   /*************************************************************************
    * learn the mapping
    */
   
-  setOsc(d2a_cv,80.0);
-  learn_transformation();
+  ///setOsc(d2a_cv,80.0);
+  ///learn_transformation();
   
   /*************************************************************************
    * collect data
    */
   
   setOsc(d2a_cv,100.0);
-  writeToBuffer();
+  //writeToBuffer();
   sendOscilloscopeData();
 
   /*************************************************************************

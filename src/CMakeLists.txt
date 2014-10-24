@@ -148,7 +148,7 @@ else()
 endif()
 
 # # ------------------------------------------------------------------------
-
+# the old vision servo using serial communication and Ales Ude's systems
 # set(SRCS_VISION_SERVO
 # 	SL_vision_servo.c
 # 	SL_dbvision.c
