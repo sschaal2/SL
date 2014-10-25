@@ -103,7 +103,7 @@ main(int argc, char**argv)
       if (semGet(sm_vision_servo_sem,&rc) == ERROR)
 	stop("semTake Time Out -- Servo Terminated");
 
-      if (!acquire_blobs(raw_blobs2D)) {
+      if (!acquire_blobs(raw_blobs)) {
 	no_hardware_flag = TRUE;
       }
 
@@ -114,12 +114,11 @@ main(int argc, char**argv)
 	stop("semTake Time Out -- Servo Terminated");
       
       // reset the blob status
-      for (i=1; i<=max_blobs; ++i) {
-	raw_blobs2D[i][1].status = FALSE;
-	raw_blobs2D[i][2].status = FALSE;
-      }
-      
+      for (i=1; i<=max_blobs; ++i) 
+	raw_blobs[i].status = FALSE;
     }
+
+    //printf("BEFORE RUN Angle: %f\n", raw_blobs[1].x[_X_]);
 
     // lock out the keyboard interaction 
     sl_rt_mutex_lock( &mutex1 );
@@ -130,6 +129,8 @@ main(int argc, char**argv)
 
     // continue keyboard interaction
     sl_rt_mutex_unlock( &mutex1 );
+
+    //    printf("END of loop Angle: %f\n", raw_blobs[1].x[_X_]);
 
   }  /* end servo while loop */
 

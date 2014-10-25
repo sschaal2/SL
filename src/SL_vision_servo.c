@@ -57,6 +57,7 @@ int           no_hardware_flag = FALSE;
 static int models_read = FALSE;
 
 /* local functions */
+static int copy_blobs(Blob3D raw_blobs[]);
 static int  broadcast_blobs(void);
 static int  receive_cartesian(void);
 static int  learn_transformation(void );
@@ -112,7 +113,7 @@ init_vision_servo()
   /* the servo name */
   sprintf(servo_name,"vision");
 
-  /* init the color vision */
+  /* init the kinect vision communication */
   if (!init_vision_hardware())
     no_hardware_flag = TRUE;
 
@@ -128,12 +129,16 @@ init_vision_servo()
     return;
 
   /* init the vision processing */
+  
   if (!init_vision_processing())
     return;
+  
 
   /* init the coordinate transformations models */
+  
   if (!init_learning())
     return;
+  
 
   /* add variables to data collection */
   initCollectData(vision_servo_rate);
@@ -241,6 +246,8 @@ run_vision_servo(void)
   
   checkForMessages();
 
+  //  printf("AFTER CHECK MESSAGES Angle: %f\n", raw_blobs[1].x[_X_]);
+
   /*************************************************************************
    * this allows to overwrite the blobs, e.g., by simulated information
    */
@@ -250,19 +257,21 @@ run_vision_servo(void)
   /* reset the blob status if there is no hardware */
   if (no_hardware_flag) {
     for (i=1; i<=max_blobs; ++i) {
-      raw_blobs2D[i][1].status = 0;
-      raw_blobs2D[i][2].status = 0;
+      raw_blobs[i].status = 0;
     }
     count_all_frames = vision_servo_calls;
   }
   raw_blob_overwrite_flag = check_raw_blob_overwrite();
   
+  //printf("AFTER RAW OVERWRITE Angle: %f\n", raw_blobs[1].x[_X_]);
+
   /*************************************************************************
    * process the blobs (filtering, conversion into our coordinates
    */
   
-  //setOsc(d2a_cv,50.0);
+  setOsc(d2a_cv,50.0);
   //process_blobs(raw_blobs2D);
+  copy_blobs(raw_blobs);
   
   /*************************************************************************
    * broadcast the the final blob information in shared memory
@@ -271,19 +280,21 @@ run_vision_servo(void)
   setOsc(d2a_cv,60.0);
   broadcast_blobs();
   
+  //printf("BROADCAST BLOBS Angle: %f\n", raw_blobs[1].x[_X_]);
+
   /*************************************************************************
    * read the robot state
    */
   
   //setOsc(d2a_cv,70.0);
-  ///receive_cartesian();
+  //receive_cartesian();
   
   /*************************************************************************
    * learn the mapping
    */
   
-  ///setOsc(d2a_cv,80.0);
-  ///learn_transformation();
+  //setOsc(d2a_cv,80.0);
+  //learn_transformation();
   
   /*************************************************************************
    * collect data
@@ -307,6 +318,35 @@ run_vision_servo(void)
 
   return TRUE;
 
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  copy_blobs
+\date  Octiber 2014
+   
+\remarks 
+
+        copies raw_blob information to blobs without futehr processing
+	
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+     [in] raw_blobs
+
+ ******************************************************************************/
+static int 
+copy_blobs(Blob3D raw_blobs[])
+{
+  int i;
+  for(i=1; i<max_blobs; ++i) 
+    {
+      blobs[i].status = raw_blobs[i].status;
+      blobs[i].blob.x[_X_] = raw_blobs[i].x[_X_];
+      blobs[i].blob.x[_Y_] = raw_blobs[i].x[_Y_];
+      blobs[i].blob.x[_Z_] = raw_blobs[i].x[_Z_];
+    }
 }
 
 /*!*****************************************************************************
@@ -448,6 +488,7 @@ check_raw_blob_overwrite(void)
 	sm_raw_blobs_data[i] = sm_raw_blobs->blobs[i];
       }
     
+    printf(" cBlob3D Do I ever get here?\n");
     cBlob3D(raw_blobs,sm_raw_blobs_data,max_blobs,FLOAT2DOUBLE);
     
     if (count_all_frames > last_frame_counter) {
@@ -471,6 +512,7 @@ check_raw_blob_overwrite(void)
 	sm_raw_blobs2D_data[i] = sm_raw_blobs2D->blobs[i];
       }
     
+    printf(" cBlob2D Do I ever get here?\n");
     cBlob2D(raw_blobs2D,sm_raw_blobs2D_data,max_blobs,FLOAT2DOUBLE);
     
     if (count_all_frames > last_frame_counter) {
@@ -485,8 +527,6 @@ check_raw_blob_overwrite(void)
     semGive(sm_raw_blobs2D_sem);
 
   } 
-
-
 
   return rc;
 }

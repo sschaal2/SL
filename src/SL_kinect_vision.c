@@ -30,9 +30,11 @@
 
 #include "poledata.h"
 
-#define BLOB_UPPER  1
-#define BLOB_LOWER  2
-#define N_BLOBS  2
+#define ANGLE       1
+#define BLOB_UPPER  2
+#define BLOB_LOWER  3
+
+#define N_BLOBS  3
 
 #define CAMERA_1  1
 #define N_CAMERAS  1
@@ -141,7 +143,7 @@ read the current information about the blobs
  ******************************************************************************/
 #define MAX_CHARS 10000
 int
-acquire_blobs(Blob2D blobs[][2+1])
+acquire_blobs(Blob3D blobs[])
 {
   int    i,j,r,m;
   int    rc;
@@ -165,23 +167,30 @@ acquire_blobs(Blob2D blobs[][2+1])
       // reusing the 2D blob structure 
       // TODO: replace this with an appropriate structure
       for (i=0; i<N_BLOBS; ++i)
-	blobs[i][CAMERA_1].status = FALSE;
+	blobs[i].status = FALSE;
       
       ++frame_counter;
     } 
   else 
     {
-      // reusing the 2D blob structure 
+      // reusing the 3D blob structure 
       // TODO: replace this with an appropriate structure
-      blobs[BLOB_UPPER][CAMERA_1].status = TRUE;
-      blobs[BLOB_UPPER][CAMERA_1].x[_X_] = the_frame.pole->pos_upper[0];
-      blobs[BLOB_UPPER][CAMERA_1].x[_Y_] = the_frame.pole->pos_upper[1];
+      blobs[ANGLE].status = TRUE;
+      blobs[ANGLE].x[_X_] = the_frame.pole->pole_angle;
+      blobs[ANGLE].x[_Y_] = -1.0;
+      blobs[ANGLE].x[_Z_] = -1.0;
 
-      blobs[BLOB_LOWER][CAMERA_1].status = TRUE;
-      blobs[BLOB_LOWER][CAMERA_1].x[_X_] = the_frame.pole->pos_lower[0];
-      blobs[BLOB_LOWER][CAMERA_1].x[_Y_] = the_frame.pole->pos_lower[1];
+      blobs[BLOB_UPPER].status = TRUE;
+      blobs[BLOB_UPPER].x[_X_] = the_frame.pole->pos_upper[0];
+      blobs[BLOB_UPPER].x[_Y_] = the_frame.pole->pos_upper[1];
+      blobs[BLOB_UPPER].x[_Z_] = the_frame.pole->pos_upper[2];
+
+      blobs[BLOB_LOWER].status = TRUE;
+      blobs[BLOB_LOWER].x[_X_] = the_frame.pole->pos_lower[0];
+      blobs[BLOB_LOWER].x[_Y_] = the_frame.pole->pos_lower[1];
+      blobs[BLOB_LOWER].x[_Z_] = the_frame.pole->pos_lower[2];
      
-      /* DEBUG
+      /* DEBUG 
       printf("listener: pole_angle %.2f \t position upper: %.2f %.2f %.2f\t position lower: %.2f %.2f %.2f\n", 
 	     the_frame.pole->pole_angle,
 	     the_frame.pole->pos_upper[0], the_frame.pole->pos_upper[1], the_frame.pole->pos_upper[2],

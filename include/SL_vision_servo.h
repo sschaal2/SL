@@ -57,7 +57,7 @@ void enable_vision_servo( void );
 void dvs(void);
 void disable_vision_servo(void);
 int  init_vision_hardware(void);
-int  acquire_blobs(Blob2D raw_blobs2D[][2+1]);
+int  acquire_blobs(Blob3D raw_blobs[]);
 void process_blobs(Blob2D raw_blobs2D[][2+1]);
 int  init_vision_processing(void);
 int  init_pp(char *name);
