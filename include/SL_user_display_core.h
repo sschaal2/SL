@@ -5,3 +5,4 @@
   displayComet();
   displayCoord();
   runUserGraphics();
+  runUserGraphicCallbackFunctions();

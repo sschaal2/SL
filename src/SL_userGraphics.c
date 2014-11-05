@@ -47,6 +47,12 @@ typedef struct userGraphicsEntry {
   char *nptr;                                 //!< next pointer
 } UserGraphicsEntry;
 
+typedef struct userGraphicsCallbackEntry {
+	  char keywordDescribingCallback[20];
+	  void (*pointerToCallbackFunction)();
+	  char *pointerToNextEntry;
+} UserGraphicsCallbackEntry;
+
 struct {
   char     name[20];
   float    blob[N_CART+1];
@@ -57,12 +63,51 @@ int  user_graphics_update = FALSE;
 
 // local variables
 static UserGraphicsEntry *ugraphs = NULL;
+static UserGraphicsEntry *userGraphicCallbackFunctions = NULL;
+
 
 // local functions
 static void displayBall(void *b);
 static void displayVisionBlob(void *b);
 
 static void listUserGraphics(void);
+
+void addToUserGraphicsCallbacks(char *keywordDescribingCallback, void (*pointerToCallbackFunction)(void *)) {
+  int i;
+  UserGraphicsCallbackEntry *pointerToCurrentEntry;
+
+  // first check for duplicate entries
+  pointerToCurrentEntry = userGraphicCallbackFunctions;
+	while (pointerToCurrentEntry != NULL) {
+		if (strcmp(pointerToCurrentEntry->keywordDescribingCallback,
+				keywordDescribingCallback) == 0) {
+			pointerToCurrentEntry->pointerToCallbackFunction =
+					pointerToCallbackFunction;
+			return;
+		}
+		if (pointerToCurrentEntry->pointerToNextEntry == NULL) {
+			break;
+		} else {
+			pointerToCurrentEntry =
+					(UserGraphicsCallbackEntry *) pointerToCurrentEntry->pointerToNextEntry;
+		}
+	}
+
+  // if no entry was found, create a new one
+  if (userGraphicCallbackFunctions == NULL) {
+	  userGraphicCallbackFunctions = (UserGraphicsCallbackEntry *) my_calloc(1,sizeof(UserGraphicsCallbackEntry),MY_STOP);
+	  pointerToCurrentEntry = userGraphicCallbackFunctions;
+  } else {
+	  pointerToCurrentEntry->pointerToNextEntry = my_calloc(1,sizeof(UserGraphicsCallbackEntry),MY_STOP);
+	  pointerToCurrentEntry = (UserGraphicsCallbackEntry *)pointerToCurrentEntry->pointerToNextEntry;
+  }
+  strcpy(pointerToCurrentEntry->keywordDescribingCallback, keywordDescribingCallback);
+  pointerToCurrentEntry->pointerToCallbackFunction = pointerToCallbackFunction;
+  pointerToCurrentEntry->pointerToNextEntry = NULL;
+
+}
+
+
 
 /*!*****************************************************************************
  *******************************************************************************
@@ -310,6 +355,18 @@ runUserGraphics(void)
   }
 
 }
+
+
+void runUserGraphicCallbackFunctions(void) {
+  UserGraphicsCallbackEntry *pointerToCurrentEntry;
+  pointerToCurrentEntry = userGraphicCallbackFunctions;
+  while (pointerToCurrentEntry != NULL) {
+      (*pointerToCurrentEntry->pointerToCallbackFunction)();
+      pointerToCurrentEntry = (UserGraphicsCallbackEntry *)pointerToCurrentEntry->pointerToNextEntry;
+  }
+}
+
+
 
 /*!*****************************************************************************
  *******************************************************************************
