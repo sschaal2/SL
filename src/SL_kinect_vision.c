@@ -177,7 +177,7 @@ acquire_blobs(Blob3D blobs[])
       // TODO: replace this with an appropriate structure
       blobs[ANGLE].status = TRUE;
       blobs[ANGLE].x[_X_] = the_frame.pole->pole_angle;
-      blobs[ANGLE].x[_Y_] = -1.0;
+      blobs[ANGLE].x[_Y_] = the_frame.pole->pole_angular_velocity;
       blobs[ANGLE].x[_Z_] = -1.0;
 
       blobs[BLOB_UPPER].status = TRUE;

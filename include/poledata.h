@@ -10,5 +10,6 @@ typedef struct
   float pos_lower[DIM];
   // anlew of the pole in rad
   float pole_angle;
-
+  // angular velocity of pole [rad/s]
+  float pole_angular_velocity;
 } PoleData;
