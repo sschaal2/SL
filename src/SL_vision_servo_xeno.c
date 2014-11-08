@@ -187,7 +187,7 @@ vision_servo(void *dummy)
       if (semGet(sm_vision_servo_sem,&rc) == ERROR)
 	stop("semTake Time Out -- Servo Terminated");
 
-      if (!acquire_blobs(raw_blobs2D)) {
+      if (!acquire_blobs(raw_blobs)) {
 	no_hardware_flag = TRUE;
       }
 
@@ -198,10 +198,8 @@ vision_servo(void *dummy)
 	stop("semTake Time Out -- Servo Terminated");
       
       // reset the blob status
-      for (i=1; i<=max_blobs; ++i) {
-	raw_blobs2D[i][1].status = FALSE;
-	raw_blobs2D[i][2].status = FALSE;
-      }
+      for (i=1; i<=max_blobs; ++i)
+	raw_blobs[i].status = FALSE;
       
     }
 

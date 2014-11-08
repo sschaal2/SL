@@ -21,11 +21,7 @@
 #include "SL.h"
 #include "utility.h"
 #include "SL_vision_servo.h"
-#ifdef __XENO__
-#include "SL_socket_xeno.h"
-#else
 #include "SL_socket_unix.h"
-#endif
 #include "fcntl.h"
 
 #include "poledata.h"

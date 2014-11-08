@@ -175,20 +175,19 @@ set(SRCS_VISION_SERVO
 	SL_vision_servo.c
 	SL_kinect_vision.c
 	SL_vision_proc.c
+	SL_socket_unix.c
 	) 
 
 if($ENV{MACHTYPE}  MATCHES "(xeno)")
   set(SRCS_VISION_SERVO
 	SL_vision_servo_xeno.c
-	SL_socket_xeno.c
 	${SRCS_VISION_SERVO}
 	) 
 else()
   set(SRCS_VISION_SERVO
-	SL_vision_servo_unix.c
-	SL_socket_unix.c
-	${SRCS_VISION_SERVO}
-	) 
+    SL_vision_servo_unix.c
+    ${SRCS_VISION_SERVO}
+    ) 
 endif()
 
 # ------------------------------------------------------------------------
