@@ -39,7 +39,6 @@ extern int stereo_mode;
 
 /* local functions */
 
-
 /*!*****************************************************************************
  *******************************************************************************
 \note  main
@@ -117,9 +116,7 @@ main(int argc, char**argv)
       for (i=1; i<=max_blobs; ++i) 
 	raw_blobs[i].status = FALSE;
     }
-
-    //printf("BEFORE RUN Angle: %f\n", raw_blobs[1].x[_X_]);
-
+    
     // lock out the keyboard interaction 
     sl_rt_mutex_lock( &mutex1 );
 
@@ -129,8 +126,6 @@ main(int argc, char**argv)
 
     // continue keyboard interaction
     sl_rt_mutex_unlock( &mutex1 );
-
-    //    printf("END of loop Angle: %f\n", raw_blobs[1].x[_X_]);
 
   }  /* end servo while loop */
 

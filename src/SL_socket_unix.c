@@ -99,6 +99,12 @@ open_socket()
 
   freeaddrinfo(servinfo);
 
+  // making the socket read a blocking call with a timeout of 40ms
+  struct timeval tv;
+  tv.tv_sec = 0;  
+  tv.tv_usec = 40000;
+  setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
+
   printf("listener: waiting to recvfrom...\n");
 
   return sockfd;
@@ -142,12 +148,13 @@ close_socket(int fd)
  \param[out]    buffer: buffer for read
 
      returns the number of bytes actually read
+     this is a non-blocking call
 
  ******************************************************************************/
 int
 read_socket(int fd,int n_bytes, char *buffer) 
 {
-  return recvfrom(fd, buffer, n_bytes , MSG_DONTWAIT,
+  return recvfrom(fd, buffer, n_bytes , MSG_WAITALL, //MSG_DONTWAIT,
 		  (struct sockaddr *)&their_addr, &addr_len);
 }
 

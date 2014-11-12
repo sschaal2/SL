@@ -17,9 +17,9 @@
 #define _SL_vision_servo_
 
 #ifndef SYS_CLOCK_RATE  
-#define SYS_CLOCK_RATE  60
+#define SYS_CLOCK_RATE  30
 #endif
-#define VISION_SERVO_RATE  60.0
+#define VISION_SERVO_RATE  30.0
 
 #define BLOB2ROBOT         1
 #define BLOB2ROBOT_SCRIPT  "learn/blob2robot.script"

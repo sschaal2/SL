@@ -68,6 +68,7 @@ enum ConfigFile {
 #define R1TO4 4
 #define R1TO5 5
 #define R60HZ 60
+#define R30HZ 30
 
 /*! defines for the preference and config files */
 #define CONFIG   "config/"

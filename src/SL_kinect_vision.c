@@ -37,6 +37,7 @@
 
 #define WAIT_IN_NS 100000
 
+// global variables
 typedef struct Frame {
   int counter;  /*!< the frame counter */
   PoleData *pole;
@@ -49,10 +50,8 @@ static int             socket_fd;
 int                    numbytes;
 
 
-// global variables
-
 // local functions
-static int  init_kinect_vision_interface(void);
+static int init_kinect_vision_interface(void);
 //static int  read_frame(char *,int );
 
 /*!*****************************************************************************
@@ -157,17 +156,17 @@ acquire_blobs(Blob3D blobs[])
   // TODO: Discuss this quesiton with Stefan
   // should this be a blocking call to make use of the kinect irregular clock?
   // or should it be a non-blocking call and just continue polling for information?
-  if((numbytes = read_socket(socket_fd, sizeof(PoleData), (char *)the_frame.pole)) == -1)
+  if((numbytes = read_socket(socket_fd, sizeof(PoleData), (char *)the_frame.pole)) == -1 )
     {
       // no new data available
-      // reusing the 2D blob structure 
+      // reusing the 3D blob structure 
       // TODO: replace this with an appropriate structure
       for (i=0; i<N_BLOBS; ++i)
 	blobs[i].status = FALSE;
       
       ++frame_counter;
     } 
-  else 
+    else
     {
       // reusing the 3D blob structure 
       // TODO: replace this with an appropriate structure
@@ -185,7 +184,7 @@ acquire_blobs(Blob3D blobs[])
       blobs[BLOB_LOWER].x[_X_] = the_frame.pole->pos_lower[0];
       blobs[BLOB_LOWER].x[_Y_] = the_frame.pole->pos_lower[1];
       blobs[BLOB_LOWER].x[_Z_] = the_frame.pole->pos_lower[2];
-     
+      
       /* DEBUG 
       printf("listener: pole_angle %.2f \t position upper: %.2f %.2f %.2f\t position lower: %.2f %.2f %.2f\n", 
 	     the_frame.pole->pole_angle,
@@ -204,3 +203,4 @@ acquire_blobs(Blob3D blobs[])
   taskDelay(ns2ticks(WAIT_IN_NS));
   return TRUE;
 }
+

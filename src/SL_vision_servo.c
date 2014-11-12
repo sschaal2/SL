@@ -41,7 +41,7 @@ int           servo_enabled;
 double        servo_time;
 double        vision_servo_time;
 double        last_vision_servo_time;
-int           vision_servo_rate = R60HZ;
+int           vision_servo_rate = R30HZ;
 int           vision_servo_calls;
 char          current_pp_name[100];
 int           vision_servo_initialized = FALSE;
@@ -55,6 +55,7 @@ int           no_hardware_flag = FALSE;
 
 /* local variables */
 static int models_read = FALSE;
+
 
 /* local functions */
 static int copy_blobs(Blob3D raw_blobs[]);
@@ -280,6 +281,7 @@ run_vision_servo(void)
   setOsc(d2a_cv,60.0);
   broadcast_blobs();
   
+
   //printf("BROADCAST BLOBS Angle: %f\n", raw_blobs[1].x[_X_]);
 
   /*************************************************************************
@@ -347,6 +349,7 @@ copy_blobs(Blob3D raw_blobs[])
       blobs[i].blob.x[_Y_] = raw_blobs[i].x[_Y_];
       blobs[i].blob.x[_Z_] = raw_blobs[i].x[_Z_];
     }
+  return TRUE;
 }
 
 /*!*****************************************************************************
@@ -399,6 +402,8 @@ broadcast_blobs(void)
     if (strcmp(string,current_pp_name) != 0 && strcmp(string,"") != 0) {
       init_pp(string);
     }
+
+
     semGive(sm_vision_blobs_sem);
 
   }
@@ -488,7 +493,6 @@ check_raw_blob_overwrite(void)
 	sm_raw_blobs_data[i] = sm_raw_blobs->blobs[i];
       }
     
-    printf(" cBlob3D Do I ever get here?\n");
     cBlob3D(raw_blobs,sm_raw_blobs_data,max_blobs,FLOAT2DOUBLE);
     
     if (count_all_frames > last_frame_counter) {
@@ -512,7 +516,6 @@ check_raw_blob_overwrite(void)
 	sm_raw_blobs2D_data[i] = sm_raw_blobs2D->blobs[i];
       }
     
-    printf(" cBlob2D Do I ever get here?\n");
     cBlob2D(raw_blobs2D,sm_raw_blobs2D_data,max_blobs,FLOAT2DOUBLE);
     
     if (count_all_frames > last_frame_counter) {
