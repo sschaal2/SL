@@ -101,8 +101,8 @@ open_socket()
 
   // making the socket read a blocking call with a timeout of 40ms
   struct timeval tv;
-  tv.tv_sec = 0;  
-  tv.tv_usec = 40000;
+  tv.tv_sec = 1;  // blocking read for one second
+  tv.tv_usec = 0;
   setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 
   printf("listener: waiting to recvfrom...\n");
