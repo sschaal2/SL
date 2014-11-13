@@ -105,8 +105,6 @@ open_socket()
   tv.tv_usec = 0;
   setsockopt(sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv,sizeof(struct timeval));
 
-  printf("listener: waiting to recvfrom...\n");
-
   return sockfd;
 }
 /*!*****************************************************************************
@@ -154,6 +152,8 @@ close_socket(int fd)
 int
 read_socket(int fd,int n_bytes, char *buffer) 
 {
+
+  rt_task_set_mode(T_PRIMARY,0,NULL);
   return recvfrom(fd, buffer, n_bytes , MSG_WAITALL, //MSG_DONTWAIT,
 		  (struct sockaddr *)&their_addr, &addr_len);
 }
