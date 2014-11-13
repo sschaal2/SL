@@ -152,8 +152,9 @@ close_socket(int fd)
 int
 read_socket(int fd,int n_bytes, char *buffer) 
 {
-
+#ifdef __XENO__
   rt_task_set_mode(T_PRIMARY,0,NULL);
+#endif
   return recvfrom(fd, buffer, n_bytes , MSG_WAITALL, //MSG_DONTWAIT,
 		  (struct sockaddr *)&their_addr, &addr_len);
 }
