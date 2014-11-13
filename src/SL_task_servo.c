@@ -47,6 +47,8 @@ int    task_servo_rate;
 int    frame_counter = 0;
 int    exit_on_stop = FALSE;
 
+int    vision_semaphore_errors = 0;
+
 /* local variables */
 
 /* global functions */
@@ -659,6 +661,7 @@ status(void)
   printf("            Servo Running          = %d\n",servo_enabled);
   printf("            Task                   = %s\n",current_task_name);
   printf("            Vision Frame Counter   = %d\n",frame_counter);
+  printf("            Vision Semaphore Errors= %d\n",vision_semaphore_errors);
 #ifdef __XENO__
   extern long count_xenomai_mode_switches;
   extern int  delay_ns;
@@ -1160,7 +1163,7 @@ receive_blobs(void)
   
   if (semTake(sm_vision_blobs_sem,NO_WAIT) == ERROR)
     {
-      ;
+      ++vision_semaphore_errors;
     }
   else 
     {

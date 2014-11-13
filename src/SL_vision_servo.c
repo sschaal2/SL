@@ -247,8 +247,6 @@ run_vision_servo(void)
   
   checkForMessages();
 
-  //  printf("AFTER CHECK MESSAGES Angle: %f\n", raw_blobs[1].x[_X_]);
-
   /*************************************************************************
    * this allows to overwrite the blobs, e.g., by simulated information
    */
@@ -258,20 +256,19 @@ run_vision_servo(void)
   /* reset the blob status if there is no hardware */
   if (no_hardware_flag) {
     for (i=1; i<=max_blobs; ++i) {
-      raw_blobs[i].status = 0;
+      raw_blobs[i].status = FALSE;
     }
     count_all_frames = vision_servo_calls;
   }
+  // This is called in case the send_raw_blobs() is called in the 
+  // task servo. Useful when simulating blob information there.
   raw_blob_overwrite_flag = check_raw_blob_overwrite();
   
-  //printf("AFTER RAW OVERWRITE Angle: %f\n", raw_blobs[1].x[_X_]);
-
   /*************************************************************************
    * process the blobs (filtering, conversion into our coordinates
    */
   
   setOsc(d2a_cv,50.0);
-  //process_blobs(raw_blobs2D);
   copy_blobs(raw_blobs);
   
   /*************************************************************************
@@ -281,9 +278,6 @@ run_vision_servo(void)
   setOsc(d2a_cv,60.0);
   broadcast_blobs();
   
-
-  //printf("BROADCAST BLOBS Angle: %f\n", raw_blobs[1].x[_X_]);
-
   /*************************************************************************
    * read the robot state
    */
