@@ -548,6 +548,8 @@ sendCommandLineCmd(char *name)
   rl_stuff_char('\0');
   rl_stuff_char(NULL);
 
+  rl_free_line_state();
+
 
 }
 
