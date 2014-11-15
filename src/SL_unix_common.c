@@ -67,6 +67,7 @@ static char **sl_completion(const char *text, int start, int end);
 static char *command_generator(const char *text, int state);
 static void  checkUserCommand(char *name);
 static void *checkKeyboard(void *initial_command);
+static void *checkUserCommandThread(void *user_command);
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -127,10 +128,8 @@ checkKeyboard(void *initial_command)
 
     snprintf(prompt, 1000, "%s.%s> ",robot_name,servo_name);
     string = readline(prompt);
-    printf("dudel\n");
     if (string && *string) {
       add_history(string);
-      printf("check: >%s<\n",string);
       checkUserCommand(string);
     }
     free(string);
@@ -138,7 +137,6 @@ checkKeyboard(void *initial_command)
     // this allows the user to run a command line command from a program, 
     // and in partciular a real-time program
     if (strlen(user_command) > 0) {
-      printf(">%s<\n",user_command);
       checkUserCommand(user_command);
       strcpy(user_command,"\0");
     }
@@ -538,18 +536,50 @@ void
 sendCommandLineCmd(char *name) 
 
 {
-  int i;
+  int err = 0;
+  int rc;
+  pthread_attr_t pth_attr;
+  pthread_t      lcthread;  
+  size_t stack_size = 0;
 
+  // the user command
   strncpy(user_command, name, MAX_CHARS_COMMAND);
-  rl_stuff_char('e');
-  rl_stuff_char('n');
-  rl_stuff_char('d');
-  rl_stuff_char('\n');
-  rl_stuff_char('\0');
-  rl_stuff_char(NULL);
 
-  rl_free_line_state();
+  // prepare the thread
+  err = pthread_attr_init(&pth_attr);
+  pthread_attr_getstacksize(&pth_attr, &stack_size);
+  double reqd = 1024*1024*8;
+  if (stack_size < reqd)
+    pthread_attr_setstacksize(&pth_attr, reqd);
 
+  // run the thread with the user command
+  if ((rc=pthread_create( &lcthread, &pth_attr, checkUserCommandThread, user_command)))
+      printf("pthread_create returned with %d\n",rc);
 
 }
 
+/*!*****************************************************************************
+*******************************************************************************
+\note  checkUserCommandThread
+\date  Nov. 2014
+ 
+\remarks 
+ 
+thread to run a specific user command without real-time interference
+ 
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+ 
+\param[in] user_command : the user command
+ 
+******************************************************************************/
+static void *
+checkUserCommandThread(void *user_command) 
+{
+
+  checkUserCommand(user_command);
+  strcpy(user_command,"\0");
+
+  return NULL;
+
+}
