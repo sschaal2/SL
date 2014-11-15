@@ -459,7 +459,8 @@ setGains(int id)
   i = id;
   
   sprintf(string,"%5s Position Gain",joint_names[i]);
-  get_double(string,controller_gain_th[i],&temp);
+  if (!get_double(string,controller_gain_th[i],&temp))
+    return;
   if (temp < 0)
     temp = 0;
   if (temp > 1000)
@@ -467,7 +468,8 @@ setGains(int id)
   controller_gain_th[i] = temp;
   
   sprintf(string,"%5s Velocity Gain",joint_names[i]);
-  get_double(string,controller_gain_thd[i],&temp);
+  if (!get_double(string,controller_gain_thd[i],&temp))
+    return;
   if (temp < 0)
     temp = 0;
   if (temp > 1000)
@@ -475,7 +477,8 @@ setGains(int id)
   controller_gain_thd[i] = temp;
   
   sprintf(string,"%5s Integral Gain",joint_names[i]);
-  get_double(string,controller_gain_int[i],&temp);
+  if (!get_double(string,controller_gain_int[i],&temp))
+    return;
   if (temp < 0)
     temp = 0;
   if (temp > 1000)

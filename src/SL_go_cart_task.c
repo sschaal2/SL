@@ -35,7 +35,6 @@ static double     time_step;
 static double     *cart;
 static SL_Cstate  *ctarget;
 static SL_Cstate  *cnext;
-static SL_DJstate *target;
 static int        *cstatus;
 static SL_DJstate *target;
 static int        firsttime = TRUE;
