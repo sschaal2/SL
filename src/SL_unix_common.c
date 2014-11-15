@@ -37,8 +37,10 @@
 // global variables
 #ifdef __XENO__
 sl_rt_mutex mutex1;
+sl_rt_mutex mutex2;
 #else
 sl_rt_mutex mutex1 = PTHREAD_MUTEX_INITIALIZER; //for a safe thread
+sl_rt_mutex mutex2 = PTHREAD_MUTEX_INITIALIZER; //for a safe thread
 #endif
 int (*window_check_function)(char *) = NULL;
 int  run_command_line_thread_flag = FALSE;
@@ -50,7 +52,8 @@ char **global_argv;
 // external variables
 
 // local variabes
-static pthread_t       cthread;  // thread for the command interface
+static pthread_t       cthread;   // thread for the command interface
+static pthread_t       ucthread;  // thread for the user command interface
 
 
 static char       command[MAX_ITEMS+1][MAX_CHARS_COMMAND];
@@ -67,7 +70,7 @@ static char **sl_completion(const char *text, int start, int end);
 static char *command_generator(const char *text, int state);
 static void  checkUserCommand(char *name);
 static void *checkKeyboard(void *initial_command);
-static void *checkUserCommandThread(void *user_command);
+static void *checkUserCommandThread(void *);
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -253,6 +256,10 @@ spawnCommandLineThread(char *initial_command)
   run_command_line_thread_flag = TRUE;
   initializeReadLine();
   if ((rc=pthread_create( &cthread, &pth_attr, checkKeyboard, initial_command)))
+      printf("pthread_create returned with %d\n",rc);
+
+  /* a second thread for user command triggered by programming */
+  if ((rc=pthread_create( &ucthread, &pth_attr, checkUserCommandThread, NULL)))
       printf("pthread_create returned with %d\n",rc);
 
   printSLBanner();
@@ -541,20 +548,11 @@ sendCommandLineCmd(char *name)
   pthread_attr_t pth_attr;
   pthread_t      lcthread;  
   size_t stack_size = 0;
+  int i;
 
   // the user command
   strncpy(user_command, name, MAX_CHARS_COMMAND);
-
-  // prepare the thread
-  err = pthread_attr_init(&pth_attr);
-  pthread_attr_getstacksize(&pth_attr, &stack_size);
-  double reqd = 1024*1024*8;
-  if (stack_size < reqd)
-    pthread_attr_setstacksize(&pth_attr, reqd);
-
-  // run the thread with the user command
-  if ((rc=pthread_create( &lcthread, &pth_attr, checkUserCommandThread, user_command)))
-      printf("pthread_create returned with %d\n",rc);
+  sl_rt_mutex_unlock(&mutex2);
 
 }
 
@@ -570,15 +568,22 @@ thread to run a specific user command without real-time interference
 *******************************************************************************
 Function Parameters: [in]=input,[out]=output
  
-\param[in] user_command : the user command
+\param[in] dummy : dummy variable
  
 ******************************************************************************/
 static void *
-checkUserCommandThread(void *user_command) 
+checkUserCommandThread(void *dummy) 
 {
 
-  checkUserCommand(user_command);
-  strcpy(user_command,"\0");
+  while (run_command_line_thread_flag) { 
+
+    // try to lock the mutex
+    sl_rt_mutex_lock(&mutex2);
+
+    checkUserCommand(user_command);
+    strcpy(user_command,"\0");
+
+  }
 
   return NULL;
 
