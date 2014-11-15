@@ -2703,6 +2703,7 @@ accumulateFinalForces(ContactPtr cptr)
     moment_arm[_X_]*cptr->f[_Z_]*cptr->fraction_end;
   ucontact[cptr->base_dof_end].t[_G_] += moment_arm[_X_]*cptr->f[_Y_]*cptr->fraction_end - 
     moment_arm[_Y_]*cptr->f[_X_]*cptr->fraction_end;
+
   
   /* get the torque at the object center from the cross product */
   optr->t[_A_] += moment_arm_object[_Y_]*cptr->f[_Z_]*cptr->fraction_end - 

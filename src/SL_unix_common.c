@@ -57,8 +57,6 @@ static char       command[MAX_ITEMS+1][MAX_CHARS_COMMAND];
 static int        n_command=0;
 static void       (*command_ptr[MAX_ITEMS+1])(void);
 
-static int	  time_reset_detected=TRUE;
-
 static char       user_command[MAX_CHARS_COMMAND] = "";  // this command can be set by user
 
 // global functions
@@ -115,37 +113,24 @@ checkKeyboard(void *initial_command)
 
   while (run_command_line_thread_flag) {
 
-    // run initial command as soon as the task servo has started -- there is 
-    // a little trick that allows resetting the servo clock and re-run the
-    // initial command, which is useful for simulations.
+    // run initial command as soon as the task servo has started 
 
-    // the "time_reset_detected" flag is set by the sl_readline_callback
-    // function which detects a reset of the servo clock
+    if (strcmp(servo_name,"task")==0 && initial_command != NULL && servo_time < 0.1) {
 
-    if (time_reset_detected && strcmp(servo_name,"task")==0 && initial_command != NULL ) {
-      // the clock has been reset
+      // wait until the servo_time goes beyond 100ms:
+      while (servo_time < 0.1)
+	usleep(10000);
 
-      // Special LittleDog Hack -- to be removed?
-      // if the environment variable "SL_TASK_SERVO_STANDALONE" is set,
-      // don't wait for the servo time to start ticking:
-      if (getenv("SL_TASK_SERVO_STANDALONE"))
-        usleep(100000);
-      // else wait until the servo_time goes beyond 100ms:
-      else {
-        while (servo_time < 0.1)
-	  usleep(10000);
-      }
-
-      if (initial_command != NULL) {
-        checkUserCommand((char *)initial_command);
-      }
-      time_reset_detected = 0;
+      checkUserCommand((char *)initial_command);
+    
     }
 
     snprintf(prompt, 1000, "%s.%s> ",robot_name,servo_name);
     string = readline(prompt);
+    printf("dudel\n");
     if (string && *string) {
       add_history(string);
+      printf("check: >%s<\n",string);
       checkUserCommand(string);
     }
     free(string);
@@ -153,6 +138,7 @@ checkKeyboard(void *initial_command)
     // this allows the user to run a command line command from a program, 
     // and in partciular a real-time program
     if (strlen(user_command) > 0) {
+      printf(">%s<\n",user_command);
       checkUserCommand(user_command);
       strcpy(user_command,"\0");
     }
@@ -555,7 +541,13 @@ sendCommandLineCmd(char *name)
   int i;
 
   strncpy(user_command, name, MAX_CHARS_COMMAND);
+  rl_stuff_char('e');
+  rl_stuff_char('n');
+  rl_stuff_char('d');
   rl_stuff_char('\n');
+  rl_stuff_char('\0');
+  rl_stuff_char(NULL);
+
 
 }
 
