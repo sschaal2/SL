@@ -15,6 +15,9 @@
 
   ============================================================================*/
 
+#include <julia.h>
+#include <stdio.h>
+
 // SL general includes of system headers
 #include "SL_system_headers.h"
 
@@ -62,6 +65,9 @@ int
 main(int argc, char**argv)
 {
   int i, j;
+
+	jl_init("/Network/Servers/titian/Volumes/titian/jrebula/julia/usr/lib");
+	JL_SET_STACK_BASE;
 
   // parse command line options
   parseOptions(argc, argv);

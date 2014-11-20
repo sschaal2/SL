@@ -1,6 +1,14 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(sl)
 
+set(JULIA_PATH "/Network/Servers/titian/Volumes/titian/jrebula/julia")
+set(JULIA_PATH_SRC "${JULIA_PATH}/src")
+set(JULIA_PATH_SRC_SUPPORT "${JULIA_PATH}/src/support")
+set(JULIA_PATH_SRC_INCLUDE "${JULIA_PATH}/usr/include")
+set(JULIA_PATH_USR_LIB "${JULIA_PATH}/usr/lib")
+set(JULIA_NAME_OF_CORE_LIBRARY "${JULIA_PATH}/usr/lib/libjulia.so")
+
+
 ## find SL dependencies using catkin
 find_package(catkin REQUIRED COMPONENTS
   sl_config
@@ -112,6 +120,15 @@ add_library(SLtask
 )
 set_target_properties(SLtask PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 
+
+target_link_libraries(SLtask
+  ${JULIA_NAME_OF_CORE_LIBRARY}
+)
+
+set_target_properties(SLtask
+                      PROPERTIES COMPILE_FLAGS "-Wall -Wno-strict-aliasing -fno-omit-frame-pointer -I${JULIA_PATH_SRC} -I${JULIA_PATH_SRC_SUPPORT} -I${JULIA_PATH_SRC_INCLUDE} -L${JULIA_PATH_USR_LIB} -rdynamic -ljulia -lm -Wl,-rpath,'${JULIA_PATH_USR_LIB}'")
+
+
 # SLmotor 
 add_library(SLmotor
   src/SL_controller.c
@@ -141,6 +158,7 @@ add_library(SLopenGL
   src/SL_userGraphics.c
 )
 target_link_libraries(SLopenGL
+  ${JULIA_NAME_OF_CORE_LIBRARY}
   ${OPENGL_LIBRARIES}
   ${X11_LIBRARIES}
   ${GLUT_LIBRARIES}
@@ -148,6 +166,10 @@ target_link_libraries(SLopenGL
   ${Xenomai_LIBRARY_RTDK}
 )
 set_target_properties(SLopenGL PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
+
+set_target_properties(SLopenGL
+                      PROPERTIES COMPILE_FLAGS "-Wall -Wno-strict-aliasing -fno-omit-frame-pointer -I${JULIA_PATH_SRC} -I${JULIA_PATH_SRC_SUPPORT} -I${JULIA_PATH_SRC_INCLUDE} -L${JULIA_PATH_USR_LIB} -rdynamic -ljulia -lm -Wl,-rpath,'${JULIA_PATH_USR_LIB}'")
+
 
 # SLvision
 add_library(SLvision
