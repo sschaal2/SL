@@ -239,7 +239,7 @@ install(TARGETS SLsimulation  ARCHIVE DESTINATION ${LAB_LIBDIR})
 install(TARGETS SLopenGL      ARCHIVE DESTINATION ${LAB_LIBDIR})
 install(TARGETS SLvision      ARCHIVE DESTINATION ${LAB_LIBDIR})
 
-if(DEFINED ENV{ROS_ROOT})
+if(${use_ros})
   add_library(SLros ${SRCS_ROS_SERVO})
   install(TARGETS SLros ARCHIVE DESTINATION ${LAB_LIBDIR})
 endif()
