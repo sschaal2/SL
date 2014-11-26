@@ -41,7 +41,13 @@ if (pause_flag || stand_alone_flag) {
 
 #ifdef __XENO__
   // we want to be in real-time mode here
+  #if (CONFIG_XENO_VERSION_MAJOR < 2) || (CONFIG_XENO_VERSION_MAJOR == 2 && CONFIG_XENO_VERSION_MINOR < 6)
+  // we are on xenomai version < 2.6
+  rt_task_set_mode(0,T_PRIMARY,NULL);
+  #else
+  // we are on xenomai version < 2.6
   rt_task_set_mode(0,T_CONFORMING,NULL);
+  #endif
 #endif
 //-------------------------------------------------------------------------
 // get 60Hz semaphore
