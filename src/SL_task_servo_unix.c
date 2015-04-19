@@ -66,8 +66,8 @@ main(int argc, char**argv)
 {
   int i, j;
 
-	jl_init("/Network/Servers/titian/Volumes/titian/jrebula/julia/usr/lib");
-	JL_SET_STACK_BASE;
+//	jl_init("/Network/Servers/titian/Volumes/titian/jrebula/julia/usr/lib");
+//	JL_SET_STACK_BASE;
 
   // parse command line options
   parseOptions(argc, argv);
