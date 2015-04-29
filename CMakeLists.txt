@@ -162,27 +162,6 @@ endif()
 
 # ------------------------------------------------------------------------
 
-# set(SRCS_ROS_SERVO
-# 	${src_directory}/SL_ros_servo.cpp
-# 	${src_directory}/SL_ros_communicator.cpp
-# 	)
-
-# if(${MACHTYPE}  MATCHES "(xeno)")
-#   set(SRCS_ROS_SERVO
-#       ${src_directory}/SL_ros_servo_xeno.cpp
-#       ${SRCS_ROS_SERVO}
-# 	)
-# else()
-#   set(SRCS_ROS_SERVO
-#       ${src_directory}/SL_ros_servo_unix.cpp
-#       ${SRCS_ROS_SERVO}
-# 	)
-# endif()
-
-# set(ROS_PACKAGES roscpp sensor_msgs geometry_msgs)
-
-# ------------------------------------------------------------------------
-
 set(HEADERS
 	  ${header_directory}/SL.h
 	  ${header_directory}/SL_collect_data.h
