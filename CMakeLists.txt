@@ -162,24 +162,24 @@ endif()
 
 # ------------------------------------------------------------------------
 
-set(SRCS_ROS_SERVO
-	${src_directory}/SL_ros_servo.cpp
-	${src_directory}/SL_ros_communicator.cpp
-	)
+# set(SRCS_ROS_SERVO
+# 	${src_directory}/SL_ros_servo.cpp
+# 	${src_directory}/SL_ros_communicator.cpp
+# 	)
 
-if(${MACHTYPE}  MATCHES "(xeno)")
-  set(SRCS_ROS_SERVO
-      ${src_directory}/SL_ros_servo_xeno.cpp
-      ${SRCS_ROS_SERVO}
-	)
-else()
-  set(SRCS_ROS_SERVO
-      ${src_directory}/SL_ros_servo_unix.cpp
-      ${SRCS_ROS_SERVO}
-	)
-endif()
+# if(${MACHTYPE}  MATCHES "(xeno)")
+#   set(SRCS_ROS_SERVO
+#       ${src_directory}/SL_ros_servo_xeno.cpp
+#       ${SRCS_ROS_SERVO}
+# 	)
+# else()
+#   set(SRCS_ROS_SERVO
+#       ${src_directory}/SL_ros_servo_unix.cpp
+#       ${SRCS_ROS_SERVO}
+# 	)
+# endif()
 
-set(ROS_PACKAGES roscpp sensor_msgs geometry_msgs)
+# set(ROS_PACKAGES roscpp sensor_msgs geometry_msgs)
 
 # ------------------------------------------------------------------------
 
@@ -199,7 +199,6 @@ set(HEADERS
 	  ${header_directory}/SL_openGL.h
 	  ${header_directory}/SL_openGL_servo.h 
 	  ${header_directory}/SL_oscilloscope.h
-	  ${header_directory}/SL_ros_servo.h
 	  ${header_directory}/SL_rt_mutex.h
 	  ${header_directory}/SL_sensor_proc.h
 	  ${header_directory}/SL_shared_memory.h
