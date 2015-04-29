@@ -226,11 +226,17 @@ set(HEADERS
 # ------------------------------------------------------------------------
 
 add_library(SLcommon      ${SRCS_SL_COMMON})
+list(APPEND SL_LIBRARIES SLcommon)
 add_library(SLtask        ${SRCS_TASK_SERVO})
+list(APPEND SL_LIBRARIES SLtask)
 add_library(SLmotor       ${SRCS_MOTOR_SERVO})
+list(APPEND SL_LIBRARIES SLmotor)
 add_library(SLsimulation  ${SRCS_SIM_SERVO})
+list(APPEND SL_LIBRARIES SLsimulation)
 add_library(SLopenGL      ${SRCS_GL_SERVO})
+list(APPEND SL_LIBRARIES SLopenGL)
 add_library(SLvision      ${SRCS_VISION_SERVO})
+list(APPEND SL_LIBRARIES SLvision)
 
 install(TARGETS SLcommon      
   ARCHIVE DESTINATION ${LAB_LIBDIR}
@@ -251,13 +257,8 @@ install(TARGETS SLvision
   ARCHIVE DESTINATION ${LAB_LIBDIR}
   LIBRARY DESTINATION ${LAB_LIBDIR})
 
-if(${use_ros})
-  add_library(SLros ${SRCS_ROS_SERVO})
-  install(TARGETS SLros 
-    ARCHIVE DESTINATION ${LAB_LIBDIR}
-    LIBRARY DESTINATION ${LAB_LIBDIR})
-endif()
-
-
 install(FILES ${HEADERS} DESTINATION ${LAB_INCLUDES})
 
+# we make the libraries available for the parent scope
+# such that we can use the catkin mechanisms
+set(SL_LIBRARIES ${SL_LIBRARIES} PARENT_SCOPE)
