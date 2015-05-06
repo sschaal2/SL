@@ -26,6 +26,8 @@
 
 #include "poledata.h"
 
+#include <time.h>
+
 #define ANGLE       1
 #define BLOB_UPPER  2
 #define BLOB_LOWER  3
@@ -150,6 +152,8 @@ acquire_blobs(Blob3D blobs[])
   int    run = TRUE;
   int numbytes;
 
+  struct timeval tv;
+  
   /* get the last frame id */
   last_counter = the_frame.counter;
 
@@ -184,13 +188,22 @@ acquire_blobs(Blob3D blobs[])
       blobs[BLOB_LOWER].x[_X_] = the_frame.pole->pos_lower[0];
       blobs[BLOB_LOWER].x[_Y_] = the_frame.pole->pos_lower[1];
       blobs[BLOB_LOWER].x[_Z_] = the_frame.pole->pos_lower[2];
+
+      gettimeofday(&tv, NULL);
+      // With this you get a very large number monotonically increasing, bad for plotting in clmcplot
+      double time_in_mill = (tv.tv_sec) * 1000 + (tv.tv_usec) / 1000 ; 
+      // With this you get a sawteeth function (cycles that that go from 0 to 1000000 useconds),
+      // but gives you shorter numbers, better for plotting with clmcplot.
+      // double time_in_mill = (tv.tv_usec) / 1000;
       
-      /* DEBUG 
-      printf("listener: pole_angle %.2f \t position upper: %.2f %.2f %.2f\t position lower: %.2f %.2f %.2f\n", 
+      /*DEBUG */
+      printf("listener: pole_angle %.2f \t pole_angular_velocity %.2f \t time %.2f \t position upper: %.2f %.2f %.2f\t position lower: %.2f %.2f %.2f\n", 
 	     the_frame.pole->pole_angle,
+	     the_frame.pole->pole_angular_velocity,
+	     time_in_mill,
 	     the_frame.pole->pos_upper[0], the_frame.pole->pos_upper[1], the_frame.pole->pos_upper[2],
 	     the_frame.pole->pos_lower[0], the_frame.pole->pos_lower[1], the_frame.pole->pos_lower[2]);
-      */
+      printf("delay: %0.2f\n", time_in_mill- the_frame.pole->pole_angular_velocity);
   
       count_lost_frames += abs(frame_counter - the_frame.counter);
     
