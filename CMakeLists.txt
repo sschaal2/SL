@@ -206,16 +206,15 @@ set(HEADERS
 add_library(SLcommon      ${SRCS_SL_COMMON})
 list(APPEND SL_LIBRARIES SLcommon)
 add_library(SLtask        ${SRCS_TASK_SERVO})
-# undefined symbold break target_link_library in apollo
-# list(APPEND SL_LIBRARIES SLtask)
+list(APPEND SL_LIBRARIES SLtask)
 add_library(SLmotor       ${SRCS_MOTOR_SERVO})
-#list(APPEND SL_LIBRARIES SLmotor)
+list(APPEND SL_LIBRARIES SLmotor)
 add_library(SLsimulation  ${SRCS_SIM_SERVO})
-#list(APPEND SL_LIBRARIES SLsimulation)
+list(APPEND SL_LIBRARIES SLsimulation)
 add_library(SLopenGL      ${SRCS_GL_SERVO})
-#list(APPEND SL_LIBRARIES SLopenGL)
+list(APPEND SL_LIBRARIES SLopenGL)
 add_library(SLvision      ${SRCS_VISION_SERVO})
-#list(APPEND SL_LIBRARIES SLvision)
+list(APPEND SL_LIBRARIES SLvision)
 
 install(TARGETS SLcommon      
   ARCHIVE DESTINATION ${LAB_LIBDIR}
