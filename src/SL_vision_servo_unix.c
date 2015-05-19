@@ -30,6 +30,10 @@
 
 #define TIME_OUT_NS  100000
 
+#define ANGLE       1
+#define BLOB_UPPER  2
+#define BLOB_LOWER  3
+
 /* global variables */
 extern int stereo_mode;
 
@@ -60,6 +64,12 @@ main(int argc, char**argv)
   int i, j;
   int rc;
 
+  
+  /* // for debugging the time stamp */
+  /* struct timeval tv; */
+  /* float time_in_mill; */
+
+  
   // parse command line options
   parseOptions(argc, argv);
 
@@ -94,6 +104,10 @@ main(int argc, char**argv)
   // run the servo loop
   while (servo_enabled) {
 
+    /* gettimeofday(&tv, NULL);  */
+    /* time_in_mill = (tv.tv_usec) / 1000; */
+    /* raw_blobs[ANGLE].x[_Z_] = time_in_mill;  */
+    
     // check whether there is some hardware interaction -- the vision hardware would
     // provide the clocking
     if (!no_hardware_flag && !raw_blob_overwrite_flag) {
@@ -116,6 +130,10 @@ main(int argc, char**argv)
       for (i=1; i<=max_blobs; ++i) 
 	raw_blobs[i].status = FALSE;
     }
+
+    /* gettimeofday(&tv, NULL);  */
+    /* time_in_mill = (tv.tv_usec) / 1000; */
+    /* raw_blobs[BLOB_UPPER].x[_Z_] = time_in_mill;  */
     
     // lock out the keyboard interaction 
     sl_rt_mutex_lock( &mutex1 );
@@ -124,6 +142,7 @@ main(int argc, char**argv)
     if (!run_vision_servo())
       break;
 
+    
     // continue keyboard interaction
     sl_rt_mutex_unlock( &mutex1 );
 
