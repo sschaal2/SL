@@ -203,18 +203,29 @@ set(HEADERS
 
 # ------------------------------------------------------------------------
 
+# Vincent:
+# exporting SL_LIBRARIES this way will provoke problems at the catkin level in the following way:
+# 1. catkin packages will include this package as subdirectory (because catkin sl is just wrapper over cmake sl)
+# 2. therefore SL_LIBRARIES will be defined in the catkin package
+# 3. but there is also a SL catkin package
+# 4. consequently, content of SL_LIBRARIES will be concatenated to catkin_LIBRARIES
+# 5. thus catkin packages linking against catkin_LIBRARIES will fail to compile, e.g. because of SLmotor, which has undefined symbols 
+# 5. (only xmotor is expected to link against SLMotor, because xmotor define those symbols)
+# A solution could be to rename SL_LIBRARIES to something else, but having a variables carrying libraries with undefined symbols
+# will be error prone. So we do not do that and instead remove SL_LIBRARIES entirely
+# (for the moment SL_LIBRARIES export kept commented in case of unexpected side effects of removing it)
 add_library(SLcommon      ${SRCS_SL_COMMON})
-list(APPEND SL_LIBRARIES SLcommon)
+#list(APPEND SL_LIBRARIES SLcommon)
 add_library(SLtask        ${SRCS_TASK_SERVO})
-list(APPEND SL_LIBRARIES SLtask)
+#list(APPEND SL_LIBRARIES SLtask)
 add_library(SLmotor       ${SRCS_MOTOR_SERVO})
-list(APPEND SL_LIBRARIES SLmotor)
+#list(APPEND SL_LIBRARIES SLmotor) 
 add_library(SLsimulation  ${SRCS_SIM_SERVO})
-list(APPEND SL_LIBRARIES SLsimulation)
+#list(APPEND SL_LIBRARIES SLsimulation)
 add_library(SLopenGL      ${SRCS_GL_SERVO})
-list(APPEND SL_LIBRARIES SLopenGL)
+#list(APPEND SL_LIBRARIES SLopenGL)
 add_library(SLvision      ${SRCS_VISION_SERVO})
-list(APPEND SL_LIBRARIES SLvision)
+#list(APPEND SL_LIBRARIES SLvision)
 
 install(TARGETS SLcommon      
   ARCHIVE DESTINATION ${LAB_LIBDIR}
@@ -239,4 +250,4 @@ install(FILES ${HEADERS} DESTINATION ${LAB_INCLUDES})
 
 # we make the libraries available for the parent scope
 # such that we can use the catkin mechanisms
-set(SL_LIBRARIES ${SL_LIBRARIES} PARENT_SCOPE)
+#set(SL_LIBRARIES ${SL_LIBRARIES} PARENT_SCOPE)
