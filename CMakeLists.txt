@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(sl)
 
-set(JULIA_PATH "/Network/Servers/titian/Volumes/titian/jrebula/julia")
+#set(JULIA_PATH "/Network/Servers/titian/Volumes/titian/jrebula/julia")
 set(JULIA_PATH_SRC "${JULIA_PATH}/src")
 set(JULIA_PATH_SRC_SUPPORT "${JULIA_PATH}/src/support")
 set(JULIA_PATH_SRC_INCLUDE "${JULIA_PATH}/usr/include")
