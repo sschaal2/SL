@@ -16,7 +16,8 @@
   <build_depend>roscpp</build_depend>
   <build_depend>sensor_msgs</build_depend>
   <build_depend>geometry_msgs</build_depend>
-  
+  <build_depend>Eigen</build_depend>
+
   <run_depend>sl_config</run_depend>
   <run_depend>utilities</run_depend>
   <run_depend>lwpr</run_depend>

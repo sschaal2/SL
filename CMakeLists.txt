@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.8.3)
 project(sl)
 
 #set(JULIA_PATH "/Network/Servers/titian/Volumes/titian/jrebula/julia")
+set(JULIA_PATH "$ENV{JULIA_PATH}")
 set(JULIA_PATH_SRC "${JULIA_PATH}/src")
 set(JULIA_PATH_SRC_SUPPORT "${JULIA_PATH}/src/support")
 set(JULIA_PATH_SRC_INCLUDE "${JULIA_PATH}/usr/include")
@@ -24,6 +25,8 @@ sl_find_package_GLUT()
 set(CMAKE_THREAD_PREFER_PTHREAD TRUE)
 find_package(Threads REQUIRED)
 find_package(LibRt REQUIRED)
+find_package(Eigen 3.2.4 REQUIRED)
+
 
 message(STATUS "GLUT_LIBRARIES=${GLUT_LIBRARIES}")
 message(STATUS "GLUT_INCLUDE_DIR=${GLUT_INCLUDE_DIR}")
@@ -55,7 +58,7 @@ endif()
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
+  INCLUDE_DIRS include ${Eigen_INCLUDE_DIRS}
   CATKIN_DEPENDS utilities lwpr
   DEPENDS X11 OpenGL
 )
@@ -68,6 +71,7 @@ include_directories(
   ${X11_INCLUDE_DIR}  
   ${OPENGL_INCLUDE_DIR}  
   ${GLUT_INCLUDE_DIR}  
+  #${Eigen_INCLUDE_DIRS}
 )
 
 # default SL_PLATFORM is unix
