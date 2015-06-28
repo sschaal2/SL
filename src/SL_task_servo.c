@@ -1556,7 +1556,7 @@ sendUserGraphics(char *name, void *buf, int n_bytes)
   }
   
   if (MAX_BYTES_USER_GRAPHICS-sm_user_graphics->n_bytes_used < n_bytes) {
-    printf("User Graphics memory buffer exhausted in sendUserGraphics\n");
+    printf("User Graphics memory buffer exhausted in sendUserGraphics, trying to allocated %d bytes, already using %d bytes\n", n_bytes, sm_user_graphics->n_bytes_used);
     semGive(sm_user_graphics_sem);
     return FALSE;
   }

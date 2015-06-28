@@ -37,8 +37,8 @@
 #define TIME_OUT_NS  1000000000
 
 typedef struct userGraphicsEntry {
-  char abr[20];                               //!< keyword for this graphics program
-  char exp[1000];                             //!< explanation
+  char abr[200];                               //!< keyword for this graphics program
+  char exp[10000];                             //!< explanation
   void (*func)(void *buf);                    //!< function pointer
   int  n_bytes;                               //!< number of valid bytes in buf
   unsigned char *buf;                         //!< memory for data buffer
@@ -167,6 +167,8 @@ addToUserGraphics(char *abr, char *string, void (*fptr)(void *), int n_bytes)
       ptr = (UserGraphicsEntry *)ptr->nptr;
   }
 
+  printf("creating new user graphic entry for %s\n", abr);
+
   // a new entry is created
   if (ugraphs == NULL) {
     ugraphs = (UserGraphicsEntry *) my_calloc(1,sizeof(UserGraphicsEntry),MY_STOP);
@@ -273,7 +275,7 @@ int
 checkForUserGraphics(void)
 {
   int i,j;
-  char name[20];
+  char name[200];
   UserGraphicsEntry *ptr;
 
   // check whether user graphics is ready
