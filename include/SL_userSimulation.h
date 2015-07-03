@@ -24,6 +24,11 @@
 extern "C" {
 #endif
 
+
+  void addToUserSimulationWithBuffer(char *functionNameToCallOnCommandLine,
+                                     char *functionDescription,
+                                     void (*functionPointerToCall)(void *),
+                                     int numberOfValidBytesInBuffer);
   void addToUserSimulation(char *abr, char *string, void (*fptr)(void));
   void runUserSimulation(void);
   void clearUserSimulation(void);
