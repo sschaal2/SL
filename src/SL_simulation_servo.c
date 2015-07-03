@@ -757,98 +757,59 @@ checkForMessages(void)
 
     // -------------------------------------------------------------------------
     } else if (strcmp(name,"setSimState") == 0) {
-      printf("called setStateInSimulationThread!\n");
 
-      struct {
-        SL_Cstate base_state;
-        SL_quat base_orient;
-        SL_Jstate joints[n_dofs+1];
-        int enabled;
-      } kinematicStateToSet;
+        struct {
+            SL_Cstate base_state;
+            SL_quat base_orient;
+            SL_Jstate joints[n_dofs+1];
+            int enabled; // this is not used but is here right now to maintain compatibility with a graphics sructure
+        } kinematicStateToSet;
 
-      memcpy(&kinematicStateToSet, sm_simulation_message->buf + sm_simulation_message->moff[k], sizeof(kinematicStateToSet));
+        memcpy(&kinematicStateToSet, sm_simulation_message->buf + sm_simulation_message->moff[k], sizeof(kinematicStateToSet));
 
-      bzero((char *)&(joint_sim_state[1]),sizeof(SL_Jstate)*n_dofs);
-      bzero((void *)ucontact,sizeof(SL_uext)*(n_dofs+1));
+        bzero((char *)&(joint_sim_state[1]), sizeof(SL_Jstate)*n_dofs);
+        bzero((void *)ucontact, sizeof(SL_uext)*(n_dofs+1));
 
-      int i;
-      printf("in SL_simulation_servo.c, setting current sim state to \n");
-      for (i = 1; i <= n_dofs; i++) {
-        joint_sim_state[i].th = kinematicStateToSet.joints[i].th;
-        joint_sim_state[i].thd = kinematicStateToSet.joints[i].thd;
-        joint_sim_state[i].thdd = kinematicStateToSet.joints[i].thdd;
-        joint_sim_state[i].ufb = kinematicStateToSet.joints[i].ufb;
-        joint_sim_state[i].u = kinematicStateToSet.joints[i].u;
-        joint_sim_state[i].load =  kinematicStateToSet.joints[i].load;
+        int i;
+        //      printf("in SL_simulation_servo.c, setting current sim state to \n");
+        for (i = 1; i <= n_dofs; i++) {
+            joint_sim_state[i].th = kinematicStateToSet.joints[i].th;
+            joint_sim_state[i].thd = kinematicStateToSet.joints[i].thd;
+            joint_sim_state[i].thdd = kinematicStateToSet.joints[i].thdd;
+            joint_sim_state[i].ufb = kinematicStateToSet.joints[i].ufb;
+            joint_sim_state[i].u = kinematicStateToSet.joints[i].u;
+            joint_sim_state[i].load =  kinematicStateToSet.joints[i].load;
+            //        printf("  %g\n", joint_sim_state[i].th);
+        }
 
-        printf("  %g\n", joint_sim_state[i].th);
-      }
+        bzero((void *)&base_state,sizeof(SL_Cstate));
+        bzero((void *)&base_orient,sizeof(SL_quat));
 
-      bzero((void *)&base_state,sizeof(SL_Cstate));
-      bzero((void *)&base_orient,sizeof(SL_quat));
-
-      //      base_orient = kinematicStateToSet.base_orient;
-      //      base_state = kinematicStateToSet.base_state;
+        //      base_orient = kinematicStateToSet.base_orient;
+        //      base_state = kinematicStateToSet.base_state;
 
 
-      for (i = 1; i <= 3; i++) {
-        base_state.x[i] = kinematicStateToSet.base_state.x[i];
-        base_state.xd[i] = kinematicStateToSet.base_state.xd[i];
-        base_orient.ad[i] = kinematicStateToSet.base_orient.ad[i];
-        base_orient.add[i] = kinematicStateToSet.base_orient.add[i];
-      }
+        for (i = 1; i <= 3; i++) {
+            base_state.x[i] = kinematicStateToSet.base_state.x[i];
+            base_state.xd[i] = kinematicStateToSet.base_state.xd[i];
+            base_orient.ad[i] = kinematicStateToSet.base_orient.ad[i];
+            base_orient.add[i] = kinematicStateToSet.base_orient.add[i];
+        }
 
-      printf("base_orient.q is ");
-      for (i = 1; i <= 4; i++) {
-        base_orient.q[i] = kinematicStateToSet.base_orient.q[i];
-        base_orient.qd[i] = kinematicStateToSet.base_orient.qd[i];
-        base_orient.qdd[i] = kinematicStateToSet.base_orient.qdd[i];
-        printf("%g, ", base_orient.q[i]);
-//        printf("%g, ", kinematicStateToSet.base_orient.q[i]);
-      }
-      printf("\n");
-
-
-      //      printf("pausing\n");
-      //      std::cin.ignore();
-      sleep(1);
+        //      printf("base_orient.q is ");
+        for (i = 1; i <= 4; i++) {
+            base_orient.q[i] = kinematicStateToSet.base_orient.q[i];
+            base_orient.qd[i] = kinematicStateToSet.base_orient.qd[i];
+            base_orient.qdd[i] = kinematicStateToSet.base_orient.qdd[i];
+            //        printf("%g, ", base_orient.q[i]);
+            //        printf("%g, ", kinematicStateToSet.base_orient.q[i]);
+        }
+        //      printf("\n");
 
 
-
-
-
-
-
-
-//      int i;
-
-//      bzero((char *)&(joint_sim_state[1]),sizeof(SL_Jstate)*n_dofs);
-//      bzero((void *)ucontact,sizeof(SL_uext)*(n_dofs+1));
-//      for (i=1; i<=n_dofs; ++i)
-//        joint_sim_state[i].th = joint_default_state[i].th;
-//      bzero((void *)&base_state,sizeof(SL_Cstate));
-//      bzero((void *)&base_orient,sizeof(SL_quat));
-
-//      base_orient.q[_Q0_] = freeze_base_quat[_Q0_];
-//      base_orient.q[_Q1_] = freeze_base_quat[_Q1_];
-//      base_orient.q[_Q2_] = freeze_base_quat[_Q2_];
-//      base_orient.q[_Q3_] = freeze_base_quat[_Q3_];
-
-//      base_state.x[_X_] = freeze_base_pos[_X_];
-//      base_state.x[_Y_] = freeze_base_pos[_Y_];
-//      base_state.x[_Z_] = freeze_base_pos[_Z_];
-
-
-
-
-
-
-
-
-
-
-
-
+        //      printf("pausing\n");
+        //      std::cin.ignore();
+        //      sleep(1);
 
     // -------------------------------------------------------------------------
     } else if (strcmp(name,"setUextSim") == 0) { // receive external simulated forces
