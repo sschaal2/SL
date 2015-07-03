@@ -24,7 +24,6 @@
 extern "C" {
 #endif
 
-
   void addToUserSimulationWithBuffer(char *functionNameToCallOnCommandLine,
                                      char *functionDescription,
                                      void (*functionPointerToCall)(void *),

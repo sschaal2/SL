@@ -1603,7 +1603,6 @@ reset(void)
   float buf[N_CART+N_QUAT+1];
   unsigned char cbuf[(N_CART+N_QUAT)*sizeof(float)];
 
-//  printf("simulation is being reset\n");
 
   if (real_robot_flag)
     return;

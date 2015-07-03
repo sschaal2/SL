@@ -119,7 +119,7 @@ addToUserSimulationWithBuffer(char *functionNameToCallOnCommandLine,
                               int numberOfValidBytesInBuffer) {
   UserSimulationEntry *ptr;
 
-  // use the same settings for graphics as simulation for now
+  // use the same limits for graphics messages as simulation for now
   if (numberOfValidBytesInBuffer > MAX_BYTES_USER_GRAPHICS) {
     printf("Error: Buffer Size Exceeded: Max. User Graphics Buffer = %d bytes\n", MAX_BYTES_USER_GRAPHICS);
     return;
@@ -145,11 +145,11 @@ addToUserSimulationWithBuffer(char *functionNameToCallOnCommandLine,
 
   if (usims == NULL) {
     // then create this as the first entry
-    usims = (UserSimulationEntry *) my_calloc(1,sizeof(UserSimulationEntry),MY_STOP);
+    usims = (UserSimulationEntry *) my_calloc(1,sizeof(UserSimulationEntry), MY_STOP);
     ptr = usims;
   } else {
     // otherwise allocate a new entry, point the last entry in the list to it
-    ptr->nptr = my_calloc(1,sizeof(UserSimulationEntry),MY_STOP);
+    ptr->nptr = my_calloc(1,sizeof(UserSimulationEntry), MY_STOP);
     ptr = (UserSimulationEntry *)ptr->nptr;
   }
 
@@ -162,9 +162,6 @@ addToUserSimulationWithBuffer(char *functionNameToCallOnCommandLine,
   ptr->active = FALSE;
   ptr->nptr = NULL;
 }
-
-
-
 
 
 /*!*****************************************************************************

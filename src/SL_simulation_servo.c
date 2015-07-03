@@ -722,8 +722,6 @@ checkForMessages(void)
     // -------------------------------------------------------------------------
     if (strcmp(name,"reset") == 0) { // reset simulation -----------------------
       float buf[N_CART+N_QUAT+1];
-
-      printf("simulation recieved a reset message\n");
       
       memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
 	     sizeof(float)*(N_CART+N_QUAT));
@@ -752,9 +750,9 @@ checkForMessages(void)
       }
 
     // ---------------------------------------------------------------------------
-    } else if (strcmp(name,"where_gains") == 0) {
+    } else if (strcmp(name,"where_gains") == 0) { 
       where_gains();
-
+      
     // -------------------------------------------------------------------------
     } else if (strcmp(name,"setSimState") == 0) {
 
@@ -762,7 +760,7 @@ checkForMessages(void)
             SL_Cstate base_state;
             SL_quat base_orient;
             SL_Jstate joints[n_dofs+1];
-            int enabled; // this is not used but is here right now to maintain compatibility with a graphics sructure
+            int enabled; // this is not used but is here to maintain compatibility with a graphics sructure
         } kinematicStateToSet;
 
         memcpy(&kinematicStateToSet, sm_simulation_message->buf + sm_simulation_message->moff[k], sizeof(kinematicStateToSet));
@@ -771,7 +769,6 @@ checkForMessages(void)
         bzero((void *)ucontact, sizeof(SL_uext)*(n_dofs+1));
 
         int i;
-        //      printf("in SL_simulation_servo.c, setting current sim state to \n");
         for (i = 1; i <= n_dofs; i++) {
             joint_sim_state[i].th = kinematicStateToSet.joints[i].th;
             joint_sim_state[i].thd = kinematicStateToSet.joints[i].thd;
@@ -779,15 +776,10 @@ checkForMessages(void)
             joint_sim_state[i].ufb = kinematicStateToSet.joints[i].ufb;
             joint_sim_state[i].u = kinematicStateToSet.joints[i].u;
             joint_sim_state[i].load =  kinematicStateToSet.joints[i].load;
-            //        printf("  %g\n", joint_sim_state[i].th);
         }
 
         bzero((void *)&base_state,sizeof(SL_Cstate));
         bzero((void *)&base_orient,sizeof(SL_quat));
-
-        //      base_orient = kinematicStateToSet.base_orient;
-        //      base_state = kinematicStateToSet.base_state;
-
 
         for (i = 1; i <= 3; i++) {
             base_state.x[i] = kinematicStateToSet.base_state.x[i];
@@ -796,20 +788,11 @@ checkForMessages(void)
             base_orient.add[i] = kinematicStateToSet.base_orient.add[i];
         }
 
-        //      printf("base_orient.q is ");
         for (i = 1; i <= 4; i++) {
             base_orient.q[i] = kinematicStateToSet.base_orient.q[i];
             base_orient.qd[i] = kinematicStateToSet.base_orient.qd[i];
             base_orient.qdd[i] = kinematicStateToSet.base_orient.qdd[i];
-            //        printf("%g, ", base_orient.q[i]);
-            //        printf("%g, ", kinematicStateToSet.base_orient.q[i]);
         }
-        //      printf("\n");
-
-
-        //      printf("pausing\n");
-        //      std::cin.ignore();
-        //      sleep(1);
 
     // -------------------------------------------------------------------------
     } else if (strcmp(name,"setUextSim") == 0) { // receive external simulated forces
