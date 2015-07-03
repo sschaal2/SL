@@ -33,11 +33,6 @@ typedef struct userGraphicsEntry {
   void (*func)(void);                         //!< function pointer
   int  active;                                //!< TRUE/FALSE for displaying this graphics
   char *nptr;                                 //!< next pointer
-
-  void (*functionWithBufferArgument)(void *buf);
-  int  numberOfValidBytesInBuffer;
-  unsigned char *memoryForDataBuffer;
-
 } UserSimulationEntry;
 
 // global variables
@@ -84,8 +79,6 @@ addToUserSimulation(char *abr, char *string, void (*fptr)(void))
       
       // the user simulation is inactive until it is activated
       ptr->active = FALSE;
-
-      ptr->numberOfValidBytesInBuffer = -1;
       
       return;
     }
@@ -106,64 +99,10 @@ addToUserSimulation(char *abr, char *string, void (*fptr)(void))
   strcpy(ptr->abr,abr);
   strcpy(ptr->exp,string);
   ptr->func = fptr;
-  ptr->numberOfValidBytesInBuffer = -1;
   ptr->active = FALSE;
   ptr->nptr = NULL;
 
 }
-
-
-addToUserSimulationWithBuffer(char *functionNameToCallOnCommandLine,
-                              char *functionDescription,
-                              void (*functionPointerToCall)(void *),
-                              int numberOfValidBytesInBuffer) {
-  UserSimulationEntry *ptr;
-
-  // use the same limits for graphics messages as simulation for now
-  if (numberOfValidBytesInBuffer > MAX_BYTES_USER_GRAPHICS) {
-    printf("Error: Buffer Size Exceeded: Max. User Graphics Buffer = %d bytes\n", MAX_BYTES_USER_GRAPHICS);
-    return;
-  }
-
-  ptr = usims;
-  while ( ptr != NULL ) {
-    if (strcmp(ptr->abr, functionNameToCallOnCommandLine) == 0) {
-      // if we already have an entry with this function name, copy over the old data
-      ptr->functionWithBufferArgument = functionPointerToCall;
-      strcpy(ptr->exp, functionDescription);
-      ptr->active = FALSE;
-      free(ptr->memoryForDataBuffer);
-      ptr->memoryForDataBuffer = my_calloc(ptr->numberOfValidBytesInBuffer, sizeof(unsigned char), MY_STOP);
-      return;
-    }
-    if (ptr->nptr == NULL)
-      break;
-    else
-      ptr = (UserSimulationEntry *)ptr->nptr;
-  }
-  // ptr now points at the last entry in the list (if any)
-
-  if (usims == NULL) {
-    // then create this as the first entry
-    usims = (UserSimulationEntry *) my_calloc(1,sizeof(UserSimulationEntry), MY_STOP);
-    ptr = usims;
-  } else {
-    // otherwise allocate a new entry, point the last entry in the list to it
-    ptr->nptr = my_calloc(1,sizeof(UserSimulationEntry), MY_STOP);
-    ptr = (UserSimulationEntry *)ptr->nptr;
-  }
-
-  // ptr points at the new entry, fill in given data:
-  strcpy(ptr->abr, functionNameToCallOnCommandLine);
-  strcpy(ptr->exp, functionDescription);
-  ptr->functionWithBufferArgument = functionPointerToCall;
-  ptr->memoryForDataBuffer = my_calloc(ptr->numberOfValidBytesInBuffer, sizeof(unsigned char), MY_STOP);
-  ptr->numberOfValidBytesInBuffer = numberOfValidBytesInBuffer;
-  ptr->active = FALSE;
-  ptr->nptr = NULL;
-}
-
-
 /*!*****************************************************************************
  *******************************************************************************
 \note  initUserSim
@@ -287,13 +226,8 @@ runUserSimulation(void)
   
   ptr = usims;
   while (ptr != NULL) {
-    if (ptr->active) {
-      if (ptr->numberOfValidBytesInBuffer == -1) {
-        (*ptr->func)();
-      } else {
-        (*ptr->functionWithBufferArgument)(ptr->memoryForDataBuffer);
-      }
-    }
+    if (ptr->active)
+      (*ptr->func)();
     ptr = (UserSimulationEntry *)ptr->nptr;
   }
 
