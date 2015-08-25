@@ -27,7 +27,9 @@
 
 // global variables
 int    freeze_base               = FALSE;
-double freeze_base_pos[N_CART+1] = {0.0,0.0,0.0,0.0};
+int    freeze_base_x             = FALSE;
+int    freeze_base_y             = FALSE;
+double freeze_base_pos[N_CART+1] = {0.0,0.0,0.0,-0.1};
 double freeze_base_quat[N_QUAT+1] = {0.0,1.0,0.0,0.0,0.0};
 double coulomb_slope = 10.0;
 

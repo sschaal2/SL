@@ -799,6 +799,34 @@ checkForMessages(void)
       }
       
     // -------------------------------------------------------------------------
+    } else if (strcmp(name,"freezeBase_x") == 0) {    // freeze base in simualtion on/off
+      float buf[1+1];
+      
+      memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
+       sizeof(float));
+      
+      if (buf[1] == 0) {
+  freeze_base_x = FALSE;
+  printf("Freeze base in x switched off\n");
+      } else {
+  freeze_base_x = TRUE;
+  printf("Freeze base in x switched on\n");
+      }
+
+    } else if (strcmp(name,"freezeBase_y") == 0) {    // freeze base in simualtion on/off
+      float buf[1+1];
+      
+      memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
+       sizeof(float));
+      
+      if (buf[1] == 0) {
+  freeze_base_y = FALSE;
+  printf("Freeze base in y switched off\n");
+      } else {
+  freeze_base_y = TRUE;
+  printf("Freeze base in y switched on\n");
+      }
+
     } else if (strcmp(name,"setG") == 0) {     // change the gravity constant 
       float buf[1+1];
       

@@ -62,6 +62,8 @@ static void sim_stop(void);
 static void sim_step(void);
 static int  checkForMessages(void);
 static void freezeBaseToggle(void);
+static void freezeBase_x_toggle(void);
+static void freezeBase_y_toggle(void);
 static void statusAll(void);
 static int  send_ros_state(void);
 static void read_link_parms(void);
@@ -461,6 +463,7 @@ init_task_servo(void)
     addToMan("reset","reset state of simulation",reset);
     addToMan("setG","set gravity constant",setG);
     addToMan("freezeBase","freeze the base at orgin",freezeBaseToggle);
+    addToMan("freezeBasex","freeze the base at orgin",freezeBase_x_toggle);
   }
 
 
@@ -1952,7 +1955,66 @@ freezeBase(int flag)
 
 }
 
+static void 
+freezeBase_x_toggle(void) 
+{
 
+  if (freeze_base_x == 0) {
+    freeze_base_x = TRUE;
+    printf("Base is fixed in x-direction\n");
+  } else {
+    freeze_base_x = FALSE;
+    printf("Base is floating\n");
+  }
+
+  freezeBase_x(freeze_base_x);
+  
+}
+
+void 
+freezeBase_x(int flag) 
+{
+  int i,j;
+  float buf[1+1];
+  unsigned char cbuf[sizeof(float)];
+
+  buf[1] = freeze_base_x = flag;
+
+  memcpy(cbuf,(void *)&(buf[1]),sizeof(float));
+    
+  sendMessageSimulationServo("freezeBase_x",(void *)cbuf,sizeof(float));
+
+}
+static void 
+freezeBase_y_toggle(void) 
+{
+
+  if (freeze_base_y == 0) {
+    freeze_base_y = TRUE;
+    printf("Base is fixed in y-direction\n");
+  } else {
+    freeze_base_y = FALSE;
+    printf("Base is floating\n");
+  }
+
+  freezeBase_y(freeze_base_y);
+  
+}
+
+void 
+freezeBase_y(int flag) 
+{
+  int i,j;
+  float buf[1+1];
+  unsigned char cbuf[sizeof(float)];
+
+  buf[1] = freeze_base_y = flag;
+
+  memcpy(cbuf,(void *)&(buf[1]),sizeof(float));
+    
+  sendMessageSimulationServo("freezeBase_y",(void *)cbuf,sizeof(float));
+
+}
 /*!*****************************************************************************
  *******************************************************************************
 \note  statusAll

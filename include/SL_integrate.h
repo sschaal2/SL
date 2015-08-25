@@ -20,6 +20,12 @@ extern "C" {
 
   void freezeBase(int);
   void freezeBaseToggle(void);
+
+  void freezeBase_x(int);
+  void freezeBase_x_toggle(void);
+  
+  void freezeBase_y(int);
+  void freezeBase_y_toggle(void);
   
 #ifdef __cplusplus
 }

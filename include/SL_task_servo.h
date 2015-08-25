@@ -68,6 +68,9 @@ extern "C" {
   void changeRealTime(int flag);
   void hideWindowByName(char *name, int hide);
   void freezeBase(int flag);
+  void freezeBase_x(int flag);
+  void freezeBase_y(int flag);
+  
   void setGravity(double grav);
   void setG(void);
   void switchCometDisplay(int status, int n_steps);

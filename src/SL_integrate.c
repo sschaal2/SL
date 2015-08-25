@@ -86,8 +86,71 @@ SL_IntegrateEuler(SL_Jstate *state, SL_Cstate *cbase,
     state[i].th  += dt*state[i].thd;
   }
 
-  if (!freeze_base) {  // optional freezing of base coordinates
+  if (freeze_base) {  // optional freezing of base coordinates
+   bzero((void *)cbase,sizeof(SL_Cstate));
+   bzero((void *)obase,sizeof(SL_quat));
+   obase->q[_Q0_] = freeze_base_quat[_Q0_];
+   obase->q[_Q1_] = freeze_base_quat[_Q1_];
+   obase->q[_Q2_] = freeze_base_quat[_Q2_];
+   obase->q[_Q3_] = freeze_base_quat[_Q3_];
+   cbase->x[_X_] = freeze_base_pos[_X_];
+   cbase->x[_Y_] = freeze_base_pos[_Y_];
+   cbase->x[_Z_] = freeze_base_pos[_Z_];
+  
+  } else if (freeze_base_x){
+    cbase->x[_X_] = freeze_base_pos[_X_];
+    cbase->xd[_Y_]    += dt*cbase->xdd[_Y_];
+    cbase->x[_Y_]     += dt*cbase->xd[_Y_];
+    cbase->xd[_Z_]    += dt*cbase->xdd[_Z_];
+    cbase->x[_Z_]     += dt*cbase->xd[_Z_];
+    // orientation of the base in quaternions
+    for(i=1; i<=N_CART; i++) {
+      obase->ad[i]    += dt*obase->add[i];
+    }
+
+    // compute quaternion velocity and acceleration
+    quatDerivatives(obase);
+    // integrate to obtain new angular orientation
+    for(i=1; i<=N_QUAT; i++) {
+      obase->q[i]     += dt*obase->qd[i];
+      aux += sqr(obase->q[i]);
+    }
+    aux = sqrt(aux);
+    if (aux == 0) 
+      aux = 1.e-10;
     
+    // important: renormalize quaternions
+    for(i=1; i<=N_QUAT; i++) {
+      obase->q[i]/=aux;
+    }
+  } else if (freeze_base_y)  {
+    cbase->xd[_X_]    += dt*cbase->xdd[_X_];
+    cbase->x[_X_]     += dt*cbase->xd[_X_];
+    cbase->x[_Y_]     = freeze_base_pos[_Y_];
+    cbase->xd[_Z_]    += dt*cbase->xdd[_Z_];
+    cbase->x[_Z_]     += dt*cbase->xd[_Z_];
+
+    // orientation of the base in quaternions
+    for(i=1; i<=N_CART; i++) {
+      obase->ad[i]    += dt*obase->add[i];
+    }
+
+    // compute quaternion velocity and acceleration
+    quatDerivatives(obase);
+    // integrate to obtain new angular orientation
+    for(i=1; i<=N_QUAT; i++) {
+      obase->q[i]     += dt*obase->qd[i];
+      aux += sqr(obase->q[i]);
+    }
+    aux = sqrt(aux);
+    if (aux == 0) 
+      aux = 1.e-10;
+    
+    // important: renormalize quaternions
+    for(i=1; i<=N_QUAT; i++) {
+      obase->q[i]/=aux;
+    }
+  } else { // if base coordinates are not frozen
     // translations of the base
     for(i=1; i<=N_CART; i++) {
       cbase->xd[i]    += dt*cbase->xdd[i];
@@ -101,7 +164,6 @@ SL_IntegrateEuler(SL_Jstate *state, SL_Cstate *cbase,
 
     // compute quaternion velocity and acceleration
     quatDerivatives(obase);
-
     // integrate to obtain new angular orientation
     for(i=1; i<=N_QUAT; i++) {
       obase->q[i]     += dt*obase->qd[i];
@@ -116,17 +178,6 @@ SL_IntegrateEuler(SL_Jstate *state, SL_Cstate *cbase,
       obase->q[i]/=aux;
     }
     
-  } else { // if base coordinates are frozen
-
-       bzero((void *)cbase,sizeof(SL_Cstate));
-       bzero((void *)obase,sizeof(SL_quat));
-       obase->q[_Q0_] = freeze_base_quat[_Q0_];
-       obase->q[_Q1_] = freeze_base_quat[_Q1_];
-       obase->q[_Q2_] = freeze_base_quat[_Q2_];
-       obase->q[_Q3_] = freeze_base_quat[_Q3_];
-       cbase->x[_X_] = freeze_base_pos[_X_];
-       cbase->x[_Y_] = freeze_base_pos[_Y_];
-       cbase->x[_Z_] = freeze_base_pos[_Z_];
   }
 
 
@@ -321,3 +372,62 @@ freezeBase(int flag)
 
 }
   
+/*!*****************************************************************************
+ *******************************************************************************
+\note  freezeBase_x and freezeBase_y
+\date  Nov. 2005
+   
+\remarks 
+
+        toggle to freeze or not freeze the base of a floating base robot in x
+        and y dimensions respectively
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     flag  : TRUE/FALSE for frozen or not
+
+ ******************************************************************************/
+void 
+freezeBase_x_toggle(void) 
+{
+  
+  if (freeze_base_x == 0) {
+    freeze_base_x = TRUE;
+    printf("Base is fixed in x dimension\n");
+  } else {
+    freeze_base_x = FALSE;
+    printf("Base is floating in x-dimension\n");
+  }
+  freezeBase_x(freeze_base_x); 
+}
+void 
+freezeBase_x(int flag)
+{
+
+  freeze_base_x = flag;
+  if (freeze_base_x != 0)
+    freeze_base_x = TRUE;
+}
+
+void 
+freezeBase_y_toggle(void) 
+{
+  
+  if (freeze_base_y == 0) {
+    freeze_base_y = TRUE;
+    printf("Base is fixed in x dimension\n");
+  } else {
+    freeze_base_y = FALSE;
+    printf("Base is floating in x-dimension\n");
+  }
+  freezeBase_y(freeze_base_y); 
+}
+void 
+freezeBase_y(int flag)
+{
+
+  freeze_base_y = flag;
+  if (freeze_base_y != 0)
+    freeze_base_y = TRUE;
+}

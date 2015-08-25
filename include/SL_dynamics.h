@@ -77,6 +77,8 @@ extern "C" {
 
   // external variables 
   extern int    freeze_base;
+  extern int    freeze_base_x;
+  extern int    freeze_base_y;
   extern double freeze_base_pos[];
   extern double freeze_base_quat[];
   extern const int floating_base_flag;
