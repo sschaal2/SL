@@ -215,16 +215,22 @@ set(HEADERS
 # will be error prone. So we do not do that and instead remove SL_LIBRARIES entirely
 # (for the moment SL_LIBRARIES export kept commented in case of unexpected side effects of removing it)
 add_library(SLcommon      ${SRCS_SL_COMMON})
+set_target_properties(SLcommon PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 #list(APPEND SL_LIBRARIES SLcommon)
 add_library(SLtask        ${SRCS_TASK_SERVO})
+set_target_properties(SLtask PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 #list(APPEND SL_LIBRARIES SLtask)
 add_library(SLmotor       ${SRCS_MOTOR_SERVO})
+set_target_properties(SLmotor PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 #list(APPEND SL_LIBRARIES SLmotor) 
 add_library(SLsimulation  ${SRCS_SIM_SERVO})
+set_target_properties(SLsimulation PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 #list(APPEND SL_LIBRARIES SLsimulation)
 add_library(SLopenGL      ${SRCS_GL_SERVO})
 #list(APPEND SL_LIBRARIES SLopenGL)
+set_target_properties(SLopenGL PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 add_library(SLvision      ${SRCS_VISION_SERVO})
+set_target_properties(SLvision PROPERTIES LINK_FLAGS ${SL_IGNORE_UNDEF_SYMBOLS})
 #list(APPEND SL_LIBRARIES SLvision)
 
 install(TARGETS SLcommon      
