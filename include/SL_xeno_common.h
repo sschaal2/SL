@@ -23,7 +23,7 @@ extern "C" {
   // external variables 
 
   // global functions 
-  void  initXeno(char *task_name);
+  void  initXeno(const char *task_name);
   
 #ifdef __cplusplus
 }

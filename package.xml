@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<package>
+  <name>sl</name>
+  <version>1.0.0</version>
+  <description>sl</description>
+  <license>TODO</license>
+  <author email="sschaal@usc.edu">Stefan Schaal</author>
+  <maintainer email="kalakris@usc.edu">Mrinal Kalakrishnan</maintainer>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>sl_config</build_depend>
+  <build_depend>xenomai_ros</build_depend>
+  <build_depend>utilities</build_depend>
+  <build_depend>lwpr</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  
+  <run_depend>sl_config</run_depend>
+  <run_depend>utilities</run_depend>
+  <run_depend>lwpr</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+
+  <export>
+  </export>
+</package>

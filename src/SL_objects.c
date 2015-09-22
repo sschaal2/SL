@@ -63,7 +63,11 @@ typedef struct {
   double x[N_CART+1];
 } ContactSpecs;
 
+#ifdef __XENO__
+static   int            use_threads = FALSE;
+#else
 static   int            use_threads = TRUE;
+#endif
 static   pthread_t      cspecs_thread[N_CSPECS_THREADS+1];  // threads for contact checking
 static   ContactSpecs  *cspecs_data[N_CSPECS_THREADS+1];    // data used for thread communication
 static   sl_rt_cond     cspecs_status[N_CSPECS_THREADS+1];  // conditional variable of thread

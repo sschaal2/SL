@@ -885,25 +885,37 @@ SLGenericDisplay(void)
 
 #ifdef __XENO__
   // we want to be in real-time mode here
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+#if (CONFIG_XENO_VERSION_MAJOR < 2) || (CONFIG_XENO_VERSION_MAJOR == 2 && CONFIG_XENO_VERSION_MINOR < 6)
+       // we are on xenomai version < 2.6
+       rt_task_set_mode(0,T_PRIMARY,NULL);
+#else
+       // we are on xenomai version < 2.6
+      rt_task_set_mode(0,T_CONFORMING,NULL);
+#endif
 #endif
   // lock out the keyboard interaction 
   sl_rt_mutex_lock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
   ptr = whichGLWindow();
   if (ptr == NULL) {
 #ifdef __XENO__
   // we want to be in real-time mode here
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+#if (CONFIG_XENO_VERSION_MAJOR < 2) || (CONFIG_XENO_VERSION_MAJOR == 2 && CONFIG_XENO_VERSION_MINOR < 6)
+       // we are on xenomai version < 2.6
+       rt_task_set_mode(0,T_PRIMARY,NULL);
+#else
+       // we are on xenomai version < 2.6
+      rt_task_set_mode(0,T_CONFORMING,NULL);
+#endif
 #endif
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
     return;
   }
@@ -917,12 +929,18 @@ SLGenericDisplay(void)
     glutPositionWindow(ptr->x, ptr->y-22);
 #ifdef __XENO__
   // we want to be in real-time mode here
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+#if (CONFIG_XENO_VERSION_MAJOR < 2) || (CONFIG_XENO_VERSION_MAJOR == 2 && CONFIG_XENO_VERSION_MINOR < 6)
+       // we are on xenomai version < 2.6
+       rt_task_set_mode(0,T_PRIMARY,NULL);
+#else
+       // we are on xenomai version < 2.6
+      rt_task_set_mode(0,T_CONFORMING,NULL);
+#endif
 #endif
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
     return;
   }
@@ -936,12 +954,18 @@ SLGenericDisplay(void)
     ptr->hide = TRUE;
 #ifdef __XENO__
   // we want to be in real-time mode here
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+#if (CONFIG_XENO_VERSION_MAJOR < 2) || (CONFIG_XENO_VERSION_MAJOR == 2 && CONFIG_XENO_VERSION_MINOR < 6)
+       // we are on xenomai version < 2.6
+       rt_task_set_mode(0,T_PRIMARY,NULL);
+#else
+       // we are on xenomai version < 2.6
+      rt_task_set_mode(0,T_CONFORMING,NULL);
+#endif
 #endif
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
     return;
   }
@@ -1017,12 +1041,18 @@ SLGenericDisplay(void)
   // continue keyboard interaction
 #ifdef __XENO__
   // we want to be in real-time mode here
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+#if (CONFIG_XENO_VERSION_MAJOR < 2) || (CONFIG_XENO_VERSION_MAJOR == 2 && CONFIG_XENO_VERSION_MINOR < 6)
+       // we are on xenomai version < 2.6
+       rt_task_set_mode(0,T_PRIMARY,NULL);
+#else
+       // we are on xenomai version < 2.6
+      rt_task_set_mode(0,T_CONFORMING,NULL);
+#endif
 #endif
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
 }
@@ -1440,12 +1470,18 @@ toggleHideWindow(OpenGLWPtr ptr)
   // make sure we don't interfer with the display functions
 #ifdef __XENO__
   // we want to be in real-time mode here
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+#if (CONFIG_XENO_VERSION_MAJOR < 2) || (CONFIG_XENO_VERSION_MAJOR == 2 && CONFIG_XENO_VERSION_MINOR < 6)
+       // we are on xenomai version < 2.6
+       rt_task_set_mode(0,T_PRIMARY,NULL);
+#else
+       // we are on xenomai version < 2.6
+      rt_task_set_mode(0,T_CONFORMING,NULL);
+#endif
 #endif
     sl_rt_mutex_lock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
   if (ptr->hide) {
@@ -1460,12 +1496,18 @@ toggleHideWindow(OpenGLWPtr ptr)
 
 #ifdef __XENO__
   // we want to be in real-time mode here
-  rt_task_set_mode(0,T_PRIMARY,NULL);
+#if (CONFIG_XENO_VERSION_MAJOR < 2) || (CONFIG_XENO_VERSION_MAJOR == 2 && CONFIG_XENO_VERSION_MINOR < 6)
+       // we are on xenomai version < 2.6
+       rt_task_set_mode(0,T_PRIMARY,NULL);
+#else
+       // we are on xenomai version < 2.6
+      rt_task_set_mode(0,T_CONFORMING,NULL);
+#endif
 #endif
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
 }

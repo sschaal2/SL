@@ -52,7 +52,7 @@ static int man_initialized = FALSE;
 
  ******************************************************************************/
 void
-addToMan(char *abr, char *string, void (*fptr)(void))
+addToMan(const char *abr, const char *string, void (*fptr)(void))
 
 {
 

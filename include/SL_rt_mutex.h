@@ -68,7 +68,7 @@ static int sl_rt_cond_wait(sl_rt_cond* cond, sl_rt_mutex* mutex);
 static int sl_rt_cond_timedwait(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_rt_time timeout);
 static int sl_rt_cond_timedwait_relative(sl_rt_cond* cond, sl_rt_mutex* mutex, sl_rt_time timeout);
 
-static void sl_rt_warning(char* function_name, int error_code);
+static void sl_rt_warning(const char* function_name, int error_code);
 
 #ifdef __cplusplus
 }
@@ -237,7 +237,7 @@ static inline int sl_rt_cond_timedwait_relative(sl_rt_cond* cond, sl_rt_mutex* m
 #endif
 }
 
-static inline void sl_rt_warning(char* function_name, int error_code)
+static inline void sl_rt_warning(const char* function_name, int error_code)
 {
   //char error_str[1000];
   //strerror_r(error_code, error_str, 1000);

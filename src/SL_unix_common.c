@@ -60,8 +60,6 @@ static void       (*command_ptr[MAX_ITEMS+1])(void);
 
 static char       user_command[MAX_CHARS_COMMAND] = "";  // this command can be set by user
 
-// global functions
-
 // local functions
 static void initializeReadLine();
 static char **sl_completion(const char *text, int start, int end);
@@ -107,8 +105,8 @@ checkKeyboard(void *initial_command)
   rt_task_shadow(NULL, name, 0, 0);
 
   // we want this task in non real-time mode
-  if ((rc=rt_task_set_mode(T_PRIMARY,0,NULL)))
-    printf("rt_task_set_mode returned %d\n",rc);
+  //if ((rc=rt_task_set_mode(T_PRIMARY,0,NULL)))
+  //  printf("rt_task_set_mode primary returned %d\n",rc);
 
 #endif
 
@@ -149,7 +147,6 @@ checkKeyboard(void *initial_command)
   return NULL;
 
 }
-
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -281,6 +278,7 @@ initializeReadLine()
   extern int rl_catch_signals; // for some reason this isn't in editline/readline.h
 
   rl_attempted_completion_function = sl_completion;
+  extern int rl_catch_signals; // for some reason this isn't in editline/readline.h
   rl_catch_signals = 0;
   rl_initialize();
 
