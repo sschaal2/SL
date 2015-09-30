@@ -503,7 +503,6 @@ run_task_servo(void)
 
   setOsc(d2a_ct,0.0);
   
-  freezeBase(TRUE);
   /*********************************************************************
    * adjust servo time
    */
@@ -1623,6 +1622,7 @@ reset(void)
   sendMessageSimulationServo("reset",(void *)cbuf,(N_CART+N_QUAT)*sizeof(float));
   freeze();
   setDefaultPosture();
+  freezeBase(TRUE);
 
 }
 
