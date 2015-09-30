@@ -503,6 +503,7 @@ run_task_servo(void)
 
   setOsc(d2a_ct,0.0);
   
+  freezeBase(TRUE);
   /*********************************************************************
    * adjust servo time
    */
