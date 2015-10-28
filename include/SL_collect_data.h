@@ -46,6 +46,7 @@ extern "C" {
   void updateDataCollectScript( void );
   int  getDataCollectPtr( char *name, int n_char_units, void **vptr, int *type, char *units );
   
+  void changeSamplingTime( double time );
   
 #ifdef __cplusplus
 }
