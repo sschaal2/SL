@@ -752,7 +752,47 @@ checkForMessages(void)
     // ---------------------------------------------------------------------------
     } else if (strcmp(name,"where_gains") == 0) { 
       where_gains();
-      
+
+    // -------------------------------------------------------------------------
+    } else if (strcmp(name,"setSimState") == 0) {
+
+        struct {
+            SL_Cstate base_state;
+            SL_quat base_orient;
+            SL_Jstate joints[n_dofs+1];
+        } kinematicStateToSet;
+
+        memcpy(&kinematicStateToSet, sm_simulation_message->buf + sm_simulation_message->moff[k], sizeof(kinematicStateToSet));
+
+        bzero((char *)&(joint_sim_state[1]), sizeof(SL_Jstate)*n_dofs);
+        bzero((void *)ucontact, sizeof(SL_uext)*(n_dofs+1));
+
+        int i;
+        for (i = 1; i <= n_dofs; i++) {
+            joint_sim_state[i].th = kinematicStateToSet.joints[i].th;
+            joint_sim_state[i].thd = kinematicStateToSet.joints[i].thd;
+            joint_sim_state[i].thdd = kinematicStateToSet.joints[i].thdd;
+            joint_sim_state[i].ufb = kinematicStateToSet.joints[i].ufb;
+            joint_sim_state[i].u = kinematicStateToSet.joints[i].u;
+            joint_sim_state[i].load =  kinematicStateToSet.joints[i].load;
+        }
+
+        bzero((void *)&base_state,sizeof(SL_Cstate));
+        bzero((void *)&base_orient,sizeof(SL_quat));
+
+        for (i = 1; i <= 3; i++) {
+            base_state.x[i] = kinematicStateToSet.base_state.x[i];
+            base_state.xd[i] = kinematicStateToSet.base_state.xd[i];
+            base_orient.ad[i] = kinematicStateToSet.base_orient.ad[i];
+            base_orient.add[i] = kinematicStateToSet.base_orient.add[i];
+        }
+
+        for (i = 1; i <= 4; i++) {
+            base_orient.q[i] = kinematicStateToSet.base_orient.q[i];
+            base_orient.qd[i] = kinematicStateToSet.base_orient.qd[i];
+            base_orient.qdd[i] = kinematicStateToSet.base_orient.qdd[i];
+        }
+
     // -------------------------------------------------------------------------
     } else if (strcmp(name,"setUextSim") == 0) { // receive external simulated forces
       int   count = 0;
