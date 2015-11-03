@@ -722,8 +722,6 @@ checkForMessages(void)
     // -------------------------------------------------------------------------
     if (strcmp(name,"reset") == 0) { // reset simulation -----------------------
       float buf[N_CART+N_QUAT+1];
-
-      printf("simulation recieved a reset message\n");
       
       memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
 	     sizeof(float)*(N_CART+N_QUAT));
