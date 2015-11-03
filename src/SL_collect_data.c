@@ -888,4 +888,48 @@ getDataCollectPtr( char *name, int n_char_units, void **vptr, int *type,
   return FALSE;
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  changeSamplingTime
+\date  April 2015
 
+\remarks
+
+        changes the data collection time interval
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     time : time span of data collection in seconds
+
+ ******************************************************************************/
+void changeSamplingTime( double time )
+{
+    if (!collect_data_initialized) {
+        printf("Collect data is not initialized\n");
+        return;
+    }
+
+    if (save_data_flag) {
+        int ans = 0;
+        printf("You cannot change output variables while data collection is running!\n");
+        get_int("Do you want to abort on-going data collection? No=0, Yes=1",ans,&ans);
+        if (ans == 1)
+            stopcd();
+        else
+            return;
+    }
+
+    n_save_data_points = time /((double) store_in_buffer_rate) * sampling_freq;
+
+    /* ensure that we have an adequate data collection buffer */
+    if (buffer != NULL) {
+        my_free_fmatrix(buffer,1,n_rows,1,n_cols);
+    }
+
+    if (n_cvars > 0 && n_save_data_points > 0) {
+        n_rows = n_save_data_points;
+        n_cols = n_cvars;
+        buffer = my_fmatrix(1,n_rows,1,n_cols);
+    }
+}
