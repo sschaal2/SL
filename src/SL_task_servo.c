@@ -391,7 +391,6 @@ init_task_servo(void)
     addVarToCollect((char *)&(misc_sensor[i]),string,"-",DOUBLE,FALSE);
   }
 
-
   /* the center of gravity */
   addVarToCollect((char *)&(cog.x[_X_]),"cog_x","m",DOUBLE,FALSE);
   addVarToCollect((char *)&(cog.x[_Y_]),"cog_y","m",DOUBLE,FALSE);
@@ -443,6 +442,37 @@ init_task_servo(void)
 
 
   addVarToCollect((char *)&(frame_counter),"frame_counter","-",INT,FALSE);
+
+
+  /* Joint homogeneous transformations to collect */
+  int link_i=1;
+  for (link_i=1; link_i<=n_links; ++link_i) {
+    sprintf(string,"%s_R11",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][1][1]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_R12",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][1][2]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_R13",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][1][3]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_R21",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][2][1]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_R22",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][2][2]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_R23",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][2][3]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_R31",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][3][1]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_R32",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][3][2]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_R33",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][3][3]),string,"-", DOUBLE, FALSE);
+
+    sprintf(string,"%s_X",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][1][4]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_Y",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][2][4]),string,"-", DOUBLE, FALSE);
+    sprintf(string,"%s_Z",link_names[link_i]);
+    addVarToCollect((char *)&(Alink[link_i][3][4]),string,"-", DOUBLE, FALSE);
+  }
 
   printf("done\n");
 

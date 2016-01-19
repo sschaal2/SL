@@ -3189,6 +3189,7 @@ switchCometDisplay(int flag, int n_steps)
   resetCometDisplay();
 }
 
+
 /*!*****************************************************************************
 *******************************************************************************
 \note  toggleCoordDisplay
@@ -3208,7 +3209,7 @@ static int coordDisplay = FALSE;
 static double coordAxisLength = 0.1;
 static iVector coordDisplayFlagsLinks=NULL;
 static iVector coordDisplayFlagsDOFs=NULL;
-static void 
+static void
 toggleCoordDisplay(void)
 {
   int i,n;
@@ -3274,6 +3275,47 @@ toggleCoordDisplay(void)
 
     }
     coordDisplay=TRUE;
+  }
+}
+
+/*!*****************************************************************************
+*******************************************************************************
+\note  switchCoordDisplay
+\date  November 2015
+
+\remarks
+
+allows switching on/off the coord display
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in] flag   : TRUE/FALSE for turining the comet display on/off
+\param[in[ n_steps: how many steps in comet buffer (only for flag = TRUE)
+
+******************************************************************************/
+void
+switchCoordDisplay(int flag)
+{
+  int i;
+  static int firsttime = TRUE;
+  if (firsttime) {
+    firsttime = FALSE;
+    coordDisplayFlagsLinks = my_ivector(1,n_links);
+    coordDisplayFlagsDOFs  = my_ivector(1,n_dofs);
+  }
+  if(flag==TRUE) {
+        for (i=0; i<=n_links; ++i)
+          coordDisplayFlagsLinks[i] = FALSE;
+        coordDisplayFlagsLinks[10] = TRUE;
+        coordDisplayFlagsLinks[13] = TRUE;
+        coordDisplayFlagsLinks[16] = TRUE;
+        coordDisplayFlagsLinks[17] = TRUE;
+      for (i=0; i<=n_dofs; ++i)
+        coordDisplayFlagsDOFs[i] = FALSE;
+    coordDisplay=TRUE;
+  } else {
+    coordDisplay=FALSE;
   }
 }
 

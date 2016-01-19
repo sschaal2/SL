@@ -112,8 +112,8 @@ extern "C" {
   void       toggleShowAxesByName(char *name, int status);
   void       toggleShowAxesByPtr(OpenGLWPtr ptr,int status);
   void       drawArrow(double *sp, double *ep, double width);
+  void       switchCoordDisplay(int flag);
 
-  
   /* exported variables */
   extern int solid;
   extern int pause_flag;
