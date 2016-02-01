@@ -295,8 +295,8 @@ run_simulation_servo(void)
     if ( delta < 0 ){ // only print at 10Hz
       if ((int)(((double)simulation_servo_calls)/
 		(((double)simulation_servo_rate)/10.))%10 == 0) {
-	printf("-%s",joint_names[i]);
-	fflush(stdout);
+        //printf("-%s",joint_names[i]);
+        //fflush(stdout);
       }
       
       if (joint_sim_state[i].thd > max_vel) 
@@ -311,8 +311,8 @@ run_simulation_servo(void)
     if (delta < 0){ // only print at 10Hz
       if ((int)(((double)simulation_servo_calls)/
 		(((double)simulation_servo_rate)/10.))%10 == 0) {
-	printf("+%s",joint_names[i]);
-	fflush(stdout);
+        //printf("+%s",joint_names[i]);
+        //fflush(stdout);
       }
 
       if (joint_sim_state[i].thd < -max_vel) 
