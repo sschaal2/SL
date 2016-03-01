@@ -79,6 +79,10 @@ smJointStates     *sm_joint_state;
 SEM_ID             sm_joint_state_sem;
 SL_fJstate        *sm_joint_state_data;
 
+smJointRawStates   *sm_joint_raw_state;
+SEM_ID             sm_joint_raw_state_sem;
+SL_fJstate        *sm_joint_raw_state_data;
+
 smJointDesStates  *sm_joint_des_state;
 SEM_ID             sm_joint_des_state_sem;
 SL_fDJstate       *sm_joint_des_state_data;
@@ -185,6 +189,18 @@ init_shared_memory(void)
     return FALSE;
   }
   sm_joint_state_data = 
+    (SL_fJstate *)my_calloc(n_dofs+1,sizeof(SL_fJstate),MY_STOP);
+  /********************************************************************/
+  if (init_sm_object("smJointRawState",
+             sizeof(smJointRawStates),
+             sizeof(SL_fJstate)*(n_dofs+1),
+             &sm_joint_raw_state_sem,
+             (void **)&sm_joint_raw_state)) {
+    ;
+  } else {
+    return FALSE;
+  }
+  sm_joint_raw_state_data =
     (SL_fJstate *)my_calloc(n_dofs+1,sizeof(SL_fJstate),MY_STOP);
   /********************************************************************/
   if (init_sm_object("smJointDesState", 

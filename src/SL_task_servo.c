@@ -189,6 +189,14 @@ init_task_servo(void)
     sprintf(string,"%s_z",cart_names[i]);
     addVarToCollect((char *)&(cart_state[i].x[_Z_]),string,"m",DOUBLE,FALSE);
 
+    sprintf(string,"%s_rx",cart_names[i]);
+    addVarToCollect((char *)&(cart_state_raw[i].x[_X_]),string,"m",DOUBLE,FALSE);
+    sprintf(string,"%s_ry",cart_names[i]);
+    addVarToCollect((char *)&(cart_state_raw[i].x[_Y_]),string,"m",DOUBLE,FALSE);
+    sprintf(string,"%s_rz",cart_names[i]);
+    addVarToCollect((char *)&(cart_state_raw[i].x[_Z_]),string,"m",DOUBLE,FALSE);
+    printf("Var-name: s_rx\n", cart_names[i]);
+
     sprintf(string,"%s_xd",cart_names[i]);
     addVarToCollect((char *)&(cart_state[i].xd[_X_]),string,"m",DOUBLE,FALSE);
     sprintf(string,"%s_yd",cart_names[i]);
@@ -714,6 +722,24 @@ receive_sensors(void)
   
   semGive(sm_joint_state_sem);
 
+  // the joint raw state
+  if (semTake(sm_joint_raw_state_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
+
+    ++task_servo_errors;
+    return FALSE;
+
+  }
+
+  memcpy((void *)(&sm_joint_raw_state_data[1]),(const void*)(&sm_joint_raw_state->joint_raw_state[1]),
+     sizeof(SL_fJstate)*n_dofs);
+
+  cSL_Jstate(joint_raw_state,sm_joint_raw_state_data,n_dofs,FLOAT2DOUBLE);
+
+  // get time stamp and adjust servo time
+  task_servo_time = servo_time = sm_joint_raw_state->ts;
+
+  semGive(sm_joint_raw_state_sem);
+
 
   // the misc sensors
 
@@ -987,6 +1013,17 @@ compute_kinematics(void)
     linkQuat(Alink_des[link2endeffmap[j]],&(cart_des_orient[j]));
   }
 
+  /* addititional raw link information */
+  linkInformation(joint_raw_state,&base_state,&base_orient,endeff,
+          joint_cog_mpos_raw,joint_axis_pos_raw,joint_origin_pos_raw,
+          link_pos_raw,Alink_raw,Adof_raw);
+
+  /* create the raw endeffector information */
+  for (i=1; i<=N_CART; ++i) {
+    for (j=1; j<=n_endeffs; ++j) {
+      cart_state_raw[j].x[i] = link_pos_raw[link2endeffmap[j]][i];
+    }
+  }
 
   /* addititional link information */
   linkInformation(joint_state,&base_state,&base_orient,endeff,

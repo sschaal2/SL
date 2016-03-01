@@ -46,6 +46,7 @@ extern "C" {
   int           servo_base_rate = SERVO_BASE_RATE;
 
   SL_Jstate     joint_state[N_DOFS+1];          /* current states */
+  SL_Jstate     joint_raw_state[N_DOFS+1];      /* current raw states */
   SL_DJstate    joint_des_state[N_DOFS+1];      /* desired states */
   SL_endeff     endeff[N_ENDEFFS+1];            /* endeffector structure */
   SL_Jstate     joint_sim_state[N_DOFS+1];      /* the state of the sim. robot */
@@ -62,11 +63,15 @@ extern "C" {
   Matrix        Jcog;		                /* COG Jacobian */
   Matrix        Jcogdes;		        /* COG Jacobian based on desired states */
   Matrix        link_pos;                       /* Cart. pos of links */
+  Matrix        link_pos_raw;                   /* Cart. pos of links */
   Matrix        link_pos_des;                   /* desired cart. pos of links */
   Matrix        link_pos_sim;                   /* simulated cart. pos of links */
   Matrix        joint_cog_mpos;                 /* vector of mass*COG of each joint */
+  Matrix        joint_cog_mpos_raw;             /* vector of mass*COG of each joint */
   Matrix        joint_origin_pos;               /* vector of pos. of local joint coord.sys */
+  Matrix        joint_origin_pos_raw;           /* vector of pos. of local joint coord.sys */
   Matrix        joint_axis_pos;                 /* unit vector of joint rotation axis */
+  Matrix        joint_axis_pos_raw;             /* unit vector of joint rotation axis */
   Matrix        joint_cog_mpos_des;             /* vector of mass*COG of each joint based on desireds*/
   Matrix        joint_origin_pos_des;           /* vector of pos. of local joint coord.sys based on des.*/
   Matrix        joint_axis_pos_des;             /* unit vector of joint rotation axis based on des.*/
@@ -74,12 +79,15 @@ extern "C" {
   Matrix        joint_origin_pos_sim;           /* vector of pos. of local joint coord.sys based on sim.*/
   Matrix        joint_axis_pos_sim;             /* unit vector of joint rotation axis based on sim.*/
   Matrix        Alink[N_LINKS+1];               /* homogeneous transformation matrices for all links */
+  Matrix        Alink_raw[N_LINKS+1];           /* homogeneous transformation matrices for all links */
   Matrix        Alink_des[N_LINKS+1];           /* homogeneous transformation matrices for all links */
   Matrix        Alink_sim[N_LINKS+1];           /* homogeneous transformation matrices for all links */
   Matrix        Adof[N_LINKS+1];                /* homogeneous transformation matrices for all dofs */
+  Matrix        Adof_raw[N_LINKS+1];            /* homogeneous transformation matrices for all dofs */
   Matrix        Adof_des[N_LINKS+1];            /* homogeneous transformation matrices for all dofs */
   Matrix        Adof_sim[N_LINKS+1];            /* homogeneous transformation matrices for all dofs */
   SL_Cstate     cart_state[N_ENDEFFS+1];        /* endeffector state */
+  SL_Cstate     cart_state_raw[N_ENDEFFS+1];    /* endeffector state raw */
   SL_quat       cart_orient[N_ENDEFFS+1];       /* endeffector orientation */
   SL_Cstate     cart_des_state[N_ENDEFFS+1];    /* endeff.state based on des.state */
   SL_quat       cart_des_orient[N_ENDEFFS+1];   /* endeff.orient based on des.state */

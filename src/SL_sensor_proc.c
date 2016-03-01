@@ -33,7 +33,7 @@
 #include "SL_filters.h"
 
 /* local variables */
-static SL_Jstate        *joint_raw_state;
+// static SL_Jstate        *joint_raw_state; // now defined globally in SL.h
 static double           *misc_raw_sensor;
 static int               filter_flag = TRUE;
 
@@ -88,8 +88,8 @@ init_sensor_processing(void)
     joint_lin_rot     = my_matrix(1,n_dofs,1,6);
     pos_polar         = my_vector(1,n_dofs);
     load_polar        = my_vector(1,n_dofs);
-    joint_raw_state   = (SL_Jstate *) 
-      my_calloc((unsigned long)(n_dofs+1),sizeof(SL_Jstate),MY_STOP);
+    //joint_raw_state   = (SL_Jstate *)
+    //  my_calloc((unsigned long)(n_dofs+1),sizeof(SL_Jstate),MY_STOP);
     misc_raw_sensor   = (double *) 
       my_calloc((unsigned long)(n_misc_sensors+1),sizeof(double),MY_STOP);
     fth = (Filter *)
