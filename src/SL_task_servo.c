@@ -189,13 +189,13 @@ init_task_servo(void)
     sprintf(string,"%s_z",cart_names[i]);
     addVarToCollect((char *)&(cart_state[i].x[_Z_]),string,"m",DOUBLE,FALSE);
 
-    sprintf(string,"%s_rx",cart_names[i]);
-    addVarToCollect((char *)&(cart_state_raw[i].x[_X_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_ry",cart_names[i]);
-    addVarToCollect((char *)&(cart_state_raw[i].x[_Y_]),string,"m",DOUBLE,FALSE);
-    sprintf(string,"%s_rz",cart_names[i]);
-    addVarToCollect((char *)&(cart_state_raw[i].x[_Z_]),string,"m",DOUBLE,FALSE);
-    printf("Var-name: s_rx\n", cart_names[i]);
+//    sprintf(string,"%s_rx",cart_names[i]);
+//    addVarToCollect((char *)&(cart_state_raw[i].x[_X_]),string,"m",DOUBLE,FALSE);
+//    sprintf(string,"%s_ry",cart_names[i]);
+//    addVarToCollect((char *)&(cart_state_raw[i].x[_Y_]),string,"m",DOUBLE,FALSE);
+//    sprintf(string,"%s_rz",cart_names[i]);
+//    addVarToCollect((char *)&(cart_state_raw[i].x[_Z_]),string,"m",DOUBLE,FALSE);
+//    printf("Var-name: %s_rx\n", cart_names[i]);
 
     sprintf(string,"%s_xd",cart_names[i]);
     addVarToCollect((char *)&(cart_state[i].xd[_X_]),string,"m",DOUBLE,FALSE);
@@ -537,7 +537,6 @@ run_task_servo(void)
   /*********************************************************************
    * receive sensory data
    */
-
   if (!receive_sensors()) {
     stop("Problem when receiving sensor data");
     return FALSE;
@@ -723,22 +722,22 @@ receive_sensors(void)
   semGive(sm_joint_state_sem);
 
   // the joint raw state
-  if (semTake(sm_joint_raw_state_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
+  if (semTake(sm_joint_state_raw_sem,ns2ticks(TIME_OUT_NS)) == ERROR) {
 
     ++task_servo_errors;
     return FALSE;
 
   }
 
-  memcpy((void *)(&sm_joint_raw_state_data[1]),(const void*)(&sm_joint_raw_state->joint_raw_state[1]),
+  memcpy((void *)(&sm_joint_state_raw_data[1]),(const void*)(&sm_joint_state_raw->joint_state_raw[1]),
      sizeof(SL_fJstate)*n_dofs);
 
-  cSL_Jstate(joint_raw_state,sm_joint_raw_state_data,n_dofs,FLOAT2DOUBLE);
+  cSL_Jstate(joint_raw_state,sm_joint_state_raw_data,n_dofs,FLOAT2DOUBLE);
 
   // get time stamp and adjust servo time
-  task_servo_time = servo_time = sm_joint_raw_state->ts;
+  task_servo_time = servo_time = sm_joint_state_raw->ts;
 
-  semGive(sm_joint_raw_state_sem);
+  semGive(sm_joint_state_raw_sem);
 
 
   // the misc sensors

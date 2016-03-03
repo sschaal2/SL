@@ -528,21 +528,21 @@ broadcast_sensors(void)
   }
 
   // broadcast joint raw state
-  if (semTake(sm_joint_raw_state_sem,NO_WAIT) == ERROR) {
+  if (semTake(sm_joint_state_raw_sem,NO_WAIT) == ERROR) {
 
     ++count_no_broadcast;
 
   } else {
 
-    cSL_Jstate(joint_raw_state,sm_joint_raw_state_data,n_dofs,DOUBLE2FLOAT);
+    cSL_Jstate(joint_raw_state,sm_joint_state_raw_data,n_dofs,DOUBLE2FLOAT);
 
-    memcpy((void *)(&sm_joint_raw_state->joint_raw_state[1]),
-       (const void*)(&sm_joint_raw_state_data[1]),
+    memcpy((void *)(&sm_joint_state_raw->joint_state_raw[1]),
+       (const void*)(&sm_joint_state_raw_data[1]),
        sizeof(SL_fJstate)*n_dofs);
 
-    sm_joint_raw_state->ts = motor_servo_time;
+    sm_joint_state_raw->ts = motor_servo_time;
 
-    semGive(sm_joint_raw_state_sem);
+    semGive(sm_joint_state_raw_sem);
 
   }
   

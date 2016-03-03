@@ -66,15 +66,19 @@ init_kinematics(void)
   int i;
 
   link_pos             = my_matrix(0,N_LINKS,1,3);
+  link_pos_raw         = my_matrix(0,N_LINKS,1,3);
   link_pos_des         = my_matrix(0,N_LINKS,1,3);
   link_pos_sim         = my_matrix(0,N_LINKS,1,3);
   joint_cog_mpos       = my_matrix(0,N_DOFS,1,3);
+  joint_cog_mpos_raw   = my_matrix(0,N_DOFS,1,3);
   joint_cog_mpos_des   = my_matrix(0,N_DOFS,1,3);
   joint_cog_mpos_sim   = my_matrix(0,N_DOFS,1,3);
   joint_origin_pos     = my_matrix(0,N_DOFS,1,3);
+  joint_origin_pos_raw = my_matrix(0,N_DOFS,1,3);
   joint_origin_pos_des = my_matrix(0,N_DOFS,1,3);
   joint_origin_pos_sim = my_matrix(0,N_DOFS,1,3);
   joint_axis_pos       = my_matrix(0,N_DOFS,1,3);
+  joint_axis_pos_raw   = my_matrix(0,N_DOFS,1,3);
   joint_axis_pos_des   = my_matrix(0,N_DOFS,1,3);
   joint_axis_pos_sim   = my_matrix(0,N_DOFS,1,3);
  
@@ -90,12 +94,14 @@ init_kinematics(void)
 
   for (i=0; i<=N_LINKS; ++i) {
     Alink[i]     = my_matrix(1,4,1,4);
+    Alink_raw[i] = my_matrix(1,4,1,4);
     Alink_des[i] = my_matrix(1,4,1,4);
     Alink_sim[i] = my_matrix(1,4,1,4);
   }
 
   for (i=0; i<=N_DOFS; ++i) {
     Adof[i]     = my_matrix(1,4,1,4);
+    Adof_raw[i] = my_matrix(1,4,1,4);
     Adof_des[i] = my_matrix(1,4,1,4);
     Adof_sim[i] = my_matrix(1,4,1,4);
   }
