@@ -178,6 +178,15 @@ init_task_servo(void)
     addVarToCollect((char *)&(joint_des_state[i].thdd),string,"rad/s^2",DOUBLE,FALSE);
     sprintf(string,"%s_uff",joint_names[i]);
     addVarToCollect((char *)&(joint_des_state[i].uff),string,"Nm",DOUBLE,FALSE);
+
+    /* make raw variables available for output */
+    sprintf(string,"%s_rth",joint_names[i]);
+    addVarToCollect((char *)&(joint_raw_state[i].th),string,"rad", DOUBLE,FALSE);
+    sprintf(string,"%s_rthd",joint_names[i]);
+    addVarToCollect((char *)&(joint_raw_state[i].thd),string,"rad/s", DOUBLE,FALSE);
+    sprintf(string,"%s_rload",joint_names[i]);
+    addVarToCollect((char *)&(joint_raw_state[i].load),string,"Nm", DOUBLE,FALSE);
+
   }
 
   for (i=1; i<=n_endeffs; ++i) {
@@ -189,13 +198,12 @@ init_task_servo(void)
     sprintf(string,"%s_z",cart_names[i]);
     addVarToCollect((char *)&(cart_state[i].x[_Z_]),string,"m",DOUBLE,FALSE);
 
-//    sprintf(string,"%s_rx",cart_names[i]);
-//    addVarToCollect((char *)&(cart_state_raw[i].x[_X_]),string,"m",DOUBLE,FALSE);
-//    sprintf(string,"%s_ry",cart_names[i]);
-//    addVarToCollect((char *)&(cart_state_raw[i].x[_Y_]),string,"m",DOUBLE,FALSE);
-//    sprintf(string,"%s_rz",cart_names[i]);
-//    addVarToCollect((char *)&(cart_state_raw[i].x[_Z_]),string,"m",DOUBLE,FALSE);
-//    printf("Var-name: %s_rx\n", cart_names[i]);
+    sprintf(string,"%s_rx",cart_names[i]);
+    addVarToCollect((char *)&(cart_state_raw[i].x[_X_]),string,"m",DOUBLE,FALSE);
+    sprintf(string,"%s_ry",cart_names[i]);
+    addVarToCollect((char *)&(cart_state_raw[i].x[_Y_]),string,"m",DOUBLE,FALSE);
+    sprintf(string,"%s_rz",cart_names[i]);
+    addVarToCollect((char *)&(cart_state_raw[i].x[_Z_]),string,"m",DOUBLE,FALSE);
 
     sprintf(string,"%s_xd",cart_names[i]);
     addVarToCollect((char *)&(cart_state[i].xd[_X_]),string,"m",DOUBLE,FALSE);
