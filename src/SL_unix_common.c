@@ -52,14 +52,19 @@ char **global_argv;
 // local variabes
 static pthread_t       cthread;  // thread for the command interface
 
-
 static char       command[MAX_ITEMS+1][MAX_CHARS_COMMAND];
 static int        n_command=0;
 static void       (*command_ptr[MAX_ITEMS+1])(void);
 
-static int	  time_reset_detected=TRUE;
+static int    time_reset_detected = TRUE;
 
 static char       user_command[MAX_CHARS_COMMAND] = "";  // this command can be set by user
+
+// amarcovalle:
+static pthread_t        uthread;  // thread for commands sent by the user from a task:
+static int              first_time = TRUE;
+int                     run_command_from_user_task_thread_flag = FALSE;
+// amarcovalle: end
 
 // global functions
 
@@ -69,6 +74,11 @@ static char **sl_completion(const char *text, int start, int end);
 static char *command_generator(const char *text, int state);
 static void  checkUserCommand(char *name);
 static void *checkKeyboard(void *initial_command);
+
+// added: amarcovalle
+static void *getCommandFromUserTask(void);
+
+
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -133,7 +143,7 @@ checkKeyboard(void *initial_command)
       // else wait until the servo_time goes beyond 100ms:
       else {
         while (servo_time < 0.1)
-	  usleep(10000);
+	        usleep(10000);
       }
 
       if (initial_command != NULL) {
@@ -150,12 +160,13 @@ checkKeyboard(void *initial_command)
     }
     free(string);
 
-    // this allows the user to run a command line command from a program, 
-    // and in partciular a real-time program
-    if (strlen(user_command) > 0) {
-      checkUserCommand(user_command);
-      strcpy(user_command,"\0");
-    }
+    // commented: amarcovalle
+    // // this allows the user to run a command line command from a program, 
+    // // and in partciular a real-time program
+    // if (strlen(user_command) > 0) {
+    //   checkUserCommand(user_command);
+    //   strcpy(user_command,"\0");
+    // }
 
   } 
 
@@ -165,6 +176,85 @@ checkKeyboard(void *initial_command)
 
 }
 
+/*!*****************************************************************************
+*******************************************************************************
+\note  getCommandFromUserTask
+\date  April 5, 2016
+
+\author Alonso Marco
+ 
+\remarks 
+ 
+checks whether a new command has been passed from the SL task
+ 
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+ 
+******************************************************************************/
+static void *
+getCommandFromUserTask(void)
+{
+  extern double   servo_time;
+  int             rc;
+
+// #ifdef __XENO__
+
+//   //become a real-time process
+//   char name[100];
+//   sprintf(name, "%s_getCommandFromUserTask_%d", servo_name, parent_process_id);
+//   int thread_priority = 1; // Lower than the command interface one
+//   rt_printf("[DBG]: @check_sent_command(), (1)\n");
+//   rt_task_shadow(NULL, name, thread_priority, 0);
+//   rt_printf("[DBG]: @check_sent_command(), (2)\n");
+
+//   // we want this task in non real-time mode
+//   if ( rc=rt_task_set_mode(T_PRIMARY,0,NULL) )
+//     rt_printf("rt_task_set_mode returned %d\n",rc);
+
+//   rt_printf("[DBG]: @check_sent_command(), (3)\n");
+
+// #endif
+
+  if (first_time && strcmp(servo_name,"task")==0) {
+    // the clock has been reset
+
+    // Special LittleDog Hack -- to be removed?
+    // if the environment variable "SL_TASK_SERVO_STANDALONE" is set,
+    // don't wait for the servo time to start ticking:
+    if (getenv("SL_TASK_SERVO_STANDALONE"))
+      usleep(100000);
+    // else wait until the servo_time goes beyond 100ms:
+    else {
+      while (servo_time < 0.1)
+        usleep(10000);
+    }
+    first_time = 0;
+  }
+
+  while (run_command_from_user_task_thread_flag)
+  {
+    // this allows the user to run a command line command from a program, 
+    // and in partciular a real-time program
+    if (strlen(user_command) > 0)
+    {
+      // #ifdef __XENO__
+      //   rt_printf("[DBG]: @check_sent_command, new command detected!!, %s\n",user_command);
+      // #else
+      //   printf("[DBG]: @check_sent_command, new command detected!!, %s\n",user_command);
+      // #endif
+      checkUserCommand(user_command);
+      strcpy(user_command,"\0");
+      printPrompt();
+    }
+
+    // We check for new commands every 100 ms:
+    usleep(500000);
+
+  }
+
+  return NULL;
+
+}
 
 /*!*****************************************************************************
 *******************************************************************************
@@ -211,6 +301,7 @@ checkUserCommand(char *name)
 
   if (strcmp(name,"")!=0)
     printf(" ???\n");
+  return;
 
 }
 /*!*****************************************************************************
@@ -231,8 +322,13 @@ void
 printPrompt(void)
 
 {
-  printf("%s.%s> ",robot_name,servo_name);
+  #ifdef __XENO__
+    rt_printf("%s.%s> ",robot_name,servo_name);
+  #else
+    printf("%s.%s> ",robot_name,servo_name);
+  #endif
   fflush(stdout);
+  fflush(stdin);
 }
 
 /*!*****************************************************************************
@@ -277,6 +373,42 @@ spawnCommandLineThread(char *initial_command)
 
 /*!*****************************************************************************
 *******************************************************************************
+\note  spawnCommandFromUserTaskThread
+\date  April 5, 2016
+
+\author Alonso Marco
+ 
+\remarks 
+
+spawns off a separate thread for reading commands sent by the user from an SL user task
+ 
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+ 
+******************************************************************************/
+void
+spawnCommandFromUserTaskThread(void)
+{
+  int err = 0;
+  int rc;
+  pthread_attr_t pth_attr;
+  size_t stack_size = 0;
+
+  err = pthread_attr_init(&pth_attr);
+  pthread_attr_getstacksize(&pth_attr, &stack_size);
+  double reqd = 1024*1024*8;
+  if (stack_size < reqd)
+    pthread_attr_setstacksize(&pth_attr, reqd);
+
+  /* initialize a thread for the user command interface */
+  run_command_from_user_task_thread_flag = TRUE;
+  if ((rc=pthread_create( &uthread, &pth_attr, getCommandFromUserTask, NULL)))
+      printf("pthread_create returned with %d\n",rc);
+
+}
+
+/*!*****************************************************************************
+*******************************************************************************
 \note  initializeReadLine
 \date  Oct 22, 2008
  
@@ -293,6 +425,7 @@ none
 static void
 initializeReadLine()
 {
+  // commented: amarcovalle
   extern int rl_catch_signals; // for some reason this isn't in editline/readline.h
 
   rl_attempted_completion_function = sl_completion;
@@ -549,13 +682,11 @@ Function Parameters: [in]=input,[out]=output
 
 ******************************************************************************/
 void
-sendCommandLineCmd(char *name) 
-
+sendCommandLineCmd(char *name)
 {
   int i;
 
   strncpy(user_command, name, MAX_CHARS_COMMAND);
   rl_stuff_char('\n');
-
 }
 
