@@ -167,11 +167,11 @@ openGL_servo(void *dummy)
 
   //we decouple the linux and xenomai priorities
   if ((rc=rt_task_set_mode(0, T_RPIOFF, NULL)))
-    printf("rt_task_set_mode returned %d\n", rc);
+    printf("SL_openGL_servo_xeno.c (1): rt_task_set_mode returned %d\n", rc);
 
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
-    printf("rt_task_set_mode returned %d\n",rc);
+    printf("SL_openGL_servo_xeno.c (2): rt_task_set_mode returned %d\n",rc);
 
   // start the main loop
   servo_enabled = TRUE;

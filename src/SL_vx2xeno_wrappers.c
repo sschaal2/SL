@@ -392,7 +392,7 @@ semTake (SEM_ID semId, int timeout)
       // EINVAL=22 EIDRM=43 EWOULDBLOCK=11 EINTR=4 ETIMEDOUT=110 EPERM=1
       char name[100];
       semFindNameByID(semId,name);
-      printf("Error in rt_sem_p (rc=%d, name=%s)\n",rc,name);
+      printf("SL_vx2xeno_wrappers.c : Error in rt_sem_p (rc=%d, name=%s)\n",rc,name);
       return ERROR;
     }
   }
@@ -448,7 +448,7 @@ semGive (SEM_ID semId)
   } else {
     char name[100];
     semFindNameByID(semId,name);
-    printf("Error in rt_sem_p (rc=%d, name=%s)\n",rc,name);
+    printf("SL_vx2xeno_wrappers.c (2): Error in rt_sem_p (rc=%d, name=%s)\n",rc,name);
     return ERROR;
   }
 

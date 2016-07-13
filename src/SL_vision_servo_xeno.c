@@ -170,7 +170,7 @@ vision_servo(void *dummy)
 
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
-      printf("rt_task_set_mode returned %d\n",rc);
+      printf("SL_vision_servo_xeno.c : rt_task_set_mode returned %d\n",rc);
   
   // run the servo loop
   while (servo_enabled) {
