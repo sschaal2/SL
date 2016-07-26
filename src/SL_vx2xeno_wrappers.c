@@ -367,6 +367,8 @@ STATUS
 semTake (SEM_ID semId, int timeout)
 {
 
+  printf("semTake -- in\n");
+
   int rc;
 
   switch (timeout) {
@@ -392,10 +394,12 @@ semTake (SEM_ID semId, int timeout)
       // EINVAL=22 EIDRM=43 EWOULDBLOCK=11 EINTR=4 ETIMEDOUT=110 EPERM=1
       char name[100];
       semFindNameByID(semId,name);
-      printf("SL_vx2xeno_wrappers.c : Error in rt_sem_p (rc=%d, name=%s)\n",rc,name);
+      printf("SL_vx2xeno_wrappers.c : Error in rt_sem_p (rc=%d, name=%s, error=%s)\n",rc,name,strerror(-rc));
       return ERROR;
     }
   }
+
+  printf("semTake -- out\n");
 
   return OK;
   

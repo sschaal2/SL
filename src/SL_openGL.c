@@ -891,7 +891,7 @@ SLGenericDisplay(void)
   sl_rt_mutex_lock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
   ptr = whichGLWindow();
@@ -903,7 +903,7 @@ SLGenericDisplay(void)
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
     return;
   }
@@ -922,7 +922,7 @@ SLGenericDisplay(void)
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
     return;
   }
@@ -938,10 +938,12 @@ SLGenericDisplay(void)
   // we want to be in real-time mode here
   rt_task_set_mode(0,T_PRIMARY,NULL);
 #endif
+  printf("opengl unlock 4 - in \n");
     sl_rt_mutex_unlock( &mutex1 );
+  printf("opengl unlock 4 - out \n");
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
     return;
   }
@@ -1019,10 +1021,12 @@ SLGenericDisplay(void)
   // we want to be in real-time mode here
   rt_task_set_mode(0,T_PRIMARY,NULL);
 #endif
+  printf("opengl unlock 5 - in \n");
     sl_rt_mutex_unlock( &mutex1 );
+  printf("opengl unlock 5 - out \n");
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
 }
@@ -1445,7 +1449,7 @@ toggleHideWindow(OpenGLWPtr ptr)
     sl_rt_mutex_lock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
   if (ptr->hide) {
@@ -1465,7 +1469,7 @@ toggleHideWindow(OpenGLWPtr ptr)
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
 }
