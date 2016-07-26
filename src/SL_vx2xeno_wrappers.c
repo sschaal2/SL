@@ -367,8 +367,6 @@ STATUS
 semTake (SEM_ID semId, int timeout)
 {
 
-  printf("semTake -- in\n");
-
   int rc;
 
   switch (timeout) {
@@ -398,8 +396,6 @@ semTake (SEM_ID semId, int timeout)
       return ERROR;
     }
   }
-
-  printf("semTake -- out\n");
 
   return OK;
   
