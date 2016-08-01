@@ -121,10 +121,10 @@ action_upon_switch(int sig __attribute__((unused)))
 
   /* Dump a backtrace of the frame which caused the switch to
      secondary mode: */
-
+  /*
   nentries = backtrace(bt,sizeof(bt) / sizeof(bt[0]));
   backtrace_symbols_fd(bt,nentries,fileno(stdout));
 
-  getchar();
+  getchar();*/
 
 }
