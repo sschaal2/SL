@@ -60,6 +60,18 @@ static sl_rt_cond cond;
 static double real_time;
 static double real_time_dt;
 
+//! user function to be called on exit
+static void (*user_motor_exit)(void) = NULL;  //!< function pointer
+
+
+void setUserOnExitMotorServo(void(*fptr)(void))
+{
+
+  user_motor_exit = fptr;
+
+}
+
+
 // external functions
 #ifdef i386
 #ifndef i386mac
@@ -240,6 +252,12 @@ main(int argc, char**argv)
 
 
   }  /* end servo while loop */
+
+  
+  if(user_motor_exit!=NULL) {
+    (*user_motor_exit)();
+  }
+
 
   printf("Motor Servo Error Count = %d\n",motor_servo_errors);
 

@@ -45,6 +45,11 @@ int  run_motor_servo(void);
 int  init_vxworks( void );
 int  init_user_motor(void);
 
+// for user to specify exit function 
+// will be called when servo_enabled becomes false,
+// which happens when stop is called in motor servo
+void setUserOnExitMotorServo(void(*fptr)(void));
+
 #ifdef __cplusplus
 }
 #endif

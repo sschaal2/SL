@@ -56,6 +56,18 @@ static int     cpuID = 0;
 // global variables
 int    delay_ns = FALSE;
 
+//! user function to be called on exit
+static void (*user_motor_exit)(void) = NULL;  //!< function pointer
+
+
+void setUserOnExitMotorServo(void(*fptr)(void));
+{
+
+  user_motor_exit = fptr;
+
+}
+
+
 // external functions
 
 
@@ -251,6 +263,10 @@ motor_servo(void *dummy)
       exit(-1);
 
   }  /* end servo while loop */
+
+  if(user_motor_exit!=NULL) {
+    (*user_motor_exit)();
+  }
 
 
 }
