@@ -52,6 +52,20 @@ static void task_servo(void *dummy);
 // external functions
 extern void initUserTasks(void);
 
+
+//! user function to be called on exit
+static void (*user_task_exit)(void) = NULL;  //!< function pointer
+
+
+void setUserOnExitTaskServo(void(*fptr)(void));
+{
+
+  user_task_exit = fptr;
+
+}
+
+
+
 /*!*****************************************************************************
  *******************************************************************************
 \note  main
@@ -207,6 +221,11 @@ task_servo(void *dummy)
 
 
   }  /* end servo while loop */
+
+  if(user_task_exit!=NULL) {
+    (*user_task_exit)();
+  }
+
 
 }
 
