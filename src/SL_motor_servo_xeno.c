@@ -60,7 +60,7 @@ int    delay_ns = FALSE;
 static void (*user_motor_exit)(void) = NULL;  //!< function pointer
 
 
-void setUserOnExitMotorServo(void(*fptr)(void));
+void setUserOnExitMotorServo(void(*fptr)(void))
 {
 
   user_motor_exit = fptr;
