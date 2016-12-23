@@ -77,11 +77,6 @@ extern "C" {
   void scdMotor(void);
   void toggleShowAxes(int status);
 
-  // for user to specify exit function 
-  // will be called when servo_enabled becomes false,
-  // which happens when stop is called in task servo
-  void setUserOnExitTaskServo(void(*fptr)(void));
-
   
 #ifdef __cplusplus
 }

@@ -43,18 +43,6 @@ void task_servo(void);
 // external functions
 extern void initUserTasks(void);
 
-//! user function to be called on exit
-static void (*user_task_exit)(void) = NULL;  //!< function pointer
-
-
-void setUserOnExitTaskServo(void(*fptr)(void));
-{
-
-  user_task_exit = fptr;
-
-}
-
-
 /*!*****************************************************************************
  *******************************************************************************
 \note  main
@@ -133,11 +121,6 @@ main(int argc, char**argv)
     sl_rt_mutex_unlock( &mutex1 );
 
   }  /* end servo while loop */
-
-
-  if(user_task_exit!=NULL) {
-    (*user_task_exit)();
-  }
 
 
   printf("Task Servo Error Count = %d\n",task_servo_errors);

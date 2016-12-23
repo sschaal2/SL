@@ -98,6 +98,7 @@ extern "C" {
   // external variables
   extern char config_files[][100];
 
+  
 #ifdef __cplusplus
 }
 #endif
