@@ -211,7 +211,7 @@ motor_servo(void *dummy)
 
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
-    printf("rt_task_set_mode returned %d\n",rc);
+    printf("SL_motor_servo_xeno.c : rt_task_set_mode returned %d\n",rc);
 
   if (real_time_clock_flag) // make this a clocked task
     rt_task_set_periodic(NULL,TM_NOW,(RTIME)(1000000000./(double)motor_servo_rate));

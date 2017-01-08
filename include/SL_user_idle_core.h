@@ -65,7 +65,7 @@ checkForUserGraphics();
 checkForMessages();
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 updateComet();
 receiveOscilloscopeData();

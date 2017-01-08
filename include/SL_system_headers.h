@@ -44,6 +44,9 @@
 
 #ifdef __XENO__
 #include "SL_xeno_headers.h"
+#if ( (CONFIG_XENO_VERSION_MAJOR == 2 && CONFIG_XENO_VERSION_MINOR >= 6) || CONFIG_XENO_VERSION_MAJOR > 2 )
+#define T_PRIMARY T_CONFORMING
+#endif
 #else
 #include "pthread.h"
 #endif

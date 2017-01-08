@@ -891,7 +891,7 @@ SLGenericDisplay(void)
   sl_rt_mutex_lock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
   ptr = whichGLWindow();
@@ -903,7 +903,7 @@ SLGenericDisplay(void)
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
     return;
   }
@@ -922,7 +922,7 @@ SLGenericDisplay(void)
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
     return;
   }
@@ -941,7 +941,7 @@ SLGenericDisplay(void)
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
     return;
   }
@@ -1022,7 +1022,7 @@ SLGenericDisplay(void)
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
 }
@@ -1445,7 +1445,7 @@ toggleHideWindow(OpenGLWPtr ptr)
     sl_rt_mutex_lock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
   if (ptr->hide) {
@@ -1465,7 +1465,7 @@ toggleHideWindow(OpenGLWPtr ptr)
     sl_rt_mutex_unlock( &mutex1 );
 #ifdef __XENO__
   // we want to be in secondary mode here
-  rt_task_set_mode(T_PRIMARY,0,NULL);
+  //rt_task_set_mode(T_PRIMARY,0,NULL);
 #endif
 
 }

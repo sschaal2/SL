@@ -167,7 +167,7 @@ simulation_servo(void *dummy)
 
   // warn upon mode switch
   if ((rc=rt_task_set_mode(0,T_WARNSW,NULL))) 
-    printf("rt_task_set_mode returned %d\n",rc);
+    printf("SL_simulation_servo_xeno.c : rt_task_set_mode returned %d\n",rc);
 
   // boardcast the current state such that the motor servo can generate a command
   send_sim_state();
