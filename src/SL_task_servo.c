@@ -472,6 +472,11 @@ init_task_servo(void)
   setOsc(d2a_ct,0.0);
 
   scd();
+  
+  // uncomment this to trigger recording in motor servo at startup
+  // Really useful! Sometimes.
+  // scdMotor();
+  
 
 }
 
