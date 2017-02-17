@@ -34,6 +34,10 @@ extern "C" {
   extern int    global_argc;
   extern char **global_argv;
 
+  // amarcovalle:
+    extern int run_command_from_user_task_thread_flag;
+  // amarcovalle: end
+
 
   // global functions 
   void  spawnCommandLineThread(char *initial_command);
@@ -43,6 +47,9 @@ extern "C" {
   void  printPrompt(void);
   void  parseOptions(int argc, char**argv);
   void  sendCommandLineCmd(char *name);
+
+  // amarcovalle:
+  void  spawnCommandFromUserTaskThread(void);
   
 #ifdef __cplusplus
 }

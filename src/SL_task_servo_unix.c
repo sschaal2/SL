@@ -96,6 +96,10 @@ main(int argc, char**argv)
   // spawn command line interface thread
   spawnCommandLineThread(initial_user_command);
 
+  // added: amarcovalle
+    // spawn from-task user commands thread
+    spawnCommandFromUserTaskThread();
+
   // reset the simulation
   if (!real_robot_flag)
     reset();

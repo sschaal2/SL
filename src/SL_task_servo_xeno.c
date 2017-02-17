@@ -117,6 +117,10 @@ main(int argc, char**argv)
   if (!real_robot_flag)
     reset();
 
+  // added: amarcovalle
+    // spawn from-task user commands thread
+    spawnCommandFromUserTaskThread();
+
   // make this process real-time
   if (use_spawn) {
 
