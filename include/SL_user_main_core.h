@@ -1,6 +1,7 @@
 int i,j,n,c=0;
 char argv_array[100][50];
 char *argv_ptr[100];
+char start_task[50];
 int  graphics_flag = TRUE;
 int  hold_flag = FALSE;
 int  ros_flag = FALSE;
@@ -17,7 +18,6 @@ int  stat_loc;
 int  options = 0;
 int  rc;
 int  x,y,h,w;
-
 Display *display;
 int  screen_num;
 int  display_width;
@@ -48,6 +48,23 @@ sprintf(servo_name,"%s",argv[0]);
 for (i=1; i<argc; ++i)
   if (strcmp(argv[i],"-ng")==0 ||  strcmp(argv[i],"-no-graphics")==0)
     graphics_flag = FALSE;
+
+// check if starting task flag
+// i.e. task that must start along with SL
+strcmp(start_task,"");
+for (i=1;i<argc;++i){
+  if(strcmp(argv[i],"-task")==0){
+    // following argument expected to be the name of the task to start
+    if(i>=(argc-1)){
+      printf("name of task expected after '-task' command line argument");
+      return;
+    } else {
+      sprintf(start_task,argv[i+1]);
+    }
+  }
+}
+
+
 
 // check for hold flag
 for (i=1; i<argc; ++i)
@@ -96,7 +113,10 @@ sprintf(argv_array[c++],"-pid");
 sprintf(argv_array[c++],"%d",parent_process_id);
 if (!graphics_flag) 
   sprintf(argv_array[c++],"-ng");
-
+if (strcmp(start_task,"")!=0){
+  sprintf(argv_array[c++],"-task");
+  sprintf(argv_array[c++],start_task);
+}
 
 // detach process
 #if sparc

@@ -35,6 +35,9 @@ extern "C" {
 extern char current_task_name[100];
 
 /* functions */
+void setDefaultTask(void);
+char sl_default_task[100]; // task specified by '-task' in command line will be copied to this variable ...
+int set_args_task(int argc, char** argv); // ... via this function
 void setTask(void);
 void st(void);
 void addTask(const char *tname, int (*init_function)(void), int (*run_function)(void),
@@ -46,6 +49,7 @@ void ctp(void);
 int  setTaskByName(char *name);
 void runTask(void);
 void redo(void);
+
 
 #ifdef __cplusplus
 }

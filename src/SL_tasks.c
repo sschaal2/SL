@@ -62,15 +62,15 @@ st(void)
 {
   setTask();
 }
-void
-setTask(void) 
 
+
+void
+setTask(void)
 {
 
   int i,j;
   Task_Def *tptr;
   int aux=0;
-
 
   if (!servo_enabled) {
     printf("WARNING: Servo is not running! -- Aborted!\n");
@@ -93,6 +93,7 @@ AGAIN:
   printf("\n\n\nChoose Task of Robot:\n\n");
   
   tptr = &tasks;
+
   i=-1;
   while (tptr != NULL) {
     if (tptr->active) {
@@ -136,7 +137,7 @@ AGAIN:
   strcpy(current_task_name, tptr->name);
   strcpy(last_task_name, tptr->name);
   last_change_function = tptr->change_function;
-	
+
 }
 
 /*!*****************************************************************************
@@ -331,6 +332,7 @@ initTasks(void)
   tasks.next_task = NULL;
 
   /* add to man pages */
+  addToMan("setDefaultTask","starts the task specified by the '-task' argument (if any)",setDefaultTask);
   addToMan("setTask","changes the current task of robot",setTask);
   addToMan("st","short for setTask",st);
   addToMan("redo","repeats the last task",redo);
@@ -430,25 +432,25 @@ int
 setTaskByName(char *name)
 
 {
-  
+
   int i,j;
   Task_Def *tptr;
   int aux=0;
 	
   if (!tasks_initialized) 
     initTasks();
-
+  
   tptr = &tasks;
+  
   while (tptr != NULL) {
 
     if (tptr->active && strcmp(name,tptr->name)==0) {
 
       /* execute the initialization of the task */
-	
       if (!(*tptr->init_function)()) {
 	return FALSE;
       }
-      
+
       current_init_function    = tptr->init_function;
       current_run_function     = tptr->run_function;
       current_change_function  = tptr->change_function;
@@ -464,6 +466,28 @@ setTaskByName(char *name)
 
   return FALSE;
 }
+
+void setDefaultTask(void){
+  setTaskByName(sl_default_task);
+}
+
+// set task passed as argument as default task
+int set_args_task(int argc, char**argv){
+  uint i=0;
+  Task_Def *tptr;
+  for(i=0;i<argc;i++){
+    tptr = &tasks;
+    while (tptr != NULL) {
+      if (strcmp(argv[i],tptr->name)==0) {
+	sprintf(sl_default_task,argv[i]);
+	return TRUE;
+      }
+      tptr = (Task_Def *) tptr->next_task;
+    }
+  }
+  return FALSE;
+}
+
 
 /*!*****************************************************************************
  *******************************************************************************

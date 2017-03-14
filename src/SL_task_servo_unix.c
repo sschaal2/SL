@@ -40,6 +40,7 @@ void task_servo(void);
 
 // local functions
 
+
 // external functions
 extern void initUserTasks(void);
 
@@ -61,6 +62,7 @@ initializes everything and starts the servo loop
 int 
 main(int argc, char**argv)
 {
+
   int i, j;
 
   // parse command line options
@@ -93,12 +95,21 @@ main(int argc, char**argv)
   // the user tasks as defined in initUserTasks.c 
   initUserTasks();
 
+  // set task passed as argument as default task (if any)
+  int found_default_task = set_args_task(argc, argv);
+
+  // if default task is true, user specified a task for startup
+  // overriding init_user_command with request to start this task
+  if (found_default_task==TRUE){
+    sprintf(initial_user_command,"setDefaultTask");
+  }
+
   // spawn command line interface thread
   spawnCommandLineThread(initial_user_command);
 
   // added: amarcovalle
-    // spawn from-task user commands thread
-    spawnCommandFromUserTaskThread();
+  // spawn from-task user commands thread
+  spawnCommandFromUserTaskThread();
 
   // reset the simulation
   if (!real_robot_flag)
@@ -117,12 +128,14 @@ main(int argc, char**argv)
     // lock out the keyboard interaction 
     sl_rt_mutex_lock( &mutex1 );
 
+
     // run the task servo routines
     if (!run_task_servo())
       break;
 
     // continue keyboard interaction
     sl_rt_mutex_unlock( &mutex1 );
+
 
   }  /* end servo while loop */
 
