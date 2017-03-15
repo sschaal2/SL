@@ -243,10 +243,10 @@ addEntryOscBuffer(char *name, double v, double ts, int pID)
     n_osc_entries = OSC_BUFFER_SIZE;
     if (++count_overruns % 1000 == 1 && !overrun_message_disabled) {
       if (++count_overrun_messages > 10) {
-	printf("addEntryOscBuffer: too many buffer overuns --- print outs are stopped\n");
+	rt_printf("addEntryOscBuffer: too many buffer overuns --- print outs are stopped\n");
 	overrun_message_disabled = TRUE;
       } else {
-	printf("addEntryOscBuffer: ring buffer overuns = %d\n",count_overruns);
+	rt_printf("addEntryOscBuffer: ring buffer overuns = %d\n",count_overruns);
       }
     }
   }
