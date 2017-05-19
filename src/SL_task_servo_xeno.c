@@ -118,8 +118,8 @@ main(int argc, char**argv)
     reset();
 
   // added: amarcovalle
-    // spawn from-task user commands thread
-    spawnCommandFromUserTaskThread();
+  // spawn from-task user commands thread
+  spawnCommandFromUserTaskThread();
 
   // make this process real-time
   if (use_spawn) {
@@ -131,6 +131,15 @@ main(int argc, char**argv)
       printf("rt_task_spawn returned %d\n",rc);
     }
 
+    // set task passed as argument as default task (if any)
+    int found_default_task = set_args_task(argc, argv);
+
+    // if default task is true, user specified a task for startup
+    // overriding init_user_command with request to start this task
+    // set task passed as argument as default task (if any)
+    if (found_default_task==TRUE){
+      sprintf(initial_user_command,"setDefaultTask");
+    }
     // spawn command line interface thread
     spawnCommandLineThread(initial_user_command);
 
