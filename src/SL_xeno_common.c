@@ -74,8 +74,19 @@ initXeno(char *task_name)
   sprintf(name, "x%s_main_%d", task_name, parent_process_id);
   rt_task_shadow(NULL, name, 0, 0);
 
+  // gsutanto:
+  // Only monitor task servo here, because otherwise the overall system becomes too sensitive:
+  // openGL servo continuously has real-time violations (because it is NOT real-time),
+  // cluttering the real-time violation indications of the task servo.
+  // It is sufficient to just activate mode-switches interrupt for the task servo only,
+  // assuming SL users only program additional tasks to be called from task servo,
+  // and do not tamper with any other servos (i.e. the motor servo is NOT modified and completely real-time-safe).
+  // You may see an example of real-time violation detection in the task servo here:
+  // https://atlas.is.localnet/confluence/display/AMDW/Automatic+Pin-Pointing+of+Real-Time+Violation+in+SL%27s+Task+Servo
+  if (strcmp(task_name, "task") == 0) { // only setup the real-time mode-switch interrupt handler for the task servo
   // what to do when mode switches happen
   signal(SIGDEBUG, action_upon_switch);
+  }
 
   // start the non real-time printing library
   rt_print_auto_init(1);
@@ -120,7 +131,8 @@ action_upon_switch(int sig __attribute__((unused)))
   ++count_xenomai_mode_switches;
 
   /* Dump a backtrace of the frame which caused the switch to
-     secondary mode: */
+     secondary mode: 
+     (please un-comment the following block for real-time violation monitoring) */
   /*
   nentries = backtrace(bt,sizeof(bt) / sizeof(bt[0]));
   backtrace_symbols_fd(bt,nentries,fileno(stdout));
