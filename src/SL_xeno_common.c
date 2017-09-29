@@ -39,8 +39,11 @@ long count_xenomai_mode_switches = -1;
 // global functions
 
 // local functions
+static void
+action_upon_switch_other_servos(int sig __attribute__((unused)));
+
 static void 
-action_upon_switch(int sig __attribute__((unused)));
+action_upon_switch_task_servo(int sig __attribute__((unused)));
 
 /*!*****************************************************************************
  *******************************************************************************
@@ -75,7 +78,7 @@ initXeno(char *task_name)
   rt_task_shadow(NULL, name, 0, 0);
 
   // gsutanto:
-  // Only monitor task servo here, because otherwise the overall system becomes too sensitive:
+  // The task servo is monitored separately here, because otherwise the overall system becomes too sensitive:
   // openGL servo continuously has real-time violations (because it is NOT real-time),
   // cluttering the real-time violation indications of the task servo.
   // It is sufficient to just activate mode-switches interrupt for the task servo only,
@@ -83,9 +86,15 @@ initXeno(char *task_name)
   // and do not tamper with any other servos (i.e. the motor servo is NOT modified and completely real-time-safe).
   // You may see an example of real-time violation detection in the task servo here:
   // https://atlas.is.localnet/confluence/display/AMDW/Automatic+Pin-Pointing+of+Real-Time+Violation+in+SL%27s+Task+Servo
-  if (strcmp(task_name, "task") == 0) { // only setup the real-time mode-switch interrupt handler for the task servo
-  // what to do when mode switches happen
-  signal(SIGDEBUG, action_upon_switch);
+  if (strcmp(task_name, "task") == 0) // setup the real-time mode-switch interrupt handler for the task servo
+  {
+    // what to do when mode switches happen on task servo
+    signal(SIGDEBUG, action_upon_switch_task_servo);
+  }
+  else // setup the real-time mode-switch interrupt handler for other servos
+  {
+    // what to do when mode switches happen on other servos
+    signal(SIGDEBUG, action_upon_switch_other_servos);
   }
 
   // start the non real-time printing library
@@ -108,12 +117,40 @@ initXeno(char *task_name)
 
 /*!*****************************************************************************
  *******************************************************************************
-\note  action_upon_switch
-\date  Oct. 2009
+\note  action_upon_switch_other_servos
+\date  Sept. 2017
+
+\remarks
+
+what to do when mode switches occur on other servos
+(only increments the real-time violation counts)
+
+ *******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+none
+
+ ******************************************************************************/
+static void
+action_upon_switch_other_servos(int sig __attribute__((unused)))
+{
+    void *bt[32];
+    int nentries;
+
+    // increment mode swich counter
+    ++count_xenomai_mode_switches;
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  action_upon_switch_task_servo
+\date  Sept. 2017
 
 \remarks 
 
-what to do when mode switches occur
+what to do when mode switches occur on task servo
 
  *******************************************************************************
 Function Parameters: [in]=input,[out]=output
@@ -122,7 +159,7 @@ none
 
  ******************************************************************************/
 static void 
-action_upon_switch(int sig __attribute__((unused)))
+action_upon_switch_task_servo(int sig __attribute__((unused)))
 {
   void *bt[32];
   int nentries;
