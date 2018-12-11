@@ -297,7 +297,7 @@ static int
 read_traj_file(int flag)
 {
   int j,i,r,k,rc;
-  static char string[100];
+  static char string[200];
   static char fname[100] = "test.traj";
   static char current_fname[100] = "";
   FILE * fp=NULL;

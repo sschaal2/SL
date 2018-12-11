@@ -188,7 +188,7 @@ init_stereo_matrices(char *fname)
 {
   int  i, j,rc;
     FILE *fp;
-    char string[100];
+    char string[200];
 
     /* read in the projection matrices file */
     sprintf (string, "%s%s", CONFIG,fname);

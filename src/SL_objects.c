@@ -1245,7 +1245,7 @@ readObjects(char *cfname)
   int    objtype;
   char   name[100];
   char   fname[100];
-  char   name2[100];
+  char   name2[200];
   double oparms[MAX_OBJ_PARMS+1];
   double cparms[MAX_CONTACT_PARMS+1];
   double display_grid_delta;

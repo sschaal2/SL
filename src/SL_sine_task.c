@@ -267,7 +267,7 @@ static int
 read_sine_script(void)
 {
   int j,i,rc;
-  static char string[100];
+  static char string[200];
   static char fname[100] = "default.sine";
   FILE *fp;
   int found = FALSE;

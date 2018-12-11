@@ -1139,8 +1139,8 @@ menu_select(int mode)
 static void
 glutMenu(OpenGLWPtr ptr)
 {
-  char string[100];
-  char c[100];
+  char string[200];
+  char c[200];
 
   if (ptr->hide)
     return;

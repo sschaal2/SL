@@ -651,9 +651,11 @@ outMenu(void)
     
     if (get_double("At which frequency [Hz] should data be stored?\0",
 		   sampling_freq/(double)store_in_buffer_rate,
-		   &temp))
-      if (temp > sampling_freq) temp = sampling_freq;
+		   &temp)) {
+      if (temp > sampling_freq)
+	temp = sampling_freq;
       store_in_buffer_rate = sampling_freq/temp;
+    }
     
   } else if (aux == 2) {
     

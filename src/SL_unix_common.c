@@ -58,7 +58,7 @@ static void       (*command_ptr[MAX_ITEMS+1])(void);
 
 static int    time_reset_detected = TRUE;
 
-static char       user_command[MAX_CHARS_COMMAND] = "";  // this command can be set by user
+static char       user_command[MAX_CHARS_COMMAND+1] = "";  // this command can be set by user
 
 // amarcovalle:
 static pthread_t        uthread;  // thread for commands sent by the user from a task:
@@ -76,7 +76,7 @@ static void  checkUserCommand(char *name);
 static void *checkKeyboard(void *initial_command);
 
 // added: amarcovalle
-static void *getCommandFromUserTask(void);
+static void *getCommandFromUserTask(void *v);
 
 
 
@@ -192,7 +192,7 @@ Function Parameters: [in]=input,[out]=output
  
 ******************************************************************************/
 static void *
-getCommandFromUserTask(void)
+getCommandFromUserTask(void *v)
 {
   extern double   servo_time;
   int             rc;

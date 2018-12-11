@@ -473,7 +473,7 @@ void setDefaultTask(void){
 
 // set task passed as argument as default task
 int set_args_task(int argc, char**argv){
-  uint i=0;
+  unsigned int i=0;
   Task_Def *tptr;
   for(i=0;i<argc;i++){
     tptr = &tasks;

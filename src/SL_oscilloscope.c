@@ -85,7 +85,7 @@ initOsc(void)
 
   int    rc;
   char   string[40];
-  char   fname[100];
+  char   fname[200];
   FILE  *fp;
 
   if (no_graphics_flag)
