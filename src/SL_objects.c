@@ -1631,6 +1631,14 @@ contactVelocity(int cID, ObjectPtr optr, double *v)
 
     computeLinkVelocityPoint(contacts[cID].id_start, x, link_pos_sim, joint_origin_pos_sim, 
 			     joint_axis_pos_sim, joint_sim_state, v);
+
+
+    //computeLinkVelocity(contacts[cID].id_start, link_pos_sim, joint_origin_pos_sim, 
+    //			     joint_axis_pos_sim, joint_sim_state, v);
+    /*
+    for (i=1; i<=N_CART; ++i)
+      v[i] = base_state.xd[i];
+    */
     
   } else {
     computeLinkVelocity(contacts[cID].id_start, link_pos_sim, joint_origin_pos_sim, 
@@ -1643,21 +1651,21 @@ contactVelocity(int cID, ObjectPtr optr, double *v)
   }
 
   // convert the velocity to object coordinates
-  if (optr->rot[1] != 0.0) {
-    aux  =  v[2]*cos(optr->rot[1])+v[3]*sin(optr->rot[1]);
-    v[3] = -v[2]*sin(optr->rot[1])+v[3]*cos(optr->rot[1]);
+  if (optr->rot[_A_] != 0.0) {
+    aux  =  v[2]*cos(optr->rot[1])+v[3]*sin(optr->rot[_A_]);
+    v[3] = -v[2]*sin(optr->rot[1])+v[3]*cos(optr->rot[_A_]);
     v[2] = aux;
   }
   
-  if (optr->rot[2] != 0.0) {
-    aux  =  v[1]*cos(optr->rot[2])-v[3]*sin(optr->rot[2]);
-    v[3] =  v[1]*sin(optr->rot[2])+v[3]*cos(optr->rot[2]);
+  if (optr->rot[_B_] != 0.0) {
+    aux  =  v[1]*cos(optr->rot[2])-v[3]*sin(optr->rot[_B_]);
+    v[3] =  v[1]*sin(optr->rot[2])+v[3]*cos(optr->rot[_B_]);
     v[1] = aux;
   }
   
-  if (optr->rot[3] != 0.0) {
-    aux  =  v[1]*cos(optr->rot[3])+v[2]*sin(optr->rot[3]);
-    v[2] = -v[1]*sin(optr->rot[3])+v[2]*cos(optr->rot[3]);
+  if (optr->rot[_G_] != 0.0) {
+    aux  =  v[1]*cos(optr->rot[3])+v[2]*sin(optr->rot[_G_]);
+    v[2] = -v[1]*sin(optr->rot[3])+v[2]*cos(optr->rot[_G_]);
     v[1] = aux;
   }
 
@@ -2705,6 +2713,7 @@ accumulateFinalForces(ContactPtr cptr)
     moment_arm[_X_]*cptr->f[_Z_]*cptr->fraction_end;
   ucontact[cptr->base_dof_end].t[_G_] += moment_arm[_X_]*cptr->f[_Y_]*cptr->fraction_end - 
     moment_arm[_Y_]*cptr->f[_X_]*cptr->fraction_end;
+
   
   /* get the torque at the object center from the cross product */
   optr->t[_A_] += moment_arm_object[_Y_]*cptr->f[_Z_]*cptr->fraction_end - 

@@ -1095,6 +1095,9 @@ send_contacts(void)
       for (j=1; j<=N_CART; ++j) {
 	sm_contacts->contact[i].f[j] = contacts[i].f[j];
 	sm_contacts->contact[i].n[j] = contacts[i].n[j];
+
+	// debugging fudge to visualize velocities
+	//sm_contacts->contact[i].f[j] = contacts[i].tanvel[j];
       }
       strncpy(sm_contacts->contact[i].name,contacts[i].optr->name,STRING100);
     } else {

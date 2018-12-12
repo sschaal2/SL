@@ -1,20 +1,17 @@
 /*!=============================================================================
   ==============================================================================
 
-  \file    SL_forDynArt_body.h
+  \ingroup SLskeletons
 
-  \author  Stefan Schaal
-  \date    Sept 2010
+  \file    SL_forDynArt.c
+
+  \author  Stefan Schaal 
+  \date    Sept. 2010
 
   ==============================================================================
   \remarks
 
-  the articulated body forward dynamics function
-
-  Note: this file was converted to a header file as it requires to include
-        robot specific header files, such that it cannot be added to a SL
-	library. SL_for_dynamics.c is just an empty file which includes
-        this header.
+  the articulated body inertia forward dynamics method
 
   ============================================================================*/
 
@@ -30,8 +27,30 @@
 #include "SL_integrate.h"
 #include "mdefs.h"
 
+// classes
+class SL_forDynArt { //!< this class includes all variables and functions
+  
+public:
 
-/* global variables */
+  void 
+  SL_ForDynArtGeneral(SL_Jstate *lstate,SL_Cstate *cbase,
+		      SL_quat *obase, SL_uext *ux, SL_endeff *leff);
+  
+private:
+  
+  SL_Jstate  *state;
+  SL_endeff  *eff;
+  SL_Cstate  *basec;
+  SL_quat    *baseo;
+  SL_uext    *uex;
+  
+#include "ForDynArt_declare.h"
+  
+#include "ForDynArt_functions.h"
+  
+};
+
+/* global variables */ 
 
 /* local variables */
 
@@ -40,15 +59,51 @@
 /* local functions */
 
 /* external variables */
+extern "C" void 
+SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
+	     SL_quat *obase, SL_uext *ux, SL_endeff *leff);
 
-namespace SL_dynamics_functions{
 
 /*!*****************************************************************************
  *******************************************************************************
 \note  SL_ForDynArt
 \date  Sept 2010
+   
+\remarks 
 
-\remarks
+computes the forward dynamics accelerations from the articulate body inertia
+method -- just a wrapper function
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in,out] state   : the state containing th, thd, thdd, and receiving the
+                          appropriate u
+ \param[in,out] cbase   : the position state of the base
+ \param[in,out] obase   : the orientational state of the base
+ \param[in]     ux      : the external forces acting on each joint, 
+                          in world coordinates, e.g., as computed from contact 
+                          forces
+ \param[in]     endeff  : the endeffector parameters
+
+ ******************************************************************************/
+void 
+SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
+	     SL_quat *obase, SL_uext *ux, SL_endeff *leff)
+{
+  SL_forDynArt id;
+
+  id.SL_ForDynArtGeneral(lstate,cbase,obase,ux,leff);
+  
+} 
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  SL_ForDynArtGeneral
+\date  Sept 2010
+   
+\remarks 
 
 computes the forward dynamics accelerations from the articulate body inertia
 method
@@ -60,37 +115,27 @@ method
                           appropriate u
  \param[in,out] cbase   : the position state of the base
  \param[in,out] obase   : the orientational state of the base
- \param[in]     ux      : the external forces acting on each joint,
-                          in world coordinates, e.g., as computed from contact
+ \param[in]     ux      : the external forces acting on each joint, 
+                          in world coordinates, e.g., as computed from contact 
                           forces
  \param[in]     endeff  : the endeffector parameters
 
  ******************************************************************************/
-struct
-SL_ForDynArt{
-#include "ForDynArt_declare.h"
-  int i,j;
-  double fbase[2*N_CART+1];
-  SL_Jstate  *state;
-  SL_endeff  *eff;
-  SL_Cstate  *basec;
-  SL_quat    *baseo;
-  SL_uext    *uex;
-#include "ForDynArt_functions.h"
-
-  void call(SL_Jstate *lstate,SL_Cstate *cbase,
-	     SL_quat *obase, SL_uext *ux, SL_endeff *leff)
+void SL_forDynArt::
+SL_ForDynArtGeneral(SL_Jstate *lstate,SL_Cstate *cbase,
+		    SL_quat *obase, SL_uext *ux, SL_endeff *leff)
 {
-
-  // this makes the arguments global variables
+  int    i,j;
+  double fbase[2*N_CART+1];  
+  
+  // this makes the arguments global variables 
   state  = lstate;
   eff    = leff;
   basec  = cbase;
   baseo  = obase;
   uex    = ux;
 
-
-  // subtract the friction term temporarily
+  // subtract the friction term temporarily 
   for (i=1; i<=N_DOFS; ++i) {
     state[i].u -= compute_independent_joint_forces(state[i],links[i]);
   }
@@ -102,20 +147,6 @@ SL_ForDynArt{
     state[i].u += compute_independent_joint_forces(state[i],links[i]);
   }
 
-}
-};
-
-} // namespace
-
-/////////////// C interface //////////
-extern "C"
-{
-void SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
-                  SL_quat *obase, SL_uext *ux, SL_endeff *leff);
-} // extern "C"
+} 
 
 
-void SL_ForDynArt(SL_Jstate *lstate,SL_Cstate *cbase,
-                  SL_quat *obase, SL_uext *ux, SL_endeff *leff){
-  SL_dynamics_functions::SL_ForDynArt().call(lstate,cbase, obase, ux, leff);
-}

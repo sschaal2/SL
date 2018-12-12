@@ -2694,7 +2694,7 @@ read_parameter_pool_string(const char *fname, const char *keyword, char *svalue)
  \param[in]     dh              : display height in pixels
  \param[out]    xstring         : string in xterm notation
  \param[out]    x               : x position of window
- \param[out]    y               : y position of windwo
+ \param[out]    y               : y position of window
  \param[out]    w               : width of window
  \param[out]    h               : height of window
 
@@ -2757,11 +2757,12 @@ parseWindowSpecs(char *string, int dw, int dh, char *xstring, int *x, int *y, in
     ry = ry/100.*dh;
 
   // check for negative signs
-  if (rx < 0)
+  /*  if (rx < 0)
     rx = dw + rx;
 
   if (ry < 0)
     rx = dh + ry;
+  */
 
   // finally assign the return values
   *x = rx;

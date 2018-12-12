@@ -107,7 +107,7 @@ SL_IntegrateEuler(SL_Jstate *state, SL_Cstate *cbase,
       obase->q[i]     += dt*obase->qd[i];
       aux += sqr(obase->q[i]);
     }
-    aux = sqrt(aux);
+    aux = sqrt(aux); 
     if (aux == 0) 
       aux = 1.e-10;
     

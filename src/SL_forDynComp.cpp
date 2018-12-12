@@ -1,20 +1,17 @@
 /*!=============================================================================
   ==============================================================================
 
-  \file    SL_forDynComp_body.h
+  \ingroup SLskeletons
 
-  \author  Stefan Schaal
-  \date    Sept. 2010
+  \file    SL_forDynComp.cpp
+
+  \author  Stefan Schaal, Alex Herzog
+  \date    Feb. 2015
 
   ==============================================================================
   \remarks
 
-  the composite inertia forward dynamics function
-
-  Note: this file was converted to a header file as it requires to include
-        robot specific header files, such that it cannot be added to a SL
-	library. SL_for_dynamics.c is just an empty file which includes
-        this header.
+  the composite inertia forward dynamics method
 
   ============================================================================*/
 
@@ -30,8 +27,32 @@
 #include "SL_integrate.h"
 #include "mdefs.h"
 
+// classes
+class SL_forDynComp { //!< this class includes all variables and functions
+  
+public:
 
-/* global variables */
+  void
+  SL_ForDynCompGeneral(SL_Jstate *lstate,SL_Cstate *cbase,
+		       SL_quat *obase, SL_uext *ux, SL_endeff *leff,
+		       Matrix rbdM, Vector rbdCG);
+  
+private:
+  
+  SL_Jstate  *state;
+  SL_endeff  *eff;
+  SL_Cstate  *basec;
+  SL_quat    *baseo;
+  SL_uext    *uex;
+  
+#include "ForDynComp_declare.h"
+  
+#include "ForDynComp_functions.h"
+  
+};
+
+
+/* global variables */ 
 
 /* local variables */
 
@@ -41,16 +62,14 @@
 
 /* external variables */
 
-namespace SL_dynamics_functions{
-
 /*!*****************************************************************************
  *******************************************************************************
 \note  SL_ForDynComp
 \date  Sept 2010
+   
+\remarks 
 
-\remarks
-
-computes the forward dynamics accelerations from the composite inertia
+computes the forward dynamics accelerations from the composite inertia 
 method. Returned are also the pointers to the RBD inertia matrix and the
 RBD Coriolis/Centripedal and Gravity vector
 
@@ -61,45 +80,73 @@ RBD Coriolis/Centripedal and Gravity vector
                           appropriate u
  \param[in,out] cbase   : the position state of the base
  \param[in,out] obase   : the orientational state of the base
- \param[in]     ux      : the external forces acting on each joint,
-                          in world coordinates, e.g., as computed from contact
+ \param[in]     ux      : the external forces acting on each joint, 
+                          in world coordinates, e.g., as computed from contact 
                           forces
  \param[in]     endeff  : the endeffector parameters
  \param[out]    rbdM    : point to RBD Inertia Matrix (pass NULL to not use)
  \param[out]    rbdCG   : point to RBD C plus G vector (pass NULL to not use)
 
  ******************************************************************************/
-struct
-SL_ForDynComp {
-
-#include "ForDynComp_declare.h"
-  double fbase[2*N_CART+1];
-  SL_Jstate  *state;
-  SL_endeff  *eff;
-  SL_Cstate  *basec;
-  SL_quat    *baseo;
-  SL_uext    *uex;
-#include "ForDynComp_functions.h"
-
-  void call(SL_Jstate *lstate,SL_Cstate *cbase,
+void 
+SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
 	      SL_quat *obase, SL_uext *ux, SL_endeff *leff,
 	      Matrix rbdM, Vector rbdCG)
 
 {
+
+  SL_forDynComp id;
+
+  id.SL_ForDynCompGeneral(lstate,cbase,obase, ux,leff,rbdM,rbdCG);
+
+} 
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  SL_ForDynCompGeneral
+\date  Sept 2010
+   
+\remarks 
+
+computes the forward dynamics accelerations from the composite inertia 
+method. Returned are also the pointers to the RBD inertia matrix and the
+RBD Coriolis/Centripedal and Gravity vector
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in,out] state   : the state containing th, thd, thdd, and receiving the
+                          appropriate u
+ \param[in,out] cbase   : the position state of the base
+ \param[in,out] obase   : the orientational state of the base
+ \param[in]     ux      : the external forces acting on each joint, 
+                          in world coordinates, e.g., as computed from contact 
+                          forces
+ \param[in]     endeff  : the endeffector parameters
+ \param[out]    rbdM    : point to RBD Inertia Matrix (pass NULL to not use)
+ \param[out]    rbdCG   : point to RBD C plus G vector (pass NULL to not use)
+
+ ******************************************************************************/
+void SL_forDynComp::
+SL_ForDynCompGeneral(SL_Jstate *lstate,SL_Cstate *cbase,
+		     SL_quat *obase, SL_uext *ux, SL_endeff *leff,
+		     Matrix rbdM, Vector rbdCG)
+
+{
   int i,j;
   MY_MATRIX(Hmat,1,N_DOFS+6,1,N_DOFS+6);
-  MY_VECTOR(cvec,1,N_DOFS+6);
+  MY_VECTOR(cvec,1,N_DOFS+6); 
   MY_VECTOR(ucvec,1,N_DOFS+6);
+  double fbase[2*N_CART+1];  
 
-
-
-  /* this makes the arguments global variables */
+  /* this makes the arguments global variables */ 
   state  = lstate;
   eff    = leff;
   basec  = cbase;
   baseo  = obase;
   uex    = ux;
-
+  
   /* subtract the friction term temporarily */
   for (i=1; i<=N_DOFS; ++i) {
     state[i].u -= compute_independent_joint_forces(state[i],links[i]);
@@ -117,23 +164,6 @@ SL_ForDynComp {
 
   if (rbdCG != NULL)
     vec_equal_size(cvec,N_DOFS+6,rbdCG);
-}
-};
-
-} // namespace
-
-/////////////// C interface //////////
-extern "C"
-{
-void SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
-                   SL_quat *obase, SL_uext *ux, SL_endeff *leff,
-                   Matrix rbdM, Vector rbdCG);
-} // extern "C"
+} 
 
 
-void SL_ForDynComp(SL_Jstate *lstate,SL_Cstate *cbase,
-                   SL_quat *obase, SL_uext *ux, SL_endeff *leff,
-                   Matrix rbdM, Vector rbdCG){
-  SL_dynamics_functions::SL_ForDynComp().call(lstate,cbase,
-      obase, ux, leff, rbdM, rbdCG);
-}
