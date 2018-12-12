@@ -208,7 +208,6 @@ set(HEADERS
 	  ../include/SL_openGL.h
 	  ../include/SL_openGL_servo.h 
 	  ../include/SL_oscilloscope.h
-	  ../include/SL_ros_servo.h
 	  ../include/SL_rt_mutex.h
 	  ../include/SL_sensor_proc.h
 	  ../include/SL_shared_memory.h
