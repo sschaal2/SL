@@ -13,7 +13,7 @@
 
   estimates the inverse dynamics parameters
       
-  July 2009: add base link system for estimation
+  July 2009: add base link system for estimation`
 
   ============================================================================*/
 
@@ -92,6 +92,8 @@ static int        vis_flag_dofs[N_DOFS+1];
 static int        coul_flag_dofs[N_DOFS+1];
 static int        spring_flag_dofs[N_DOFS+1];
 static char       parm_file_name[100]="xpest_parameters.cf";
+static int        skip_data=0; // data skipped at the beginning and end of file
+                               // e.g. due to filter onsets
 
 
 static Vector	  least_square_weight=NULL; //used to perform a weighted least square for param est
@@ -168,20 +170,21 @@ main(int argc, char **argv)
   if ((fp=fopen(".xpest_prefs","r")) == NULL) 
     ;
   else {
-    rc = fscanf(fp,"%d %d %d %d %d %d %d %s %d %d %d %d %d",
-	   &real_robot_flag,
-	   &get_mse,
-	   &use_floating_base,
-	   &constraint_estimation_type,
-	   &use_commands,
-	   &down_sample,
-	   &use_parm_file,
-	   parm_file_name,
-	   &metric_flag,
-	   &filt_data,
-	   &vis_flag,
-	   &coul_flag,
-	   &spring_flag);
+    rc = fscanf(fp,"%d %d %d %d %d %d %d %s %d %d %d %d %d %d",
+		&real_robot_flag,
+		&get_mse,
+		&use_floating_base,
+		&constraint_estimation_type,
+		&use_commands,
+		&down_sample,
+		&use_parm_file,
+		parm_file_name,
+		&metric_flag,
+		&filt_data,
+		&vis_flag,
+		&coul_flag,
+		&spring_flag,
+		&skip_data);
     fclose(fp);
   }
 
@@ -323,6 +326,9 @@ main(int argc, char **argv)
     if (!get_int("Estimation spring term?",spring_flag,&spring_flag))
       exit(-1);
 
+    if (!get_int("Number of data to skip at beginning/end of file?",skip_data,&skip_data))
+      exit(-1);
+
     for (i=1; i<=N_DOFS; ++i) {
       filt_data_dofs[i] = filt_data;
       vis_flag_dofs[i] = vis_flag;
@@ -336,20 +342,21 @@ main(int argc, char **argv)
   if ((fp=fopen(".xpest_prefs","w")) == NULL) 
     ;
   else {
-    fprintf(fp,"%d %d %d %d %d %d %d %s %d %d %d %d %d",
-	   real_robot_flag,
-	   get_mse,
-	   use_floating_base,
-	   constraint_estimation_type,
-	   use_commands,
-	   down_sample,
-	   use_parm_file,
-	   parm_file_name,
-	   metric_flag,
-	   filt_data,
-	   vis_flag,
-	   coul_flag,
-	   spring_flag);
+    fprintf(fp,"%d %d %d %d %d %d %d %s %d %d %d %d %d %d",
+	    real_robot_flag,
+	    get_mse,
+	    use_floating_base,
+	    constraint_estimation_type,
+	    use_commands,
+	    down_sample,
+	    use_parm_file,
+	    parm_file_name,
+	    metric_flag,
+	    filt_data,
+	    vis_flag,
+	    coul_flag,
+	    spring_flag,
+	    skip_data);
     fclose(fp);
   }
 
@@ -846,7 +853,7 @@ add_to_regression(void)
 
   printf("\nAdd data to regression ");
 
-  for (i=1+100*0; i<=n_rows-100*0; i+=down_sample) {
+  for (i=1+skip_data; i<=n_rows-skip_data; i+=down_sample) {
 
     /* if data is too close to the joint range, ignore the data */
     flag = FALSE;
@@ -914,23 +921,6 @@ add_to_regression(void)
     /* compute the parameter estimation matrices */
     do_math(endeff);
 
-#if 0    
-    /* add parameters that only act only independenty: this has been moved to after the projection */
-    for (j=1; j<=N_DOFS; ++j) {
-      
-      /* viscous friction */
-      Kp[map[j]][map[j]*N_RBD_PARMS+VIS] = state[j].thd;
-      
-      /* coulomb friction */
-      Kp[map[j]][map[j]*N_RBD_PARMS+COUL] = COULOMB_FUNCTION(state[j].thd);
-
-      /* stiffness due to spring terms */
-      Kp[map[j]][map[j]*N_RBD_PARMS+STIFF] = state[j].th;
-
-      /* constant offset of spring  */
-      Kp[map[j]][map[j]*N_RBD_PARMS+CONS] = 1.0;
-    }
-#endif
 
     /* ======================================================================================== */
     /* zero main regression matrices */
