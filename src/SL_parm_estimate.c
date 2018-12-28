@@ -846,7 +846,7 @@ add_to_regression(void)
 
   printf("\nAdd data to regression ");
 
-  for (i=1+100; i<=n_rows-100; i+=down_sample) {
+  for (i=1+100*0; i<=n_rows-100*0; i+=down_sample) {
 
     /* if data is too close to the joint range, ignore the data */
     flag = FALSE;

@@ -479,7 +479,7 @@ int set_args_task(int argc, char**argv){
     tptr = &tasks;
     while (tptr != NULL) {
       if (strcmp(argv[i],tptr->name)==0) {
-	sprintf(sl_default_task,argv[i]);
+	sprintf(sl_default_task,"%s",argv[i]);
 	return TRUE;
       }
       tptr = (Task_Def *) tptr->next_task;

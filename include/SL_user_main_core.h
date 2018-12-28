@@ -57,9 +57,9 @@ for (i=1;i<argc;++i){
     // following argument expected to be the name of the task to start
     if(i>=(argc-1)){
       printf("name of task expected after '-task' command line argument");
-      return;
+      return FALSE;
     } else {
-      sprintf(start_task,argv[i+1]);
+      sprintf(start_task,"%s",argv[i+1]);
     }
   }
 }
@@ -115,7 +115,7 @@ if (!graphics_flag)
   sprintf(argv_array[c++],"-ng");
 if (strcmp(start_task,"")!=0){
   sprintf(argv_array[c++],"-task");
-  sprintf(argv_array[c++],start_task);
+  sprintf(argv_array[c++],"%s",start_task);
 }
 
 // detach process
