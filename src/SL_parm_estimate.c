@@ -310,6 +310,8 @@ main(int argc, char **argv)
   if (!get_int("Use full ATA metric for parameter projection?",metric_flag,&metric_flag))
     exit(-1);
 
+  if (!get_int("Number of data to skip at beginning/end of file?",skip_data,&skip_data))
+    exit(-1);
 
 
   if (!use_parm_file) {
@@ -324,9 +326,6 @@ main(int argc, char **argv)
       exit(-1);
     
     if (!get_int("Estimation spring term?",spring_flag,&spring_flag))
-      exit(-1);
-
-    if (!get_int("Number of data to skip at beginning/end of file?",skip_data,&skip_data))
       exit(-1);
 
     for (i=1; i<=N_DOFS; ++i) {
@@ -421,11 +420,12 @@ main(int argc, char **argv)
   fwrite_vec(fid,ATb);
   fclose(fid);
 
-  if (get_mse != 1)
+  if (get_mse != 1) {
     regress_parameters();
 
-  // create physically consistent parameters
-  project_parameters(metric_flag);
+    // create physically consistent parameters
+    project_parameters(metric_flag);
+  }
 
   return TRUE;
 	
@@ -1161,6 +1161,9 @@ add_to_regression(void)
   }
 
   printf("done\n");
+
+  if (get_mse == 0)
+    return TRUE;
 
   /* print the current SSE */
   
