@@ -411,14 +411,16 @@ main(int argc, char **argv)
     fclose(datafp);
 
   /* write out the ATA and ATb */
-  fid = fopen(fname,"w");
-  if (fid == NULL) {
-    printf("Couldn't open file >%s< for write\n",fname);
-    exit(-1);
+  if (get_mse != 1) {
+    fid = fopen(fname,"w");
+    if (fid == NULL) {
+      printf("Couldn't open file >%s< for write\n",fname);
+      exit(-1);
+    }
+    fwrite_mat(fid,ATA);
+    fwrite_vec(fid,ATb);
+    fclose(fid);
   }
-  fwrite_mat(fid,ATA);
-  fwrite_vec(fid,ATb);
-  fclose(fid);
 
   if (get_mse != 1) {
     regress_parameters();
@@ -1677,7 +1679,7 @@ read_parm_file(void) {
   int j,i,n,rc;
   FILE  *in;
   double dum;
-  char   string[100];
+  char   string[200];
 
   // get the file name
   if (!get_string("Name of xpest parameters",parm_file_name,parm_file_name))
