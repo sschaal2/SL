@@ -65,6 +65,8 @@ extern "C" {
 		 SL_Cstate *cbase, SL_quat *obase);
   void SL_InvDynNE(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
 		   SL_Cstate *cbase, SL_quat *obase);
+  void SL_InvDynNE_Gravity(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
+			   SL_Cstate *cbase, SL_quat *obase, double grav);
   void SL_InvDynArt(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
 		    SL_Cstate *cbase, SL_quat *obase);
   void SL_InvDynNEBase(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,

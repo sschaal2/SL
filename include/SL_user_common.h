@@ -107,6 +107,7 @@ extern "C" {
   SL_Cstate     cog_des;                        /* center of gravity based on desired states*/
 
   double        gravity = GRAVITY;
+  double        gravity_local = GRAVITY;        /* used in Newton Euler inv.dyn. */
 
   int           n_contacts = N_LINKS;           /* number of contacts and default initialization */
   int           prismatic_joint_flag[N_DOFS+1]; /* TRUE/FALSE indicator for prismatic joints */

@@ -2991,3 +2991,25 @@ print_J(void)
 }
 
 
+/*!*****************************************************************************
+*******************************************************************************
+\note  set_NE_local_gravity
+\date  Jan 2019
+
+\remarks 
+
+Allows overwriting the local gravity variable for NE. Only useful if the NE
+math was generated with gravityLocal instead of gravity.
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in]     grav    : the new local gravity
+
+******************************************************************************/
+void
+set_NE_local_gravity(double grav) {
+
+  gravity_local = grav;
+
+}

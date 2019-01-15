@@ -93,6 +93,9 @@ extern "C" {
 				 SL_link li, double *f, double *t);
 
   void print_J(void);
+  void set_NE_local_gravity(double grav);
+
+
 
 
   // external variables

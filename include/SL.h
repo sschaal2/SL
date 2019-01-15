@@ -392,6 +392,7 @@ extern "C" {
   extern SL_Cstate     cog;
   extern SL_Cstate     cog_des;
   extern double        gravity;
+  extern double        gravity_local;
   extern int           n_contacts;
   extern int           prismatic_joint_flag[]; 
   extern int           jointPredecessor[];

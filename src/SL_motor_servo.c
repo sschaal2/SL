@@ -29,6 +29,7 @@
 #include "SL_filters.h"
 #include "SL_oscilloscope.h"
 #include "SL_man.h"
+#include "SL_dynamics.h"
 #include "utility.h"
 
 
@@ -148,6 +149,11 @@ init_motor_servo(void)
     
   if (!init_user_commands())
     return;
+
+  /* inverse dynamics */
+  if (!init_dynamics()) 
+    return;
+
 
   printf("done\n");
 

@@ -43,6 +43,9 @@ public:
   SL_InvDynNEGeneral(SL_Jstate *cstate,SL_DJstate *lstate,SL_endeff *leff,
 		     SL_Cstate *cbase, SL_quat *obase, SL_uext *ux,
 		     double *fbase);
+  double      gravityLocal;
+
+
 private:
   
   SL_DJstate state[N_DOFS+1];
@@ -59,6 +62,7 @@ private:
 
 // local variables
 
+
 // global functions
 extern "C" 
 void SL_InvDynNE(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
@@ -67,6 +71,11 @@ void SL_InvDynNE(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
 extern "C"
 void SL_InvDynNEBase(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
 		     SL_Cstate *cbase, SL_quat *obase, double *fbase);
+
+extern "C" 
+void SL_InvDynNE_Gravity(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
+			 SL_Cstate *cbase, SL_quat *obase, double grav);
+
 
 
 // local functions
@@ -127,6 +136,7 @@ SL_InvDynNE(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
       ux[i].f[j] = ux[i].t[j] = 0.0;
 
 
+  id.gravityLocal = gravity_local;
   id.SL_InvDynNEGeneral(cstate, lstate, leff, &cb, &ob, ux, fbase);
 
 }
@@ -178,6 +188,7 @@ SL_InvDynNEBase(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
     for (j=1; j<=N_CART; ++j)
       ux[i].f[j] = ux[i].t[j] = 0.0;
 
+  id.gravityLocal = gravity_local;
   id.SL_InvDynNEGeneral(cstate, lstate, leff, &cb, &ob, ux, fbase);
 
 }
@@ -246,4 +257,64 @@ SL_InvDynNEGeneral(SL_Jstate *cstate,SL_DJstate *lstate,SL_endeff *leff,
 
 }
 
+/*!*****************************************************************************
+*******************************************************************************
+\note  SL_InvDynNE_Gravity
+\date  Jan 2019
+
+\remarks 
+
+Standard Newton Euler inverse dynamics for fixed base robot, with explicit
+gravity specification
+
+*******************************************************************************
+Function Parameters: [in]=input,[out]=output
+
+\param[in]     cstate  : the current state (pass NULL to use only desired state)
+\param[in,out] lstate  : the desired state
+\param[in]     endeff  : the endeffector parameters
+\param[in]     cbase   : the position state of the base
+\param[in]     obase   : the orientational state of the base
+\param[in]     grav    : gravity constant
+
+Returns:
+The appropriate feedforward torques are added in the uff component of the lstate
+structure
+
+******************************************************************************/
+void 
+SL_InvDynNE_Gravity(SL_Jstate *cstate, SL_DJstate *lstate, SL_endeff *leff,
+		    SL_Cstate *cbase, SL_quat *obase, double grav)
+{
+  int          i,j;
+  double       fbase[2*N_CART+1];
+  SL_Cstate    cb;
+  SL_quat      ob;
+  SL_uext      ux[N_DOFS+1];
+  SL_invDynNE  id;
+
+  // this simple version of NE does only take the base position/orientation
+  // into account, but otherwise the base is fixed.
+  cb = *cbase;
+  ob = *obase;
+
+  // eliminate all velocity and acceleration information
+  for (i=1; i<=N_CART; ++i)
+    cb.xd[i] = cb.xdd[i] = 0.0;
+
+  for (i=1; i<=N_CART; ++i)
+    ob.ad[i] = ob.add[i] = 0.0;
+
+  for (i=1; i<=N_QUAT; ++i)
+    ob.qd[i] = ob.qdd[i] = 0.0;
+
+  for (i=1; i<=N_DOFS; ++i)
+    for (j=1; j<=N_CART; ++j)
+      ux[i].f[j] = ux[i].t[j] = 0.0;
+
+
+  id.gravityLocal = grav;
+  id.SL_InvDynNEGeneral(cstate, lstate, leff, &cb, &ob, ux, fbase);
+
+}
 
