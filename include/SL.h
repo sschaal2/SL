@@ -115,6 +115,7 @@ typedef struct { /*!< joint space state for each DOF */
   double   thd;  /*!< theta-dot */
   double   thdd; /*!< theta-dot-dot */
   double   ufb;  /*!< feedback portion of command */
+  double   uff;  /*!< feedforward portion of command */  
   double   u;    /*!< torque command */
   double   load; /*!< sensed torque */
 } SL_Jstate;
@@ -124,6 +125,7 @@ typedef struct { /*!< joint space state for each DOF */
   float   thd;  /*!< theta-dot */
   float   thdd; /*!< theta-dot-dot */
   float   ufb;  /*!< feedback portion of command */
+  float   uff;  /*!< feedforward portion of command */  
   float   u;    /*!< torque command */
   float   load; /*!< sensed torque */
 } SL_fJstate;

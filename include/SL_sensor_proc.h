@@ -30,7 +30,7 @@ extern "C" {
   int  user_kill(void);
   int  user_power_status(void);
   void userCheckForMessage(char *name, int k);
-  void user_controller(double *u, double *uf);
+  void user_controller(double *u, double *ufb, double *uff);
   void init_joint_state_filters(SL_Jstate *js);
   void init_misc_sensor_filters(double *ms);
    

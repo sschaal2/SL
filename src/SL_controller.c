@@ -37,6 +37,7 @@ double *upd;
 /* local variables */
 static double *u;
 static double *ufb;
+static double *uff;
 static double *integrator_state;
 
 /*! availabe control models */
@@ -85,6 +86,7 @@ init_controller( void )
     firsttime = FALSE;
     u = my_vector(1,n_dofs);
     ufb = my_vector(1,n_dofs);
+    uff = my_vector(1,n_dofs);
     upd = my_vector(1,n_dofs);
     controller_gain_th = my_vector(1,n_dofs);
     controller_gain_thd = my_vector(1,n_dofs);
@@ -205,6 +207,7 @@ generate_total_commands( void)
     for (i=1; i<=n_dofs; ++i) {
 
       ufb[i] = 0.0;
+      uff[i] = 0.0;
 
       if (zero_ufb_P_flag[i] > 0) 
 	--zero_ufb_P_flag[i];
@@ -229,7 +232,8 @@ generate_total_commands( void)
     for (i=1; i<=n_dofs; ++i) {
 
       ufb[i] = 0.0;
-
+      uff[i] = 0.0;
+      
       if (zero_ufb_P_flag[i] > 0) 
 	--zero_ufb_P_flag[i];
       else {
@@ -274,6 +278,7 @@ generate_total_commands( void)
 
       upd[i] = ufb[i];
       u[i]   = ufb[i] + joint_des_state[i].uff;
+      uff[i] = joint_des_state[i].uff;
     }
     break;
 
@@ -302,6 +307,7 @@ generate_total_commands( void)
 
       upd[i]  = ufb[i];
       ufb[i] += integrator_state[i] * controller_gain_int[i];
+      uff[i]  = joint_des_state[i].uff;
 
       u[i] = ufb[i] + joint_des_state[i].uff;
     }
@@ -314,7 +320,7 @@ generate_total_commands( void)
   }
 
   // allow the user to modify the controller
-  user_controller(u,ufb);
+  user_controller(u,ufb,uff);
 
   // apply the new control
   for (i=1; i<=n_dofs; ++i) {
@@ -330,6 +336,7 @@ generate_total_commands( void)
     }
     joint_state[i].u   = u[i];
     joint_state[i].ufb = ufb[i];
+    joint_state[i].uff = uff[i];
   }
 
   return TRUE;

@@ -166,6 +166,8 @@ init_task_servo(void)
     addVarToCollect((char *)&(joint_state[i].u),string,"Nm", DOUBLE,FALSE);
     sprintf(string,"%s_ufb",joint_names[i]);
     addVarToCollect((char *)&(joint_state[i].ufb),string,"Nm", DOUBLE,FALSE);
+    sprintf(string,"%s_uff",joint_names[i]);
+    addVarToCollect((char *)&(joint_state[i].uff),string,"Nm", DOUBLE,FALSE);
     sprintf(string,"%s_load",joint_names[i]);
     addVarToCollect((char *)&(joint_state[i].load),string,"Nm", DOUBLE,FALSE);
     sprintf(string,"%s_des_th",joint_names[i]);

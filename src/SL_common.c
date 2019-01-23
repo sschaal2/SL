@@ -97,13 +97,14 @@ where_utility(int start, int n_dofs)
 
   for (i=start; i<=start+n_dofs-1; ++i) {
 
-    printf("%2d: %5s: th=% 5.3f  thd=% 6.3f  load=% 6.2f  u=% 6.2f  ff=% 6.2f\n",
+    printf("%2d: %5s: th=% 5.3f  thd=% 6.3f  load=% 6.2f  u=% 6.2f  fb=% 6.2f  ff=% 6.2f\n",
 	   i,joint_names[i],
 	   joint_state[i].th,
 	   joint_state[i].thd,
 	   joint_state[i].load,
 	   joint_state[i].u,
-	   joint_des_state[i].uff);
+	   joint_state[i].ufb,
+	   joint_state[i].uff);
 
   }
   printf("\n");
@@ -863,6 +864,7 @@ cSL_Jstate(SL_Jstate *sd, SL_fJstate *sf, int n, int flag)
       sf[i].thdd = sd[i].thdd;
       sf[i].u    = sd[i].u;
       sf[i].ufb  = sd[i].ufb;
+      sf[i].uff  = sd[i].uff;
       sf[i].load = sd[i].load;
     }
     break;
@@ -873,6 +875,7 @@ cSL_Jstate(SL_Jstate *sd, SL_fJstate *sf, int n, int flag)
       sd[i].thdd = sf[i].thdd;
       sd[i].u    = sf[i].u;
       sd[i].ufb  = sf[i].ufb;
+      sd[i].uff  = sf[i].uff;
       sd[i].load = sf[i].load;
     }
     break;
