@@ -181,7 +181,7 @@ init_motor_servo(void)
     sprintf(string,"%s_des_thd",joint_names[i]);
     addVarToCollect((char *)&(joint_des_state[i].thd),
 		    string,"rad/s",DOUBLE,FALSE);
-    sprintf(string,"%s_uff",joint_names[i]);
+    sprintf(string,"%s_des_uff",joint_names[i]);
     addVarToCollect((char *)&(joint_des_state[i].uff),string,"Nm",DOUBLE,FALSE);
   }
 
@@ -401,7 +401,7 @@ receive_commands(void)
       exit(-1);
 
     if (++count_no_receive < task_servo_ratio) {
-      // if the motor servo run higher rate than the task servo, the desired
+      // if the motor servo runs higher rate than the task servo, the desired
       // joint states gets integrated to be more accurate
       for (i=1; i<=n_dofs; ++i) {
 	joint_des_state[i].th  += joint_des_state[i].thd  * 1./(double)motor_servo_rate;

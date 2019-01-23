@@ -176,7 +176,7 @@ init_task_servo(void)
     addVarToCollect((char *)&(joint_des_state[i].thd),string,"rad/s",DOUBLE,FALSE);
     sprintf(string,"%s_des_thdd",joint_names[i]);
     addVarToCollect((char *)&(joint_des_state[i].thdd),string,"rad/s^2",DOUBLE,FALSE);
-    sprintf(string,"%s_uff",joint_names[i]);
+    sprintf(string,"%s_des_uff",joint_names[i]);
     addVarToCollect((char *)&(joint_des_state[i].uff),string,"Nm",DOUBLE,FALSE);
   }
 
