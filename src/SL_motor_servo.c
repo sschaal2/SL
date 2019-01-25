@@ -57,7 +57,8 @@ int           real_time_clock_flag  = FALSE;
 
 
 /* local variables */
-static int       *joint_invalid;
+static int        *joint_invalid;
+static SL_DJstate *last_joint_des_state;
 
 /* global functions */
 int  run_motor_servo(void);
@@ -101,6 +102,8 @@ init_motor_servo(void)
     joint_invalid               = my_ivector(1,n_dofs);
     zero_ufb_P_flag             = my_ivector(1,n_dofs);
     zero_ufb_D_flag             = my_ivector(1,n_dofs);
+    last_joint_des_state        = (SL_DJstate *)
+      my_calloc((unsigned long)(n_dofs+1),sizeof(SL_DJstate),MY_STOP);
   }
   
   if (motor_servo_initialized) {
@@ -181,6 +184,10 @@ init_motor_servo(void)
     sprintf(string,"%s_des_thd",joint_names[i]);
     addVarToCollect((char *)&(joint_des_state[i].thd),
 		    string,"rad/s",DOUBLE,FALSE);
+    sprintf(string,"%s_des_uff",joint_names[i]);
+    sprintf(string,"%s_des_thdd",joint_names[i]);
+    addVarToCollect((char *)&(joint_des_state[i].thdd),
+		    string,"rad/s^2",DOUBLE,FALSE);
     sprintf(string,"%s_des_uff",joint_names[i]);
     addVarToCollect((char *)&(joint_des_state[i].uff),string,"Nm",DOUBLE,FALSE);
   }
@@ -263,7 +270,6 @@ run_motor_servo(void)
   if (!read_sensors()) {
     stop("Problem when reading sensors"); 
     return FALSE;
-    ;
   }
 
   setOsc(d2a_cm,90.0);
@@ -314,7 +320,9 @@ run_motor_servo(void)
     for (i=1; i<=n_dofs; ++i) {
       joint_des_state[i].th  = joint_state[i].th;
       joint_des_state[i].thd = 0.0;
+      joint_des_state[i].thdd= 0.0;
       joint_des_state[i].uff = 0.0;
+      last_joint_des_state[i] = joint_des_state[i];
     }
   }
 
@@ -427,6 +435,7 @@ receive_commands(void)
 	     sizeof(SL_fSDJstate)*n_dofs);
 
       for (i=1; i<=n_dofs; ++i) {
+
 	// check the joint status and only copy data if TRUE
 	sm_sjoint_des_state->sjoint_des_state[i].status = FALSE;
 	if (sm_sjoint_des_state_data[i].status) {
@@ -438,6 +447,15 @@ receive_commands(void)
 	  zero_ufb_P_flag[i] = task_servo_ratio;
 	if (sm_sjoint_des_state_data[i].zero_ufb_D)
 	  zero_ufb_D_flag[i] = task_servo_ratio;
+
+	// numerical derivative
+	joint_des_state[i].thdd =
+	  (joint_des_state[i].thd - last_joint_des_state[i].thd)*
+	  (double)motor_servo_rate/(double)task_servo_ratio;
+
+	// remember last desired state
+	last_joint_des_state[i] = joint_des_state[i];
+
       }
 
       semGive(sm_sjoint_des_state_sem);
@@ -455,8 +473,9 @@ receive_commands(void)
 	if (fabs(joint_des_state[i].th-joint_default_state[i].th) > 0.001) 
 	  joint_des_state[i].th = joint_des_state[i].th * rate + 
 	    (1.-rate) * joint_default_state[i].th;
-	joint_des_state[i].thd = 0;
-	joint_des_state[i].uff = 0;
+	joint_des_state[i].thd  = 0;
+	joint_des_state[i].thdd = 0;
+	joint_des_state[i].uff  = 0;
       }
     } else {
       joint_invalid[i] = 0;
