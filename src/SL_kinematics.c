@@ -990,7 +990,6 @@ checkIKTarget(SL_DJstate *js, SL_Cstate *bs, SL_quat *bo, SL_endeff *eff,
     
     // inverse kinematics simulated at SIM_DT
     condnr = inverseKinematics(js, eff, joint_opt_state, c_ref, status, SIM_DT);
-    printf("%f %f %f %f %f %f %f\n",js[1].th,js[2].th,js[3].th,js[4].th,js[5].th,js[6].th,js[7].th);
 
     // check whether we violate joint ranges
     if (!check_range(js))
