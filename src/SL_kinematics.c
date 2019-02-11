@@ -951,7 +951,7 @@ checkIKTarget(SL_DJstate *js, SL_Cstate *bs, SL_quat *bo, SL_endeff *eff,
       dist[j] = 0.0;
       for (i=1; i<=N_CART; ++i) {
 	
-	if (status[(j-1)*2*N_CART+i]) { // if this dimensions is constraint
+	if (status[(j-1)*2*N_CART+i]) { // if this dimension is constraint
 	  
 	  c_ref[(j-1)*2*N_CART+i] = (ct[j].x[i]-cs[j].x[i]);
 	  dist[j] += sqr(c_ref[(j-1)*2*N_CART+i]);
@@ -981,13 +981,16 @@ checkIKTarget(SL_DJstate *js, SL_Cstate *bs, SL_quat *bo, SL_endeff *eff,
       return TRUE;
 
     // move at 1cm in most moving endeffector
-    for (i=1; i<=n_endeffs*2*N_CART; ++i) { 
-      c_ref[i] /= aux;
-      c_ref[i] *= 0.01/SIM_DT;
+    if (fabs(aux) > 0.01) {
+      for (i=1; i<=n_endeffs*2*N_CART; ++i) {
+	c_ref[i] /= aux;
+	c_ref[i] *= 0.01/SIM_DT;
+      }
     }
     
     // inverse kinematics simulated at SIM_DT
     condnr = inverseKinematics(js, eff, joint_opt_state, c_ref, status, SIM_DT);
+    printf("%f %f %f %f %f %f %f\n",js[1].th,js[2].th,js[3].th,js[4].th,js[5].th,js[6].th,js[7].th);
 
     // check whether we violate joint ranges
     if (!check_range(js))
