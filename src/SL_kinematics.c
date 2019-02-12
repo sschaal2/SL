@@ -360,7 +360,7 @@ baseJacobian(Matrix lp, Matrix jop, Matrix jap, Matrix Jb)
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
- \param[in,out] state     : the state of the robot (given as a desired state)
+ \param[in,out] state   : the state of the robot (given as a desired state)
  \param[in]     endeff  : the endeffector parameters
  \param[in]     rest    : the optimization posture
  \param[in]     cart    : the cartesian state (pos & orientations in a matrix)
@@ -511,7 +511,7 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
     }
   }
 
-  /* the optimization part: we use the unrecularized Null space such that we don't
+  /* the optimization part: we use the unregularized Null space such that we don't
      suddently pop up new null space dimensions when the inversion is ill conditioned */
   for (i=1; i<=N_DOFS; ++i) {
     for (j=i; j<=N_DOFS; ++j) {
