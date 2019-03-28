@@ -713,7 +713,7 @@ sendCommandLineCmd(char *name)
 
 
   /* run the command in separate thread */
-  /*
+
   err = pthread_attr_init(&pth_attr);
   pthread_attr_getstacksize(&pth_attr, &stack_size);
   double reqd = 1024*1024*8;
@@ -723,7 +723,7 @@ sendCommandLineCmd(char *name)
   if ((rc=pthread_create( &ucthread, &pth_attr, checkUserCommandThread, NULL)))
       printf("pthread_create returned with %d\n",rc);
 
-  */
+
 }
 
 /*!*****************************************************************************
