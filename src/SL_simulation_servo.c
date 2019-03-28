@@ -864,7 +864,9 @@ checkForMessages(void)
 
     }
     // ---------------------------------------------------------------------------
-    
+
+    // see whether the user programmed a message interception
+    userCheckForMessage(name,k);
     
   }
 

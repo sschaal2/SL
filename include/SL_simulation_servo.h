@@ -44,6 +44,7 @@ extern "C" {
   int  send_contacts(void);
   int  run_simulation_servo(void);
   int  checkForMessages(void);
+  void userCheckForMessage(char *name ,int k);  
   void reset(void);
   void dss(void);
   void disable_simulation_servo(void);
