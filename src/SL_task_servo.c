@@ -1323,6 +1323,46 @@ changePIDGains(double *pGain, double *dGain, double *iGain)
 
 /*!*****************************************************************************
  *******************************************************************************
+\note  broadcaseEndeffector
+\date  April 2019
+   
+\remarks 
+
+    sends the currrent endeffector information to all servos
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     eff   : the endeffector info to be sent out
+
+ ******************************************************************************/
+void 
+broadcastEndeffector(SL_endeff *eff)
+{
+  int i,j;
+  int count=0;
+  float buf[n_endeffs*10+1];
+  unsigned char cbuf[(10*n_endeffs)*sizeof(float)];
+
+  for (i=1; i<=n_endeffs; ++i) {
+    buf[++count] = eff[i].m;
+    for (j=1; j<=N_CART; ++j)
+      buf[++count] = eff[i].mcm[j];
+    for (j=1; j<=N_CART; ++j)
+      buf[++count] = eff[i].x[j];
+    for (j=1; j<=N_CART; ++j)
+      buf[++count] = eff[i].a[j];
+  }
+    
+  memcpy(cbuf,(void *)&(buf[1]),(10*n_endeffs)*sizeof(float));
+    
+  sendMessageSimulationServo("changeEndeffector",(void *)cbuf,(10*n_endeffs)*sizeof(float));
+  sendMessageMotorServo("changeEndeffector",(void *)cbuf,(10*n_endeffs)*sizeof(float));
+  sendMessageOpenGLServo("changeEndeffector",(void *)cbuf,(10*n_endeffs)*sizeof(float));
+
+}
+/*!*****************************************************************************
+ *******************************************************************************
 \note  switchCometDisplay
 \date  May 2010
    

@@ -713,28 +713,44 @@ checkForMessages(void)
       extern double *controller_gain_int;
       
       memcpy(&(buf[1]),sm_motor_message->buf+sm_motor_message->moff[k],sizeof(float)*(3*n_dofs));
-
+      
       for (i=1; i<=n_dofs; ++i) {
 	controller_gain_th[i]  = (double) buf[i];
 	controller_gain_thd[i] = (double) buf[i+n_dofs];
 	controller_gain_int[i] = (double) buf[i+2*n_dofs];
       }
       
-    // ---------------------------------------------------------------------------
+      // ---------------------------------------------------------------------------
     } else if (strcmp(name,"where_gains") == 0) { 
       where_gains();
       
-    // ---------------------------------------------------------------------------
+      // ---------------------------------------------------------------------------
     } else if (strcmp(name,"scdMotor") == 0) { 
       scd();
       
-    // ---------------------------------------------------------------------------
+      // ---------------------------------------------------------------------------
     } else if (strcmp(name,"status") == 0) { 
       extern void status(void);
       status();
-
+      
+      // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"changeEndeffector") == 0) {
+      float buf[n_endeffs*10+1];
+      int count = 0;
+      
+      memcpy(&(buf[1]),sm_motor_message->buf+sm_motor_message->moff[k],sizeof(float)*(10*n_endeffs));
+      
+      for (i=1; i<=n_endeffs; ++i) {
+	endeff[i].m = buf[++count];
+	for (j=1; j<=N_CART; ++j)
+	  endeff[i].mcm[j] = buf[++count];
+	for (j=1; j<=N_CART; ++j)
+	  endeff[i].x[j] = buf[++count];
+	for (j=1; j<=N_CART; ++j)
+	  endeff[i].a[j] = buf[++count];
+      }
     }
-
+    
     // see whether the user programmed a message interception
     userCheckForMessage(name,k);
 

@@ -857,7 +857,25 @@ checkForMessages(void)
       memcpy(&data,sm_simulation_message->buf+sm_simulation_message->moff[k],sizeof(data));
       deleteObjByName(data.obj_name);
       
-    // ---------------------------------------------------------------------------
+      // ---------------------------------------------------------------------------
+    } else if (strcmp(name,"changeEndeffector") == 0) {
+      float buf[n_endeffs*10+1];
+      int count = 0;
+      
+      memcpy(&(buf[1]),sm_simulation_message->buf+sm_simulation_message->moff[k],
+	     sizeof(float)*(10*n_endeffs));
+      
+      for (i=1; i<=n_endeffs; ++i) {
+	endeff[i].m = buf[++count];
+	for (j=1; j<=N_CART; ++j)
+	  endeff[i].mcm[j] = buf[++count];
+	for (j=1; j<=N_CART; ++j)
+	  endeff[i].x[j] = buf[++count];
+	for (j=1; j<=N_CART; ++j)
+	  endeff[i].a[j] = buf[++count];
+      }
+
+      // ---------------------------------------------------------------------------
     } else if (strcmp(name,"status") == 0) { 
 
       status();
