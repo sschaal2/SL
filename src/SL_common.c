@@ -1728,8 +1728,65 @@ quatMatrix(SL_quat *q, Matrix Q)
   Q[4][4] =  q->q[_Q0_];
 }
 
-#ifndef VX  
-#endif
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatMult
+\date  July 2005
+\remarks 
+
+ creates q12 = q2 * q1 = Q(q2) * q1  which is the rotation with q1, followed
+ by rotation q2
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q1  : quaterion vector for q1 (first rotation)
+ \param[in]     q2  : quaterion vector for q2 (second rotation)
+ \param[out]    q   : resulting quaternion
+
+ Note: result q can overlap in memory with q1 or q2
+
+
+ ******************************************************************************/
+void
+quatMult(double *q1, double *q2, double *q)
+{
+  int i,j;
+  double Q[N_QUAT+1][N_QUAT+1];
+  double qt[N_QUAT+1];
+  
+  Q[1][1] =  q2[_Q0_];
+  Q[1][2] = -q2[_Q1_];
+  Q[1][3] = -q2[_Q2_];
+  Q[1][4] = -q2[_Q3_];
+
+  Q[2][1] =  q2[_Q1_];
+  Q[2][2] =  q2[_Q0_];
+  Q[2][3] =  q2[_Q3_];
+  Q[2][4] = -q2[_Q2_];
+
+  Q[3][1] =  q2[_Q2_];
+  Q[3][2] = -q2[_Q3_];
+  Q[3][3] =  q2[_Q0_];
+  Q[3][4] =  q2[_Q1_];
+
+  Q[4][1] =  q2[_Q3_];
+  Q[4][2] =  q2[_Q2_];
+  Q[4][3] = -q2[_Q1_];
+  Q[4][4] =  q2[_Q0_];
+
+  for (i=1; i<=N_QUAT; ++i) {
+    qt[i] = 0.0;
+    for (j=1; j<=N_QUAT; ++j) {
+      qt[i] += Q[i][j]*q1[j];
+    }
+  }
+
+  for (i=1; i<=N_QUAT; ++i)
+    q[i] = qt[i];
+    
+}
+
 
 /*!*****************************************************************************
  *******************************************************************************
