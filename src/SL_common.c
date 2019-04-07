@@ -1691,8 +1691,9 @@ quatToRotMatInv(SL_quat *q, Matrix R)
 \remarks 
 
  converts a quaternion into a matrix Q(q) which can be used in Quaternion
- multiplication, e.g., q12 = q2 * q1 = Q(q2)*q1. A good source for the math
- is Flashner's book.
+ multiplication, e.g., q21 = q2 * q1 = Q(q1)*q2. A good source for the math
+ is Flashner's book. The quatMult() function below uses an alternative matrix
+ Q which is equally correct.
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -1734,8 +1735,9 @@ quatMatrix(SL_quat *q, Matrix Q)
 \date  July 2005
 \remarks 
 
- creates q12 = q2 * q1 = Q(q2) * q1  which is the rotation with q1, followed
- by rotation q2
+ creates q21 = q2 * q1 = Q(q2) * q1  which is the rotation with q1, followed
+ by rotation q2. Note there is an alternative multiplication using the 
+ quatMatrix() function: q21 = quatMatrix(q1)*q2
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
@@ -1784,6 +1786,46 @@ quatMult(double *q1, double *q2, double *q)
 
   for (i=1; i<=N_QUAT; ++i)
     q[i] = qt[i];
+    
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatRelative
+\date  April 2019
+\remarks 
+
+ If we have qf = q2 * q1, what is q2, i.e., the relative rotation that after
+ a rotation about q1 would create qf? The answer is 
+ 
+ qf * inverse(q1) = q2  where inverse(q1) just multiples the vector part of
+ q1 with -1, i.e., uses a rotation vector in the opposite direction
+
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q1  : quaterion vector for q1 (first rotation)
+ \param[in]     qf  : quaterion vector for q2 (second rotation)
+ \param[out]    q2  : resulting quaternion
+
+ Note: result q2 can overlap in memory with q1 or qf
+
+
+ ******************************************************************************/
+void
+quatRelative(double *q1, double *qf, double *q2)
+{
+  int i,j;
+  double q1_inv[N_QUAT+1];
+
+  for (i=1; i<=N_QUAT; ++i) {
+    q1_inv[i] = q1[i];
+    if ( i > _Q0_ )
+      q1_inv[i] *= -1.;
+  }
+
+  quatMult(q1_inv,qf,q2);
     
 }
 

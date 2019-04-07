@@ -55,6 +55,7 @@ extern "C" {
   void rotMatToEuler(Matrix R, Vector a);
   void rotMatToEulerInv(Matrix R, Vector a);
   void quatMult(double *q1, double *q2, double *q);
+  void quatRelative(double *q1, double *qf, double *q2);
 
   void setRealRobotOptions(void);
   int  read_config_files(char *fname);
