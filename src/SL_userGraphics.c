@@ -60,6 +60,7 @@ static UserGraphicsEntry *ugraphs = NULL;
 
 // local functions
 static void displayBall(void *b);
+static void displayBallSize(void *b);
 static void displayVisionBlob(void *b);
 
 static void listUserGraphics(void);
@@ -167,6 +168,8 @@ initUserGraph(void)
 
   // add some generally hand display function
   addToUserGraphics("ball","Display a 6cm diameter ball",displayBall,N_CART*sizeof(float));
+  addToUserGraphics("ballSize","Display a ball with variable diameter",displayBallSize,
+		    (N_CART+1)*sizeof(float));
   for (i=1; i<=max_blobs; ++i) {
     sprintf(string,"blob-%d",i);
     addToUserGraphics(string,"Display a 3cm diameter blob",displayVisionBlob,sizeof(blob_data));
@@ -344,6 +347,43 @@ displayBall(void *b)
   glColor4fv(col);
   glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, col);
   glutSolidSphere(0.03,8,8);
+  glPopMatrix();
+
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+ \note  displayBallSize
+ \date  April 2019
+ 
+ \remarks 
+
+        a simple ball in 3D with radius as parameter
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]      b      : the general array of bytes
+
+ ******************************************************************************/
+static void
+displayBallSize(void *b)
+{
+  GLfloat  col[4]={(float)1.0,(float)1.0,(float)0.0,(float)1.0};
+  float    ball[N_CART+1+1];
+
+  // assign the ball position from b array
+  memcpy(&(ball[_X_]),b,(N_CART+1)*sizeof(float));
+
+  /* here is the drawing rountines */
+  glPushMatrix();
+  glTranslated((GLdouble)ball[_X_],
+	       (GLdouble)ball[_Y_],
+	       (GLdouble)ball[_Z_]);
+  
+  glColor4fv(col);
+  glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, col);
+  glutSolidSphere((GLdouble)ball[_Z_+1],8,8);
   glPopMatrix();
 
 }
