@@ -1445,7 +1445,7 @@ void
 linkQuat(Matrix R, SL_quat *q)
 {
   int r;
-  double T,q_aux[5];
+  double T,q_aux[N_QUAT+1];
   double quat_sign;
   double aux;
 
@@ -1482,20 +1482,25 @@ linkQuat(Matrix R, SL_quat *q)
     aux += sqr(q->q[r]);
   aux = sqrt(aux);
 
-  // fix the sign of quaternion
-  if ( fabs(1.-aux) < 0.01) {
-    quat_sign =
-      q->q[_Q0_] * q_aux[1] +
-      q->q[_Q1_] * q_aux[2] +
-      q->q[_Q2_] * q_aux[3] +
-      q->q[_Q3_] * q_aux[4];
+  if ( fabs(1.-aux) > 0.01) { // no valid reference, use 0 0 0 1
+    q->q[_Q0_] = 0.0;
+    q->q[_Q1_] = 0.0;
+    q->q[_Q2_] = 0.0;
+    q->q[_Q3_] = 1.0;
+  }
 
-    if (quat_sign < 0.0) {
-      q_aux[1] *= -1.0;
-      q_aux[2] *= -1.0;
-      q_aux[3] *= -1.0;
-      q_aux[4] *= -1.0;
-    }
+  // fix the sign of quaternion
+  quat_sign =
+    q->q[_Q0_] * q_aux[1] +
+    q->q[_Q1_] * q_aux[2] +
+    q->q[_Q2_] * q_aux[3] +
+    q->q[_Q3_] * q_aux[4];
+  
+  if (quat_sign < 0.0) {
+    q_aux[1] *= -1.0;
+    q_aux[2] *= -1.0;
+    q_aux[3] *= -1.0;
+    q_aux[4] *= -1.0;
   }
 
   q->q[_Q0_] = q_aux[1];
