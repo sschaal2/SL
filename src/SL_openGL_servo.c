@@ -537,8 +537,6 @@ checkForMessages(void)
       float buf[n_endeffs*10+1];
       int count = 0;
 
-      printf("huhu\n");
-      
       memcpy(&(buf[1]),sm_openGL_message->buf+sm_openGL_message->moff[k],
 	     sizeof(float)*(10*n_endeffs));
       
