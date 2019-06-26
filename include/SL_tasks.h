@@ -33,10 +33,11 @@ extern "C" {
 #endif
 
 extern char current_task_name[100];
+extern char sl_default_task[100];
+
 
 /* functions */
 void setDefaultTask(void);
-char sl_default_task[100]; // task specified by '-task' in command line will be copied to this variable ...
 int set_args_task(int argc, char** argv); // ... via this function
 void setTask(void);
 void st(void);

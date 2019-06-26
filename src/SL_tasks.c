@@ -27,6 +27,9 @@
 #include "SL_man.h"
 
 char current_task_name[100];
+// task specified by '-task' in command line will be copied to this variable ...
+char sl_default_task[100]; 
+
 
 static Task_Def tasks;
 static int (*current_init_function)  (void) = NULL;
