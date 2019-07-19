@@ -62,6 +62,8 @@ static UserGraphicsEntry *ugraphs = NULL;
 static void displayBall(void *b);
 static void displayBallSize(void *b);
 static void displayVisionBlob(void *b);
+static void displayRectCuboid(void *b);
+
 
 static void listUserGraphics(void);
 
@@ -174,6 +176,7 @@ initUserGraph(void)
     sprintf(string,"blob-%d",i);
     addToUserGraphics(string,"Display a 3cm diameter blob",displayVisionBlob,sizeof(blob_data));
   }
+  addToUserGraphics("RectCuboid","Display a rectangular cuboid",displayRectCuboid,N_CART*3*sizeof(float));
 
 }
 
@@ -462,3 +465,66 @@ displayVisionBlob(void *b)
 
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+ \note  displayRectCuboid
+ \date  April 201
+ 
+ \remarks 
+
+        a simple cuboid in 3D with center, euler rot, edge lengths, as input
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]      b      : the general array of bytes
+
+ ******************************************************************************/
+static void
+displayRectCuboid(void *b)
+{
+  GLfloat   col[4]={(float)1.0,(float)1.0,(float)0.0,(float)1.0};
+  float     data[3*N_CART+1];
+  double    cuboid_pos[N_CART+1];
+  double    cuboid_rot[N_CART+1];
+  double    cuboid_edge_length[N_CART+1];
+  int       count = 0;
+  int       i;
+
+  // assign the ball position from b array
+  memcpy(&(data[1]),b,(N_CART*3)*sizeof(float));
+
+  for (i=1; i<=N_CART; ++i) 
+    cuboid_pos[i] = data[++count];
+
+  for (i=1; i<=N_CART; ++i) 
+    cuboid_rot[i] = data[++count];
+
+  for (i=1; i<=N_CART; ++i) 
+    cuboid_edge_length[i] = data[++count];
+
+  
+  // here are the drawing rountines
+  glPushMatrix();
+  glTranslated((GLdouble)cuboid_pos[1],
+	       (GLdouble)cuboid_pos[2],
+	       (GLdouble)cuboid_pos[3]);
+  if (cuboid_rot[1] != 0.0)
+    glRotated((GLdouble)(180./PI)*cuboid_rot[1],(GLdouble)1.,
+	      (GLdouble)0.,(GLdouble)0.);      
+  if (cuboid_rot[2] != 0.0)
+    glRotated((GLdouble)(180./PI)*cuboid_rot[2],(GLdouble)0.,
+	      (GLdouble)1,(GLdouble)0.);      
+  if (cuboid_rot[3] != 0.0)
+    glRotated((GLdouble)(180./PI)*cuboid_rot[3],(GLdouble)0.0,
+	      (GLdouble)0.,(GLdouble)1.);      
+  glScaled(cuboid_edge_length[1],cuboid_edge_length[2],cuboid_edge_length[3]);
+
+  glColor4fv(col);
+  glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, col);
+
+  glutSolidCube(1.0);
+
+  glPopMatrix();
+
+}
