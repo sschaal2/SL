@@ -1700,6 +1700,8 @@ quatToRotMatInv(SL_quat *q, Matrix R)
  is Flashner's book. The quatMult() function below uses an alternative matrix
  Q which is equally correct.
 
+Note that this is Shuster's notation, not Hamilton's notation
+
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
@@ -1743,6 +1745,8 @@ quatMatrix(SL_quat *q, Matrix Q)
  creates q21 = q2 * q1 = Q(q2) * q1  which is the rotation with q1, followed
  by rotation q2. Note there is an alternative multiplication using the 
  quatMatrix() function: q21 = quatMatrix(q1)*q2
+
+Note that this is Shuster's notation, not Hamilton's notation
 
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
