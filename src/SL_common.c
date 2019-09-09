@@ -2358,7 +2358,7 @@ read_sensor_calibration(char *fname, Matrix joint_lin_rot,
    Assume each quaternion can be written as [eta eps], where eps is the
    vector component of the quaternion. Then the error is:
 
-   error eta_1 * eps2 - eta_2*eps2 - eps1 x eps2 (x = cross product)
+   error = eta_1 * eps2 - eta_2*eps2 + eps1 x eps2 (x = cross product)
 
 
  *******************************************************************************
