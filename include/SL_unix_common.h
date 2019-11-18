@@ -46,7 +46,7 @@ extern "C" {
   void  printSLBanner(void);
   void  printPrompt(void);
   void  parseOptions(int argc, char**argv);
-  void  sendCommandLineCmd(char *name);
+  void  sendCommandLineCmd(const char *name);
 
   // amarcovalle:
   void  spawnCommandFromUserTaskThread(void);
