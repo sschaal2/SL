@@ -3085,20 +3085,48 @@ coordinates, too.
 
  none
 
- ******************************************************************************/
+******************************************************************************/
 void
 print_J(void)
 {
-  int i,j;
-
+  int i,j,n,r;
+  double det;
+  char   string[100];
+  MY_MATRIX(JJT,1,2*N_CART,1,2*N_CART);
+  MY_MATRIX(JJTinv,1,2*N_CART,1,2*N_CART);
+					    
   if (!servo_enabled) {
     beep(1);
     printf("WARNING: servo is not running!!\n");
   }
+  
+  for (n=1; n<=n_endeffs; ++n) {
 
-  print_mat("Jacobian (actual)",J);
-  print_mat("Jacobian (desired)",Jdes);
+    for (i=1; i<=N_CART*2; ++i) {
+      for (j=1; j<=N_CART*2; ++j) {
+	JJT[i][j] = vec_mult_inner_size(J[(n-1)*2*N_CART+i],J[(n-1)*2*N_CART+j], n_dofs);
+      }
+    }
+    my_ludcmp_det(JJT, 2*N_CART,&det);
 
+    sprintf(string,"%s: Jacobian (actual)",cart_names[n]);
+    print_mat_size(string,&(J[(n-1)*2*N_CART]),2*N_CART,n_dofs);
+    printf("Manipulability Index = %f\n\n",sqrt(det));
+	   
+    for (i=1; i<=N_CART*2; ++i) {
+      for (j=1; j<=N_CART*2; ++j) {
+	JJT[i][j] = vec_mult_inner_size(Jdes[(n-1)*2*N_CART+i],Jdes[(n-1)*2*N_CART+j], n_dofs);
+      }
+    }
+    my_ludcmp_det(JJT, 2*N_CART,&det);
+
+    sprintf(string,"%s: Jacobian (desireed)",cart_names[n]);
+    print_mat_size(string,&(Jdes[(n-1)*2*N_CART]),2*N_CART,n_dofs);
+    printf("Manipulability Index = %f\n\n",sqrt(det));
+	   
+  
+  }
+  
 }
 
 
