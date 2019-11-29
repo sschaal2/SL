@@ -1436,9 +1436,8 @@ linkQuat(Matrix R, SL_quat *q)
  Function Parameters: [in]=input,[out]=output
 
  \param[in]     R   : rotation matrix
- \param[in,out] q   : quaternian structure for output -- the output is chosen
-                      such that the new quaternion does not flip sign relative
-                      to the previous quaternion
+ \param[out] q      : quaternian structure for output -- the output is chosen
+                      such that the new quaternion has positive _Q0_
 
  ******************************************************************************/
 void
@@ -1476,37 +1475,16 @@ linkQuat(Matrix R, SL_quat *q)
     q_aux[k+2] = (R[k+1][i+1]+R[i+1][k+1])*T;
   }
 
-  // check whether we have a valid reference quaternion
-  aux = 0.0;
-  for (r=1;r<=N_QUAT;r++)
-    aux += sqr(q->q[r]);
-  aux = sqrt(aux);
-
-  if ( fabs(1.-aux) > 0.01) { // no valid reference, use 0 0 0 1
-    q->q[_Q0_] = 0.0;
-    q->q[_Q1_] = 0.0;
-    q->q[_Q2_] = 0.0;
-    q->q[_Q3_] = 1.0;
-  }
-
-  // fix the sign of quaternion
-  quat_sign =
-    q->q[_Q0_] * q_aux[1] +
-    q->q[_Q1_] * q_aux[2] +
-    q->q[_Q2_] * q_aux[3] +
-    q->q[_Q3_] * q_aux[4];
-  
-  if (quat_sign < 0.0) {
-    q_aux[1] *= -1.0;
-    q_aux[2] *= -1.0;
-    q_aux[3] *= -1.0;
-    q_aux[4] *= -1.0;
-  }
+  // all quaternions have _Q0_ >= 0
+  if (q_aux[_Q0_] < 0)
+    for (r=1; r<=N_QUAT; ++r)
+      q_aux[r] *= -1.0;
 
   q->q[_Q0_] = q_aux[1];
   q->q[_Q1_] = q_aux[2];
   q->q[_Q2_] = q_aux[3];
   q->q[_Q3_] = q_aux[4];
+
 
 }
 
@@ -1835,6 +1813,11 @@ quatRelative(double *q1, double *qf, double *q2)
   }
 
   quatMult(q1_inv,qf,q2);
+
+  // make sure quaternions have positive _Q0_
+  if (q2[_Q0_] < 0.0)
+    for (i=1; i<=N_QUAT; ++i)
+      q2[i] *= -1.;
     
 }
 
