@@ -1437,7 +1437,9 @@ linkQuat(Matrix R, SL_quat *q)
 
  \param[in]     R   : rotation matrix
  \param[out] q      : quaternian structure for output -- the output is chosen
-                      such that the new quaternion has positive _Q0_
+                      such that the new quaternion has positive _Q0_ . This
+                      means that rotation angles alpha are in [-180,180] degrees,
+                      as cos(alpha/2) is thus never negative.
 
  ******************************************************************************/
 void
@@ -1731,7 +1733,7 @@ Note that this is Shuster's notation, not Hamilton's notation
 
  \param[in]     q1  : quaterion vector for q1 (first rotation)
  \param[in]     q2  : quaterion vector for q2 (second rotation)
- \param[out]    q   : resulting quaternion
+ \param[out]    q   : resulting quaternion ( _Q0_ is positive)
 
  Note: result q can overlap in memory with q1 or q2
 
@@ -1771,8 +1773,13 @@ quatMult(double *q1, double *q2, double *q)
     }
   }
 
-  for (i=1; i<=N_QUAT; ++i)
-    q[i] = qt[i];
+  for (i=1; i<=N_QUAT; ++i) {
+    if (qt[_Q0_] < 0) {
+      q[i] = qt[i];
+    } else {
+      q[i] = -qt[i];      
+    }
+  }
     
 }
 
