@@ -1774,7 +1774,7 @@ quatMult(double *q1, double *q2, double *q)
   }
 
   for (i=1; i<=N_QUAT; ++i) {
-    if (qt[_Q0_] < 0) {
+    if (qt[_Q0_]> 0) {
       q[i] = qt[i];
     } else {
       q[i] = -qt[i];      
