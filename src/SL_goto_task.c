@@ -428,6 +428,7 @@ go0_wait(void)
   int i;
   double last_time;
   double last_draw_time;
+  double time_out_time;
 
   special_posture_flag = TRUE;
 
@@ -440,8 +441,9 @@ go0_wait(void)
   }
 
   last_time = last_draw_time = task_servo_time;
+  time_out_time = n_goto_steps/(double)task_servo_rate * 1.2;
   while (strcmp(current_task_name,NO_TASK) != 0) {
-    if (task_servo_time - last_time > 5) {
+    if (task_servo_time - last_time > time_out_time) {
       special_posture_flag = FALSE;
       printf("time out in go0_wait\n");
       return FALSE;
@@ -478,6 +480,7 @@ go_target_wait(SL_DJstate *target)
   int i;
   double last_time;
   double last_draw_time;
+  double time_out_time;
 
   special_posture_flag = TRUE;
 
@@ -490,8 +493,9 @@ go_target_wait(SL_DJstate *target)
   }
 
   last_time = last_draw_time = task_servo_time;
+  time_out_time = n_goto_steps/(double)task_servo_rate * 1.2;
   while (strcmp(current_task_name,NO_TASK) != 0) {
-    if (task_servo_time - last_time > 5) {
+    if (task_servo_time - last_time > time_out_time) {
       special_posture_flag = FALSE;
       printf("time out in go_target_wait\n");
       return FALSE;
