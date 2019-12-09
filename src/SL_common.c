@@ -1434,9 +1434,10 @@ linkQuat(Matrix R, SL_quat *q)
  Function Parameters: [in]=input,[out]=output
 
  \param[in]     R   : rotation matrix
- \param[in,out] q   : quaternian structure for output -- the output is chosen
-                      such that the new quaternion does not flip sign relative
-                      to the previous quaternion
+ \param[out] q      : quaternian structure for output -- the output is chosen
+                      such that the new quaternion has positive _Q0_ . This
+                      means that rotation angles alpha are in [-180,180] degrees,
+                      as cos(alpha/2) is thus never negative.
 
  ******************************************************************************/
 void
@@ -1474,37 +1475,16 @@ linkQuat(Matrix R, SL_quat *q)
     q_aux[k+2] = (R[k+1][i+1]+R[i+1][k+1])*T;
   }
 
-  // check whether we have a valid reference quaternion
-  aux = 0.0;
-  for (r=1;r<=N_QUAT;r++)
-    aux += sqr(q->q[r]);
-  aux = sqrt(aux);
-
-  if ( fabs(1.-aux) > 0.01) { // no valid reference, use 0 0 0 1
-    q->q[_Q0_] = 0.0;
-    q->q[_Q1_] = 0.0;
-    q->q[_Q2_] = 0.0;
-    q->q[_Q3_] = 1.0;
-  }
-
-  // fix the sign of quaternion
-  quat_sign =
-    q->q[_Q0_] * q_aux[1] +
-    q->q[_Q1_] * q_aux[2] +
-    q->q[_Q2_] * q_aux[3] +
-    q->q[_Q3_] * q_aux[4];
-  
-  if (quat_sign < 0.0) {
-    q_aux[1] *= -1.0;
-    q_aux[2] *= -1.0;
-    q_aux[3] *= -1.0;
-    q_aux[4] *= -1.0;
-  }
+  // all quaternions have _Q0_ >= 0
+  if (q_aux[_Q0_] < 0)
+    for (r=1; r<=N_QUAT; ++r)
+      q_aux[r] *= -1.0;
 
   q->q[_Q0_] = q_aux[1];
   q->q[_Q1_] = q_aux[2];
   q->q[_Q2_] = q_aux[3];
   q->q[_Q3_] = q_aux[4];
+
 
 }
 
@@ -1698,6 +1678,8 @@ quatToRotMatInv(SL_quat *q, Matrix R)
  is Flashner's book. The quatMult() function below uses an alternative matrix
  Q which is equally correct.
 
+Note that this is Shuster's notation, not Hamilton's notation
+
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
@@ -1742,12 +1724,14 @@ quatMatrix(SL_quat *q, Matrix Q)
  by rotation q2. Note there is an alternative multiplication using the 
  quatMatrix() function: q21 = quatMatrix(q1)*q2
 
+Note that this is Shuster's notation, not Hamilton's notation
+
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
  \param[in]     q1  : quaterion vector for q1 (first rotation)
  \param[in]     q2  : quaterion vector for q2 (second rotation)
- \param[out]    q   : resulting quaternion
+ \param[out]    q   : resulting quaternion ( _Q0_ is positive)
 
  Note: result q can overlap in memory with q1 or q2
 
@@ -1787,8 +1771,13 @@ quatMult(double *q1, double *q2, double *q)
     }
   }
 
-  for (i=1; i<=N_QUAT; ++i)
-    q[i] = qt[i];
+  for (i=1; i<=N_QUAT; ++i) {
+    if (qt[_Q0_]> 0) {
+      q[i] = qt[i];
+    } else {
+      q[i] = -qt[i];      
+    }
+  }
     
 }
 
@@ -1829,6 +1818,11 @@ quatRelative(double *q1, double *qf, double *q2)
   }
 
   quatMult(q1_inv,qf,q2);
+
+  // make sure quaternions have positive _Q0_
+  if (q2[_Q0_] < 0.0)
+    for (i=1; i<=N_QUAT; ++i)
+      q2[i] *= -1.;
     
 }
 
@@ -2352,7 +2346,7 @@ read_sensor_calibration(char *fname, Matrix joint_lin_rot,
    Assume each quaternion can be written as [eta eps], where eps is the
    vector component of the quaternion. Then the error is:
 
-   error eta_1 * eps2 - eta_2*eps2 - eps1 x eps2 (x = cross product)
+   error = eta_1 * eps2 - eta_2*eps2 + eps1 x eps2 (x = cross product)
 
 
  *******************************************************************************
@@ -3079,20 +3073,48 @@ coordinates, too.
 
  none
 
- ******************************************************************************/
+******************************************************************************/
 void
 print_J(void)
 {
-  int i,j;
-
+  int i,j,n,r;
+  double det;
+  char   string[100];
+  MY_MATRIX(JJT,1,2*N_CART,1,2*N_CART);
+  MY_MATRIX(JJTinv,1,2*N_CART,1,2*N_CART);
+					    
   if (!servo_enabled) {
     beep(1);
     printf("WARNING: servo is not running!!\n");
   }
+  
+  for (n=1; n<=n_endeffs; ++n) {
 
-  print_mat("Jacobian (actual)",J);
-  print_mat("Jacobian (desired)",Jdes);
+    for (i=1; i<=N_CART*2; ++i) {
+      for (j=1; j<=N_CART*2; ++j) {
+	JJT[i][j] = vec_mult_inner_size(J[(n-1)*2*N_CART+i],J[(n-1)*2*N_CART+j], n_dofs);
+      }
+    }
+    my_ludcmp_det(JJT, 2*N_CART,&det);
 
+    sprintf(string,"%s: Jacobian (actual)",cart_names[n]);
+    print_mat_size(string,&(J[(n-1)*2*N_CART]),2*N_CART,n_dofs);
+    printf("Manipulability Index = %f\n\n",sqrt(det));
+	   
+    for (i=1; i<=N_CART*2; ++i) {
+      for (j=1; j<=N_CART*2; ++j) {
+	JJT[i][j] = vec_mult_inner_size(Jdes[(n-1)*2*N_CART+i],Jdes[(n-1)*2*N_CART+j], n_dofs);
+      }
+    }
+    my_ludcmp_det(JJT, 2*N_CART,&det);
+
+    sprintf(string,"%s: Jacobian (desireed)",cart_names[n]);
+    print_mat_size(string,&(Jdes[(n-1)*2*N_CART]),2*N_CART,n_dofs);
+    printf("Manipulability Index = %f\n\n",sqrt(det));
+	   
+  
+  }
+  
 }
 
 

@@ -698,7 +698,7 @@ Function Parameters: [in]=input,[out]=output
 
 ******************************************************************************/
 void
-sendCommandLineCmd(char *name)
+sendCommandLineCmd(const char *name)
 {
   int err = 0;
   int rc;
