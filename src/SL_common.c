@@ -248,7 +248,6 @@ check_range(SL_DJstate *des)
   int flag = TRUE;
 
   for (i=1; i<=n_dofs; ++i) {
-
     if (des[i].th > joint_range[i][MAX_THETA]) {
       flag = FALSE;
       des[i].th = joint_range[i][MAX_THETA];
@@ -268,7 +267,6 @@ check_range(SL_DJstate *des)
     }
 
   }
-
   return flag;
 
 }
