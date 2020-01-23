@@ -632,6 +632,8 @@ outMenu(void)
 
   AGAIN:
   
+  printf("\n AAAAA %d \n\n", store_in_buffer_rate);
+  printf("\n sampling_freq: %f \n\n", (double)sampling_freq);
   printf("\n\n\nOUTPUT SCRIPT OPTIONS:\n\n");
   printf("        Sampling Rate                   ---> %d\n",1);
   printf("        Read Script File                ---> %d\n",2);
@@ -675,6 +677,8 @@ outMenu(void)
     
   } else if (aux == 3) {
 
+    printf("\n n_save_data_points: %f \n\n", (double)n_save_data_points);
+    printf("\n sampling_freq: %f \n\n", (double)sampling_freq);
     temp = ((double)n_save_data_points * store_in_buffer_rate) / 
       sampling_freq;
     if (get_double("How many seconds are to be stored?\0",
