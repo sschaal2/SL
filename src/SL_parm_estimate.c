@@ -34,6 +34,7 @@
 #include "PE_declare.h"
 
 #define DOWN_SAMPLE_DEFAULT  5
+#undef  DEBUG
 #define DEBUG        FALSE
 
 

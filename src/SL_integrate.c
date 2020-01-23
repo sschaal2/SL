@@ -26,14 +26,6 @@
 #include "SL_common.h"
 #include "SL_objects.h"
 
-/* openGL headers */ 
-#ifdef powerpc
-#include <GLUT/glut.h>
-#else
-#include "GL/glut.h"
-#endif
-#include "SL_openGL.h"
-
 /*!*****************************************************************************
  *******************************************************************************
 \note  SL_IntegrateEuler

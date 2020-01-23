@@ -531,7 +531,7 @@ semFlush (SEM_ID semId)
   int         i;
 
   // get the number of processes waiting for this semaphore
-  rc = semctl(semId,0,GETNCNT,arg);
+  rc = semctl(semId,0,GETNCNT);
   if (rc == -1) {
     printf("Error when flushing semaphore %ld\n",semId);
     return ERROR;
@@ -595,11 +595,11 @@ removeSharedMemory(int dummy)
 
     switch (sptr->type) {
     case T_SM_SEM_B:
-      semctl(sptr->smid,0,IPC_RMID,arg);
+      semctl(sptr->smid,0,IPC_RMID);
       break;
 
     case T_SM_PART_ID:
-      semctl(*((int *)sptr->smptr),0,IPC_RMID,arg);
+      semctl(*((int *)sptr->smptr),0,IPC_RMID);
       shmctl(sptr->smid,IPC_RMID,&shm_ds);
       break;
 
@@ -780,7 +780,7 @@ printAllSem(void) {
 
     switch (sptr->type) {
     case T_SM_SEM_B:
-      printf("%s = %d\n",sptr->name,semctl(sptr->smid,0,GETVAL,arg));
+      printf("%s = %d\n",sptr->name,semctl(sptr->smid,0,GETVAL));
       break;
 
     default:

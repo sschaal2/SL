@@ -25,6 +25,7 @@
 
 #define TIME_OUT_NS 1000000000
 
+#undef  DEBUG
 #define DEBUG FALSE
 
 /* global variables */
