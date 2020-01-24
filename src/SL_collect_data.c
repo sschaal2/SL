@@ -518,7 +518,7 @@ dscd(int parm)
   start = data_collect_time;
   while (data_collect_time - start < parm) {
     if (data_collect_time - start == parm - 5) {
-      beep(300);
+      my_beep(300);
     }
     if (++count > 100000 && data_collect_time == start) {
       printf("servo does not seem to be running! Aborted ....\n");
@@ -527,7 +527,7 @@ dscd(int parm)
     taskDelay(ns2ticks(10000000)); // wait 10ms
   }
   printf("Start Collect Data NOW!\n");
-  beep(1);
+  my_beep(1);
   startCollectData();
   return TRUE;
 }

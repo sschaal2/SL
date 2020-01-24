@@ -141,7 +141,7 @@ init_goto_task(void)
 		 joint_range[i][MIN_THETA],
 		 joint_range[i][MAX_THETA]);
 	  joint_goto_state[i].th = joint_des_state[i].th;
-	  beep(1);
+	  my_beep(1);
 	} else {
 	  break;
 	}
@@ -159,7 +159,7 @@ init_goto_task(void)
 	if (fabs(joint_goto_state[i].uff) > u_max[i]) {
 	  printf("Too large torque, max = %f!\n",u_max[i]);
 	  joint_goto_state[i].uff = joint_des_state[i].uff;
-	  beep(1);
+	  my_beep(1);
 	} else {
 	  break;
 	}
@@ -345,7 +345,7 @@ go(int jID)
 	       joint_range[jID][MIN_THETA],
 	       joint_range[jID][MAX_THETA]);
 	joint_special_state[jID].th = joint_des_state[jID].th;
-	beep(1);
+	my_beep(1);
       } else {
 	break;
       }
@@ -360,7 +360,7 @@ go(int jID)
       if (fabs(joint_special_state[jID].uff) > u_max[jID]) {
 	printf("Too large torque, max = %f!\n",u_max[jID]);
 	joint_special_state[jID].uff = joint_des_state[jID].uff;
-	beep(1);
+	my_beep(1);
       } else {
 	break;
       }

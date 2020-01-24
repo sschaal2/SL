@@ -871,7 +871,7 @@ stop(char *msg)
 
   int i;
 
-  beep(1);
+  my_beep(1);
   printf("%s\n",msg);
   fflush(stdout);
   if (real_robot_flag)
@@ -934,7 +934,7 @@ where_gains(void)
   int start=1;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: motor servo is not running!!\n");
   }
 

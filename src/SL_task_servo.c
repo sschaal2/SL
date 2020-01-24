@@ -837,7 +837,7 @@ stop(char *msg)
 
   int i;
 
-  beep(1);
+  my_beep(1);
   printf("%s\n",msg);
   fflush(stdout);
   dts();

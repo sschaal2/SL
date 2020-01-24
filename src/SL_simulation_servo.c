@@ -91,7 +91,7 @@ where_gains(void)
   int start=1;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: simulation servo is not running!!\n");
   }
 

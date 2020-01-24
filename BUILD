@@ -1,7 +1,5 @@
 package(default_visibility = ["//visibility:public"])
 
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
-
 exports_files([
     "src/SL_parm_estimate.c",
     "src/SL_kinematics.c",
@@ -30,8 +28,10 @@ cc_library(
     ],
     textual_hdrs = glob(["include/*.h"]),
     deps = [
-        "//lwpr",
-        "//utilities:utility",
+        "//experimental/users/sschaal/SL/lwpr",
+        "//experimental/users/sschaal/SL/utilities:utility",
+        "//third_party/libedit:edit_impl",
+        "//third_party/libedit:native_system",
     ],
 )
 
@@ -48,8 +48,8 @@ cc_library(
     ],
     textual_hdrs = glob(["include/*.h"]),
     deps = [
-        "//lwpr",
-        "//utilities:utility",
+        "//experimental/users/sschaal/SL/lwpr",
+        "//experimental/users/sschaal/SL/utilities:utility",
     ],
 )
 
@@ -70,8 +70,8 @@ cc_library(
     ],
     textual_hdrs = glob(["include/*.h"]),
     deps = [
-        "//lwpr",
-        "//utilities:utility",
+        "//experimental/users/sschaal/SL/lwpr",
+        "//experimental/users/sschaal/SL/utilities:utility",
     ],
 )
 
@@ -89,8 +89,8 @@ cc_library(
     ],
     textual_hdrs = glob(["include/*.h"]),
     deps = [
-        "//lwpr",
-        "//utilities:utility",
+        "//experimental/users/sschaal/SL/lwpr",
+        "//experimental/users/sschaal/SL/utilities:utility",
     ],
 )
 
@@ -113,8 +113,11 @@ cc_library(
         "include/X11/*.h",
     ]),
     deps = [
-        "//lwpr",
-        "//utilities:utility",
+        "//experimental/users/sschaal/SL/lwpr",
+        "//experimental/users/sschaal/SL/utilities:utility",
+        "//third_party/freeglut:freeglut_base",
+        "//third_party/glu:native",
+        "//third_party/Xorg:libX11",	
     ],
 )
 
@@ -132,7 +135,7 @@ cc_library(
     ],
     textual_hdrs = glob(["include/*.h"]),
     deps = [
-        "//lwpr",
-        "//utilities:utility",
+        "//experimental/users/sschaal/SL/lwpr",
+        "//experimental/users/sschaal/SL/utilities:utility",
     ],
 )

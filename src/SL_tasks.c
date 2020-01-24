@@ -77,13 +77,13 @@ setTask(void)
 
   if (!servo_enabled) {
     printf("WARNING: Servo is not running! -- Aborted!\n");
-    beep(1);
+    my_beep(1);
     return;
   }
 	
   if (strcmp(current_task_name,NO_TASK)!=0) {
     printf("WARNING: Another Task is still running! -- Aborted!\n");
-    beep(1);
+    my_beep(1);
     return;
   }
 	
@@ -170,13 +170,13 @@ redo(void)
 
   if (!servo_enabled) {
     printf("WARNING: Servo is not running! -- Aborted!\n");
-    beep(1);
+    my_beep(1);
     return;
   }
 	
   if (strcmp(current_task_name,NO_TASK)!=0) {
     printf("WARNING: Another Task is still running! -- Aborted!\n");
-    beep(1);
+    my_beep(1);
     return;
   }
 	

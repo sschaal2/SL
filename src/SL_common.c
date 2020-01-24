@@ -89,7 +89,7 @@ where_utility(int start, int n_dofs)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: motor servo is not running!!\n");
   }
 
@@ -126,7 +126,7 @@ where_des_utility(int start, int n_dofs)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: motor servo is not running!!\n");
   }
 
@@ -175,7 +175,7 @@ cwhere(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
 
@@ -296,7 +296,7 @@ bwhere(int flag)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
 
@@ -351,7 +351,7 @@ lwhere(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
 
@@ -390,7 +390,7 @@ linfo(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
 
@@ -439,7 +439,7 @@ where_misc(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
 
@@ -1168,7 +1168,7 @@ rbwhere(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
 
@@ -1215,7 +1215,7 @@ rbwhere2D(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
 
@@ -1261,7 +1261,7 @@ where_base(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
 
@@ -1313,7 +1313,7 @@ where_cog(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
 
@@ -3084,7 +3084,7 @@ print_J(void)
   MY_MATRIX(JJTinv,1,2*N_CART,1,2*N_CART);
 					    
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: servo is not running!!\n");
   }
   

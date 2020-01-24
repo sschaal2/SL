@@ -323,7 +323,7 @@ where_off(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: motor servo is not running!!\n");
   }
 
@@ -366,7 +366,7 @@ where_raw(void)
   int i,j;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("WARNING: motor servo is not running!!\n");
   }
 
@@ -418,7 +418,7 @@ monitor_min_max(void)
   double  offset = 0.05;
 
   if (!servo_enabled) {
-    beep(1);
+    my_beep(1);
     printf("ERROR: motor servo is not running!!\n");
     return;
   }
