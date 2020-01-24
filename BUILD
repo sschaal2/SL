@@ -117,7 +117,7 @@ cc_library(
         "//experimental/users/sschaal/SL/utilities:utility",
         "//third_party/freeglut:freeglut_base",
         "//third_party/glu:native",
-        "//third_party/Xorg:libX11",	
+        "//third_party/Xorg:libX11",		
     ],
 )
 
