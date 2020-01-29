@@ -196,7 +196,7 @@ init_stereo_matrices(char *fname)
 
     if (fp == NULL) {
 	printf("Cannot find the projection matrices file >%s<\n",string);
-	beep(1); 
+	my_beep(1); 
 	return FALSE;
     }
 

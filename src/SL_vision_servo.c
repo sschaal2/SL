@@ -790,7 +790,7 @@ stop(char *msg)
   int i;
 
   dvs();
-  beep(1);
+  my_beep(1);
   printf("%s\n",msg);
   
   return TRUE;

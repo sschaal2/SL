@@ -1,14 +1,24 @@
 package(default_visibility = ["//visibility:public"])
 
-exports_files([
-    "src/SL_parm_estimate.c",
-    "src/SL_kinematics.c",
-    "src/SL_dynamics.c",
-    "src/SL_invDynNE.cpp",
-    "src/SL_invDynArt.cpp",
-    "src/SL_forDynComp.cpp",
-    "src/SL_forDynArt.cpp",
-])
+
+filegroup(
+    name = "kin_and_dyn_srcs",
+    srcs = [
+	"src/SL_kinematics.c",
+    	"src/SL_dynamics.c",
+    	"src/SL_invDynNE.cpp",
+    	"src/SL_invDynArt.cpp",
+    	"src/SL_forDynComp.cpp",
+    	"src/SL_forDynArt.cpp",
+    ],
+)
+
+filegroup(
+    name = "parm_est_srcs",
+    srcs = [
+    	"src/SL_parm_estimate.c",
+    ],
+)
 
 cc_library(
     name = "SLcommon",
