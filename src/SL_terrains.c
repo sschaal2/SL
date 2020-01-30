@@ -2143,7 +2143,7 @@ convertObj2Asc(char *fname)
   double  v3[3+1];
   double  x,y,z;
   char    string[MAX_STRING_LEN+1];
-  char    c;
+  int     c;
   char    key[10];
   int     n_v=0;
   int     n_f=0;

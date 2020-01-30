@@ -2704,7 +2704,7 @@ read_parameter_pool_string(const char *fname, const char *keyword, char *svalue)
   int    j,i,rc;
   char   string[100];
   FILE  *in;
-  char   c;
+  int    c;
 
   in = fopen(parameter_pool_vars,"a");
   if (in != NULL) {

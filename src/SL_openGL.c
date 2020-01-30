@@ -3401,7 +3401,7 @@ displayListFromObjFileFlag(char *fname, double scale,int flag)
   double  x,y,z;
   char    string[MAX_STRING_LEN+1];
   char    fnamebin[300];
-  char    c;
+  int     c;
   char    key[10];
   int     n_v=0;
   int     n_f=0;
