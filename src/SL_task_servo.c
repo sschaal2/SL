@@ -885,6 +885,8 @@ freeze(void)
   for (i=1; i<=n_dofs; ++i) {
     joint_des_state[i].thd   = 0.0;
     joint_des_state[i].thdd = 0.0;
+    if (gravity_local == 0.0) // for automatic gravity comp, no uff needed
+      joint_des_state[i].uff = 0.0;      
   }
 }
 
