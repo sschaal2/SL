@@ -13,6 +13,7 @@ powerpc
 2400
 obj
 doc/latex
+doc/html
 
 .last_data
 .parameter_pool_vars
