@@ -1,19 +1,13 @@
 # Every SL directory has a symbolic link to config/bazel to access the config files as local path.
 # While not pretty, this allows BUILD files to be independt of the SL_ROOT workspace path, and only
 # SL.bzl needs to be adjusted
-load(":bazel/SL.bzl", "SL_ROOT", "SL_ROOT_WS", "SL_VISIBILITY")
+load(":bazel/SL.bzl", "SL_ROOT", "SL_VISIBILITY")
 
 package(default_visibility = SL_VISIBILITY)
 
 licenses(["notice"])
 
 exports_files(["LICENSE"])
-
-# Every SL directory has a symbolic link to config/bazel to access the config files as local path.
-# While not pretty, this allows BUILD files to be independt of the SL_ROOT workspace path, and only
-# SL.bzl needs to be adjusted
-
-load(":bazel/SL.bzl", "SL_ROOT")
 
 # The following filegroups contain files that need to be compiled from each robots core directory.
 # These files are skeletons, which include various math files that are robot specific. Thus, they

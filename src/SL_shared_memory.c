@@ -167,10 +167,11 @@ init_shared_memory(void)
   char  *ptr;
   int    flag;
 
+  extern void dumpShmObjects();
+
   /* make sure that n_contacts is correct */
   n=count_extra_contact_points(config_files[CONTACTS]);
   n_contacts = n_links + n;
-
 
   /********************************************************************/
   /********************************************************************/
@@ -537,6 +538,7 @@ init_shared_memory(void)
 #endif
 
   printf("Total Shared Memory Allocated = %d Bytes\n",n_bytes_sm_allocated);
+  dumpShmObjects();
 
   return TRUE;
 
