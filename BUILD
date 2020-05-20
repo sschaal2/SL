@@ -136,12 +136,11 @@ cc_library(
     ],
     textual_hdrs = glob([
         "include/*.h",
-        "include/GL/*.h",
-        "include/X11/*.h",
     ]),
     deps = [
         SL_ROOT + "lwpr",
         SL_ROOT + "utilities:utility",
+        "//third_party/Xorg:X11headers",
         # "//third_party/Xorg:libX11",
         # "//third_party/freeglut:headers",
         # "//third_party/freeglut:native",
