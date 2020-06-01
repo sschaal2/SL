@@ -29,6 +29,7 @@ typedef struct smVisionBlobs {
 } smVisionBlobs;
 
 typedef struct smVisionBlobsaux {
+  SEM_ID            sm_sem;  
   SL_fVisionBlobaux blobs[1];
 } smVisionBlobsaux;
 

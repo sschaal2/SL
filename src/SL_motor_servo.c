@@ -591,7 +591,7 @@ broadcast_sensors(void)
    
 \remarks 
 
-        flushes the synchronization semaphores -- not that under SL
+        flushes the synchronization semaphores -- note that under SL
         Unix we use exact synchronization between task servo and motor
         servo, such that semGive is used. (Tight sync uses
         WAIT_FOREVER on the synchronization semaphores, such that one

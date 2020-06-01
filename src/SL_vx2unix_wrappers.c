@@ -39,7 +39,8 @@ typedef struct smlist /*!< share memory list */
   int   type;       /*!< type of shared memory */
   long  smid;       /*!< ID of shared memory */
   int   key;        /*!< key of shared memmory */
-  int   size;       /*!< size of shared memmory */  
+  int   size;       /*!< size of shared memmory */
+  int   offset;     /*!< offset to data in shared memory */    
   char *nptr;       /*!< pointer to next shared memory */
 } SMLIST, *SM_PTR;
 
@@ -205,7 +206,7 @@ smMemCalloc (char *shmname, int id, int elemNum, int elemSize)
     return NULL;
   }
 
-  // add th3 size of shared memory too data structure
+  // add the size of shared memory too data structure
   sptr = smlist;
   while (sptr!=NULL) {
     if (strcmp(sptr->name,shmname)==0) {
@@ -217,6 +218,45 @@ smMemCalloc (char *shmname, int id, int elemNum, int elemSize)
   
 
   return ptr;
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+ \note  smAddInfo
+ \date  May 2020
+ 
+ \remarks 
+
+ Add additiional information to the internal shared memory book keeping.
+ This info is not used in SL directly, but helpfull for other applications
+ when reading the shared memory
+  
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+ 
+ \param[in]     shmname         : name of the shared memory
+ \param[in]     offset          : offset to beginning of data of shared memory
+ 
+ ******************************************************************************/
+int
+smAddInfo (char *shmname, int offset) 
+{
+  SM_PTR sptr;
+  char   smn[100];
+
+  sprintf(smn,"%s.%s",robot_name,shmname);
+  
+  // add the offset to shared memory structure
+  sptr = smlist;
+  while (sptr!=NULL) {
+    if (strcmp(sptr->name,smn)==0) {
+      sptr->offset = offset;
+      return TRUE;
+    }
+    sptr = (SM_PTR) sptr->nptr;
+  }
+  
+  return FALSE;
 }
 
 /*!*****************************************************************************
@@ -965,7 +1005,7 @@ dumpShmObjects(void)
 
   // write all info in smlist to file
   while (sptr!=NULL) {
-    fprintf(tmp_out,"%s %d %ld %d %d\n",sptr->name,sptr->type,sptr->smid,sptr->key,sptr->size);
+    fprintf(tmp_out,"%s %d %ld %d %d %d\n",sptr->name,sptr->type,sptr->smid,sptr->key,sptr->size,sptr->offset);
     sptr = (SM_PTR) sptr->nptr;
   }
 
