@@ -719,27 +719,27 @@ write_link_parms_urdf(void) {
   for (i=0; i<= n_dofs; ++i) {
 
     fprintf(out,"<link name=\"%s\">\n",joint_names[i]);
-    fprintf(out,"\t<intertial>\n");
+    fprintf(out,"\t<inertial>\n");
     
     mass = links[i].m;
     if (mass == 0)
       mass = 1.;
     for (j=1; j<=N_CART; ++j)
-      cm[j] = links[i].mcm[_X_]/mass;
+      cm[j] = links[i].mcm[j]/mass;
     
     fprintf(out,"\t<origin xyz=\"%f %f %f\" rpy=\"0 0 0\"/>\n",cm[_X_],cm[_Y_],cm[_Z_]);
     fprintf(out,"\t<mass value=\"%f\"/>\n",mass);
 
     // inertia in CM coordinates
-    fprintf(out,"\t<interia ixx=\"%f\" ixy=\"%f\" ixz=\"%f\" iyy=\"%f\" iyz=\"%f\" ixx=\"%f\"/>\n",
-	    links[i].inertia[_X_][_X_] - (sqr(cm[_Z_])+sqr(cm[_Y_])),
-	    links[i].inertia[_X_][_Y_] - (-cm[_X_]*cm[_Y_]),
-	    links[i].inertia[_X_][_Z_] - (-cm[_X_]*cm[_Z_]),
-	    links[i].inertia[_Y_][_Y_] - (sqr(cm[_Z_])+sqr(cm[_X_])),
-	    links[i].inertia[_Y_][_Z_] - (-cm[_Y_]*cm[_Z_]),
-	    links[i].inertia[_Z_][_Z_] - (sqr(cm[_Y_])+sqr(cm[_X_]))
+    fprintf(out,"\t<inertia ixx=\"%f\" ixy=\"%f\" ixz=\"%f\" iyy=\"%f\" iyz=\"%f\" izz=\"%f\"/>\n",
+	    links[i].inertia[_X_][_X_] - mass*(sqr(cm[_Z_])+sqr(cm[_Y_])),
+	    links[i].inertia[_X_][_Y_] - mass*(-cm[_X_]*cm[_Y_]),
+	    links[i].inertia[_X_][_Z_] - mass*(-cm[_X_]*cm[_Z_]),
+	    links[i].inertia[_Y_][_Y_] - mass*(sqr(cm[_Z_])+sqr(cm[_X_])),
+	    links[i].inertia[_Y_][_Z_] - mass*(-cm[_Y_]*cm[_Z_]),
+	    links[i].inertia[_Z_][_Z_] - mass*(sqr(cm[_Y_])+sqr(cm[_X_]))
 	    );
-    fprintf(out,"\t</intertial>\n");
+    fprintf(out,"\t</inertial>\n");
     fprintf(out,"\t</link>\n");    
   }
   
