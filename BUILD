@@ -143,18 +143,10 @@ cc_library(
     deps = [
         SL_ROOT + "lwpr",
         SL_ROOT + "utilities:utility",
-<<<<<<< HEAD
         "//third_party/Xorg:libX11",
         "//third_party/freeglut:headers",
         "//third_party/freeglut:native",
         "//third_party/glu:native",
-=======
-        "//third_party/Xorg:X11headers",
-        # "//third_party/Xorg:libX11",
-        # "//third_party/freeglut:headers",
-        # "//third_party/freeglut:native",
-        # "//third_party/glu:native",
->>>>>>> 07fc926ee5170d6fcb95a81af97fb9a507360555
     ],
 )
 
