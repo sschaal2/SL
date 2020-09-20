@@ -167,10 +167,11 @@ init_shared_memory(void)
   char  *ptr;
   int    flag;
 
+  extern void dumpShmObjects();
+
   /* make sure that n_contacts is correct */
   n=count_extra_contact_points(config_files[CONTACTS]);
   n_contacts = n_links + n;
-
 
   /********************************************************************/
   /********************************************************************/
@@ -181,7 +182,8 @@ init_shared_memory(void)
 		     sizeof(SL_fJstate)*(n_dofs+1),
 		     &sm_joint_state_sem,
 		     (void **)&sm_joint_state)) {
-    ;
+    if (smAddInfo("smJointState",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -193,7 +195,8 @@ init_shared_memory(void)
 		     sizeof(SL_fDJstate)*(n_dofs+1),
 		     &sm_joint_des_state_sem,
 		     (void **)&sm_joint_des_state)) {
-    ;
+    if (smAddInfo("smJointDesState",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -205,7 +208,8 @@ init_shared_memory(void)
 		     sizeof(SL_fSDJstate)*(n_dofs+1),
 		     &sm_sjoint_des_state_sem,
 		     (void **)&sm_sjoint_des_state)) {
-    ;
+    if (smAddInfo("smSJointDesState",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -217,7 +221,8 @@ init_shared_memory(void)
 		     sizeof(SL_fJstate)*(n_dofs+1),
 		     &sm_joint_sim_state_sem,
 		     (void **)&sm_joint_sim_state)) {
-    ;
+    if (smAddInfo("smJointSimState",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -229,7 +234,8 @@ init_shared_memory(void)
 		     sizeof(SL_fVisionBlob)*(max_blobs+1),
 		     &sm_vision_blobs_sem,
 		     (void **)&sm_vision_blobs)) {
-    ;
+    if (smAddInfo("smVisionBlobs",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -241,7 +247,8 @@ init_shared_memory(void)
 		     sizeof(SL_fVisionBlobaux)*(max_blobs+1),
 		     &sm_vision_blobs_aux_sem,
 		     (void **)&sm_vision_blobs_aux)) {
-    ;
+    if (smAddInfo("smVisionBlobsaux",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -253,7 +260,8 @@ init_shared_memory(void)
 		     sizeof(fBlob3D)*(max_blobs+1),
 		     &sm_raw_blobs_sem,
 		     (void **)&sm_raw_blobs)) {
-    ;
+    if (smAddInfo("smRawBlobs",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -265,7 +273,8 @@ init_shared_memory(void)
 		     sizeof(fBlob2D)*(2*max_blobs+1),
 		     &sm_raw_blobs2D_sem,
 		     (void **)&sm_raw_blobs2D)) {
-    ;
+    if (smAddInfo("smRawBlobs2D",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -277,7 +286,8 @@ init_shared_memory(void)
 		     sizeof(SL_fCstate)*(n_endeffs+1),
 		     &sm_cart_states_sem,
 		     (void **)&sm_cart_states)) {
-    ;
+    if (smAddInfo("smCartStates",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -289,7 +299,8 @@ init_shared_memory(void)
 		     sizeof(float)*(n_misc_sensors+1),
 		     &sm_misc_sensor_sem,
 		     (void **)&sm_misc_sensor)) {
-    ;
+    if (smAddInfo("smMiscSensors",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -301,7 +312,8 @@ init_shared_memory(void)
 		     sizeof(float)*(n_misc_sensors+1),
 		     &sm_misc_sim_sensor_sem,
 		     (void **)&sm_misc_sim_sensor)) {
-    ;
+    if (smAddInfo("smMiscSimSensors",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -313,7 +325,8 @@ init_shared_memory(void)
 		     sizeof(contactShort)*(n_contacts+1),
 		     &sm_contacts_sem,
 		     (void **)&sm_contacts)) {
-    ;
+    if (smAddInfo("smContacts",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -325,7 +338,8 @@ init_shared_memory(void)
 		     sizeof(SL_fCstate)*(1+1),
 		     &sm_base_state_sem,
 		     (void **)&sm_base_state)) {
-    ;
+    if (smAddInfo("smBaseState",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -337,7 +351,8 @@ init_shared_memory(void)
 		     sizeof(SL_fquat)*(1+1),
 		     &sm_base_orient_sem,
 		     (void **)&sm_base_orient)) {
-    ;
+    if (smAddInfo("smBaseOrient",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -349,7 +364,8 @@ init_shared_memory(void)
 		     0,
 		     &sm_user_graphics_sem,
 		     (void **)&sm_user_graphics)) {
-    ;
+    if (smAddInfo("smUserGraphics",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -359,7 +375,8 @@ init_shared_memory(void)
 		     0,
 		     &sm_openGL_message_sem,
 		     (void **)&sm_openGL_message)) {
-    ;
+    if (smAddInfo("smOpenGLMessage",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -369,7 +386,8 @@ init_shared_memory(void)
 		     0,
 		     &sm_vision_message_sem,
 		     (void **)&sm_vision_message)) {
-    ;
+    if (smAddInfo("smVisionMessage",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -379,7 +397,8 @@ init_shared_memory(void)
 		     0,
 		     &sm_simulation_message_sem,
 		     (void **)&sm_simulation_message)) {
-    ;
+    if (smAddInfo("smSimMessage",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -389,7 +408,8 @@ init_shared_memory(void)
 		     0,
 		     &sm_task_message_sem,
 		     (void **)&sm_task_message)) {
-    ;
+    if (smAddInfo("smTaskMessage",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -399,7 +419,8 @@ init_shared_memory(void)
 		     0,
 		     &sm_ros_message_sem,
 		     (void **)&sm_ros_message)) {
-    ;
+    if (smAddInfo("smROSMessage",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -409,7 +430,8 @@ init_shared_memory(void)
 		     0,
 		     &sm_motor_message_sem,
 		     (void **)&sm_motor_message)) {
-    ;
+    if (smAddInfo("smMotorMessage",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -419,7 +441,8 @@ init_shared_memory(void)
 		     sizeof(SL_fDCommands)*(n_dofs+1),
 		     &sm_des_commands_sem,
 		     (void **)&sm_des_commands)) {
-    ;
+    if (smAddInfo("smDCommands",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -433,7 +456,8 @@ init_shared_memory(void)
 		     sizeof(float)*(n_misc_sensors+1),
 		     &sm_ros_state_sem,
 		     (void **)&sm_ros_state)) {
-    ;
+    if (smAddInfo("smROSState",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
   } else {
     return FALSE;
   }
@@ -448,7 +472,8 @@ init_shared_memory(void)
 		       sizeof(SL_oscEntry)*(OSC_SM_BUFFER_SIZE+1),
 		       &sm_oscilloscope_sem,
 		       (void **)&sm_oscilloscope)) {
-      ;
+    if (smAddInfo("smOscilloscope",sizeof(SEM_ID)) == FALSE)
+      return FALSE;
     } else {
       return FALSE;
     }
@@ -537,6 +562,7 @@ init_shared_memory(void)
 #endif
 
   printf("Total Shared Memory Allocated = %d Bytes\n",n_bytes_sm_allocated);
+  dumpShmObjects();
 
   return TRUE;
 

@@ -86,6 +86,7 @@ extern "C" {
   extern long           ns2ticks(long long ns);
   extern long long      ticks2ns(long ticks);
   extern long long      getClockResolution(void);
+  extern int            smAddInfo (char *shmname, int offset);
 
   
 #ifdef __cplusplus

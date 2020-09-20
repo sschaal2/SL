@@ -1,5 +1,5 @@
 # Every SL directory has a symbolic link to config/bazel to access the config files as local path.
-# While not pretty, this allows BUILD files to be independt of the SL_ROOT workspace path, and only
+# While not pretty, this allows BUILD files to be independent of the SL_ROOT workspace path, and only
 # SL.bzl needs to be adjusted
 load(":bazel/SL.bzl", "FEATURES", "SL_ROOT", "SL_VISIBILITY")
 
@@ -139,16 +139,22 @@ cc_library(
     ],
     textual_hdrs = glob([
         "include/*.h",
-        "include/GL/*.h",
-        "include/X11/*.h",
     ]),
     deps = [
         SL_ROOT + "lwpr",
         SL_ROOT + "utilities:utility",
+<<<<<<< HEAD
         "//third_party/Xorg:libX11",
         "//third_party/freeglut:headers",
         "//third_party/freeglut:native",
         "//third_party/glu:native",
+=======
+        "//third_party/Xorg:X11headers",
+        # "//third_party/Xorg:libX11",
+        # "//third_party/freeglut:headers",
+        # "//third_party/freeglut:native",
+        # "//third_party/glu:native",
+>>>>>>> 07fc926ee5170d6fcb95a81af97fb9a507360555
     ],
 )
 

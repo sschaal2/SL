@@ -39,6 +39,8 @@ typedef struct smlist /*!< share memory list */
   int   type;       /*!< type of shared memory */
   long  smid;       /*!< ID of shared memory */
   int   key;        /*!< key of shared memmory */
+  int   size;       /*!< size of shared memmory */
+  int   offset;     /*!< offset to data in shared memory */    
   char *nptr;       /*!< pointer to next shared memory */
 } SMLIST, *SM_PTR;
 
@@ -48,10 +50,6 @@ typedef union {
   unsigned short *array;  /*!< array for GETALL & SETALL */
 } semunion;
 
-
-//! list of all allocated shared memory objects
-#define MAX_SM
-static int sm_ids_list[1000];
 
 //! user function to be called on exit
 static void (*user_signal_handler)(void) = NULL;  //!< function pointer
@@ -118,6 +116,9 @@ tickGet(void)
 
 }
 
+void dumpShmObjects(void);
+
+
 /*!*****************************************************************************
  *******************************************************************************
  \note  mytok
@@ -174,6 +175,7 @@ smMemCalloc (char *shmname, int id, int elemNum, int elemSize)
   long   shmid;
   struct shmid_ds ds;
   STATUS error;
+  SM_PTR sptr;
   
   // create a key for the shared memory
   shmkey = mytok(shmname,id);
@@ -204,7 +206,57 @@ smMemCalloc (char *shmname, int id, int elemNum, int elemSize)
     return NULL;
   }
 
+  // add the size of shared memory too data structure
+  sptr = smlist;
+  while (sptr!=NULL) {
+    if (strcmp(sptr->name,shmname)==0) {
+      sptr->size = elemNum*elemSize;
+      break;
+    }
+    sptr = (SM_PTR) sptr->nptr;
+  }
+  
+
   return ptr;
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+ \note  smAddInfo
+ \date  May 2020
+ 
+ \remarks 
+
+ Add additiional information to the internal shared memory book keeping.
+ This info is not used in SL directly, but helpfull for other applications
+ when reading the shared memory
+  
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+ 
+ \param[in]     shmname         : name of the shared memory
+ \param[in]     offset          : offset to beginning of data of shared memory
+ 
+ ******************************************************************************/
+int
+smAddInfo (char *shmname, int offset) 
+{
+  SM_PTR sptr;
+  char   smn[100];
+
+  sprintf(smn,"%s.%s",robot_name,shmname);
+  
+  // add the offset to shared memory structure
+  sptr = smlist;
+  while (sptr!=NULL) {
+    if (strcmp(sptr->name,smn)==0) {
+      sptr->offset = offset;
+      return TRUE;
+    }
+    sptr = (SM_PTR) sptr->nptr;
+  }
+  
+  return FALSE;
 }
 
 /*!*****************************************************************************
@@ -924,3 +976,39 @@ getClockResolution(void)
 
 }
  
+/*!*****************************************************************************
+ *******************************************************************************
+ \note  dumpShmObjects
+ \date  May 2020
+ 
+ \remarks 
+
+ dumps all shared memory objects and their info to /tmp/<fname>
+  
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+ 
+ none
+ 
+ ******************************************************************************/
+void
+dumpShmObjects(void)
+{
+  FILE       *tmp_out = NULL;
+  SM_PTR      sptr;  
+
+  tmp_out = fopen("/tmp/sl_shm_objects","w");
+  if (tmp_out == NULL) // should only happen if multiple processes write -- not an issue
+    return;
+
+  sptr = smlist;  
+
+  // write all info in smlist to file
+  while (sptr!=NULL) {
+    fprintf(tmp_out,"%s %d %ld %d %d %d\n",sptr->name,sptr->type,sptr->smid,sptr->key,sptr->size,sptr->offset);
+    sptr = (SM_PTR) sptr->nptr;
+  }
+
+  fclose(tmp_out);
+  
+}
