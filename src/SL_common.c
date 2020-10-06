@@ -68,6 +68,8 @@ extern int servo_enabled;
 
 /* local functions */
 static void bwhere_sim(void);
+static void write_link_parms_urdf(void);
+
 
 /*!*****************************************************************************
  *******************************************************************************
@@ -483,6 +485,7 @@ init_commands(void)
   addToMan("where_misc","current state of miscellanious sensors",where_misc);
   addToMan("where_cog","current state of the COG",where_cog);
   addToMan("print_J","current state of Jacobian",print_J);
+  addToMan("write_urdf","writes link parameters in URDF format",write_link_parms_urdf);  
   if (strcmp(servo_name,"motor") != 0) {
     addToMan("cwhere","cartesian state of endeffectors",cwhere);
     addToMan("lwhere","cartesian state of links",lwhere);
@@ -677,6 +680,71 @@ read_link_parameters(char *fname) {
   
   return TRUE;
 
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  write_link_parms_urdf
+\date  May 2020
+\remarks 
+
+ write the link parameters as URDF xml in the CONFIG/ directory
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ none
+
+ ******************************************************************************/
+static void
+write_link_parms_urdf(void) {
+
+  int j,i,n,rc;
+  char   string[100];
+  FILE  *out;
+  double mass;
+  double cm[N_CART+1];
+  char   fname[200];
+
+  /* prepare files */
+  sprintf(string,"%s%s.urdf",CONFIG,"LinkParameters");
+  out = fopen(string,"w");
+  if (out == NULL) {
+    printf("ERROR: Cannot open file >%s<!\n",string);
+    return;
+  }
+
+  /* write all values in URDF forma */
+  
+  for (i=0; i<= n_dofs; ++i) {
+
+    fprintf(out,"<link name=\"%s\">\n",joint_names[i]);
+    fprintf(out,"\t<inertial>\n");
+    
+    mass = links[i].m;
+    if (mass == 0)
+      mass = 1.;
+    for (j=1; j<=N_CART; ++j)
+      cm[j] = links[i].mcm[j]/mass;
+    
+    fprintf(out,"\t<origin xyz=\"%f %f %f\" rpy=\"0 0 0\"/>\n",cm[_X_],cm[_Y_],cm[_Z_]);
+    fprintf(out,"\t<mass value=\"%f\"/>\n",mass);
+
+    // inertia in CM coordinates
+    fprintf(out,"\t<inertia ixx=\"%f\" ixy=\"%f\" ixz=\"%f\" iyy=\"%f\" iyz=\"%f\" izz=\"%f\"/>\n",
+	    links[i].inertia[_X_][_X_] - mass*(sqr(cm[_Z_])+sqr(cm[_Y_])),
+	    links[i].inertia[_X_][_Y_] - mass*(-cm[_X_]*cm[_Y_]),
+	    links[i].inertia[_X_][_Z_] - mass*(-cm[_X_]*cm[_Z_]),
+	    links[i].inertia[_Y_][_Y_] - mass*(sqr(cm[_Z_])+sqr(cm[_X_])),
+	    links[i].inertia[_Y_][_Z_] - mass*(-cm[_Y_]*cm[_Z_]),
+	    links[i].inertia[_Z_][_Z_] - mass*(sqr(cm[_Y_])+sqr(cm[_X_]))
+	    );
+    fprintf(out,"\t</inertial>\n");
+    fprintf(out,"\t</link>\n");    
+  }
+  
+  fclose(out);
+  
 }
 
 /*!*****************************************************************************

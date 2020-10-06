@@ -46,9 +46,9 @@ double  simulation_servo_time=0;
 double  servo_time=0;
 
 
-int     n_integration = 1;   
+int     n_integration    = 1;   
 int     integrate_method = INTEGRATE_EULER;
-int     real_time     = TRUE;
+int     real_time        = TRUE;
 
 // local variables
 double *controller_gain_th;
