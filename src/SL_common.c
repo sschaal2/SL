@@ -1894,6 +1894,42 @@ quatRelative(double *q1, double *qf, double *q2)
     
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatLog
+\date  March 2021
+\remarks 
+
+ The log transformation of a quaternion, resulting in a tangent space 3D vector.
+ Assumption: the quaternion is properly normalized to unit length.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : quaterion vector
+ \param[out]    w   : resulting 3D vector
+
+
+ ******************************************************************************/
+void
+quatLog(double *q, double *w)
+{
+  int i;
+  double aux;
+  double norm_q_vec = 0;
+
+  for (i=_Q1_; i<=N_QUAT; ++i)
+    norm_q_vec += sqr(q[i]);
+
+  norm_q_vec = sqrt(norm_q_vec);
+
+  aux = 2.*acos(q[_Q0_])/(norm_q_vec+1.e-10); // ridge stabilizer added
+
+  for (i=1;; i<=N_CART; ++i)
+    w[i] = q[_Q0_+i]*aux;
+    
+}
+
 
 /*!*****************************************************************************
  *******************************************************************************
