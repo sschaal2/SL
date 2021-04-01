@@ -52,6 +52,7 @@ extern "C" {
   void quatMatrix(SL_quat *q, Matrix Q);
   void quatQMatrix(Vector q, Matrix Q);
   void quatLog(double *q, double *w);
+  void quatExp(double *w, double *q);
   void quatToEuler(SL_quat *q, Vector a);
   void quatToEulerInv(SL_quat *q, Vector a);
   void rotMatToEuler(Matrix R, Vector a);

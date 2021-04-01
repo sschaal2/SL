@@ -2011,6 +2011,46 @@ quatLog(double *q, double *w)
 
 /*!*****************************************************************************
  *******************************************************************************
+\note  quatExp
+\date  March 2021
+\remarks 
+
+ The exp transformation from 3D tangent space to 4D quaternion
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     w   : 3D tanget vector
+ \param[out]    q   : 4D quaternion vector
+
+
+ ******************************************************************************/
+void
+quatExp(double *w, double *q)
+{
+  int i;
+  double aux;
+  double norm_q_vec = 0;
+
+  aux = sqrt(vec_euc2_size(w,w,3))/2.0;
+  q[_Q0_] = cos(aux);
+  q[_Q1_] = w[_X_]/2.0*sin(aux)/aux;
+  q[_Q2_] = w[_Y_]/2.0*sin(aux)/aux;
+  q[_Q3_] = w[_Z_]/2.0*sin(aux)/aux;  
+
+  // normalize quaternion
+  for (i=_Q0_; i<=N_QUAT; ++i)
+    norm_q_vec += sqr(q[i]);
+
+  norm_q_vec = sqrt(norm_q_vec);
+
+  for (i=_Q0_; i<=N_QUAT; ++i)
+    q[i] /= norm_q_vec;
+  
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
 \note  revoluteGJacColumn
 \date  January 2006
 \remarks 
