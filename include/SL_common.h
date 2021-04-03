@@ -41,6 +41,7 @@ extern "C" {
   void cBlob3D(Blob3D *sd, fBlob3D *sf, int n, int flag);
   void cBlob2D(Blob2D sd[][2+1], fBlob2D *sf, int n, int flag);
   void linkQuat(Matrix R, SL_quat *q);
+  void quatNorm(double *q);
   void quatDerivatives(SL_quat *q);
   void quatToAngularVelocity(SL_quat *q);
   void quatToRotMat(SL_quat *q, Matrix R);

@@ -1965,6 +1965,9 @@ quatRelative(double *q1, double *qf, double *q2)
 
   quatMult(q1_inv,qf,q2);
 
+  // make sure there are no rounding error and normalize quaternion
+  quatNorm(q2);
+
   // make sure quaternions have positive _Q0_
   if (q2[_Q0_] < 0.0)
     for (i=1; i<=N_QUAT; ++i)
@@ -2011,6 +2014,47 @@ quatLog(double *q, double *w)
 
 /*!*****************************************************************************
  *******************************************************************************
+\note  quatNorm
+\date  March 2021
+\remarks 
+
+ Normalizes a quaternion
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : quaterion vector
+ \param[out]    q   : normalized quaternion
+
+
+ ******************************************************************************/
+void
+quatNorm(double *q)
+{
+  int i;
+  double norm_q_vec = 0;
+
+  for (i=_Q0_; i<=N_QUAT; ++i)
+    norm_q_vec += sqr(q[i]);
+
+  norm_q_vec = sqrt(norm_q_vec);
+
+  if (norm_q_vec != 0) {
+    for (i=_Q0_; i<=N_QUAT; ++i)
+      q[i] /= (norm_q_vec);
+  } else {
+    printf("invalid quaternion -- set to (1 0 0 0)\n");
+    for (i=_Q0_; i<=N_QUAT; ++i) {
+      q[i] = 0;
+    }
+    q[_Q0_] = 1;
+  }
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
 \note  quatExp
 \date  March 2021
 \remarks 
@@ -2020,7 +2064,7 @@ quatLog(double *q, double *w)
  *******************************************************************************
  Function Parameters: [in]=input,[out]=output
 
- \param[in]     w   : 3D tanget vector
+ \param[in]     w   : 3D tangent vector
  \param[out]    q   : 4D quaternion vector
 
 
@@ -2032,20 +2076,14 @@ quatExp(double *w, double *q)
   double aux;
   double norm_q_vec = 0;
 
-  aux = sqrt(vec_euc2_size(w,w,3))/2.0;
+  aux = sqrt(vec_mult_inner_size(w,w,3))/2.0;
   q[_Q0_] = cos(aux);
-  q[_Q1_] = w[_X_]/2.0*sin(aux)/aux;
-  q[_Q2_] = w[_Y_]/2.0*sin(aux)/aux;
-  q[_Q3_] = w[_Z_]/2.0*sin(aux)/aux;  
+  q[_Q1_] = w[_X_]/2.0*sin(aux)/(aux+1.e-10);
+  q[_Q2_] = w[_Y_]/2.0*sin(aux)/(aux+1.e-10);
+  q[_Q3_] = w[_Z_]/2.0*sin(aux)/(aux+1.e-10);  
 
   // normalize quaternion
-  for (i=_Q0_; i<=N_QUAT; ++i)
-    norm_q_vec += sqr(q[i]);
-
-  norm_q_vec = sqrt(norm_q_vec);
-
-  for (i=_Q0_; i<=N_QUAT; ++i)
-    q[i] /= norm_q_vec;
+  quatNorm(q);
   
 }
 
