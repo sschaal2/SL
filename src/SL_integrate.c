@@ -95,18 +95,11 @@ SL_IntegrateEuler(SL_Jstate *state, SL_Cstate *cbase,
     quatDerivatives(obase);
 
     // integrate to obtain new angular orientation
-    for(i=1; i<=N_QUAT; i++) {
+    for(i=1; i<=N_QUAT; i++)
       obase->q[i]     += dt*obase->qd[i];
-      aux += sqr(obase->q[i]);
-    }
-    aux = sqrt(aux); 
-    if (aux == 0) 
-      aux = 1.e-10;
     
     // important: renormalize quaternions
-    for(i=1; i<=N_QUAT; i++) {
-      obase->q[i]/=aux;
-    }
+    quatNorm(obase->q);
     
   } else { // if base coordinates are frozen
 
