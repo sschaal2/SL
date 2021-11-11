@@ -41,6 +41,7 @@ extern "C" {
   void cBlob3D(Blob3D *sd, fBlob3D *sf, int n, int flag);
   void cBlob2D(Blob2D sd[][2+1], fBlob2D *sf, int n, int flag);
   void linkQuat(Matrix R, SL_quat *q);
+  void quatNorm(double *q);
   void quatDerivatives(SL_quat *q);
   void quatToAngularVelocity(SL_quat *q);
   void quatToRotMat(SL_quat *q, Matrix R);
@@ -50,13 +51,16 @@ extern "C" {
   void eulerToRotMat(Vector a, Matrix R);
   void eulerToRotMatInv(Vector a, Matrix R);
   void quatMatrix(SL_quat *q, Matrix Q);
+  void quatQMatrix(Vector q, Matrix Q);
+  void quatLog(double *q, double *w);
+  void quatExp(double *w, double *q);
   void quatToEuler(SL_quat *q, Vector a);
   void quatToEulerInv(SL_quat *q, Vector a);
   void rotMatToEuler(Matrix R, Vector a);
   void rotMatToEulerInv(Matrix R, Vector a);
   void quatMult(double *q1, double *q2, double *q);
   void quatRelative(double *q1, double *qf, double *q2);
-
+  void quatToAngularDerivatives(SL_quat *q);
   void setRealRobotOptions(void);
   int  read_config_files(char *fname);
   double quatError(double* q1, double* q2);

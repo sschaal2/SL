@@ -1647,8 +1647,6 @@ void
 quatToAngularVelocity(SL_quat *q)
 {
   int i,j;
-  double Q[4+1][3+1];
-  double Qd[4+1][3+1];
 
   q->ad[_A_] = 2.*(  -q->q[_Q1_]*q->qd[_Q0_]
 		     +q->q[_Q0_]*q->qd[_Q1_]
@@ -1667,6 +1665,49 @@ quatToAngularVelocity(SL_quat *q)
 		     +q->q[_Q1_]*q->qd[_Q2_]
 		     +q->q[_Q0_]*q->qd[_Q3_] );
 
+  
+}
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatToAngularDerivatives
+\date  July 2005
+\remarks 
+
+ computes the angular velocity and acceleration from quaternian position 
+ and derivatives 
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : structure containing the quaternion and its velocity
+ \param[out]    q   : fills in the angular deriviatives
+
+ ******************************************************************************/
+void
+quatToAngularDerivatives(SL_quat *q)
+{
+  int i,j;
+  MY_MATRIX(Q,1,4,1,3);
+  MY_MATRIX(Qd,1,4,1,3); 
+  MY_MATRIX(Qt,1,3,1,4);
+  double q_temp[N_QUAT+1];
+
+  // needs these special matrices for derivatives
+  quatQMatrix(q->q,Q);
+  quatQMatrix(q->qd,Qd);
+  mat_trans(Q,Qt);
+
+  // the angualr velocity
+  mat_vec_mult_size(Qt,3,4,q->qd,4,q->ad);
+  vec_mult_scalar_size(q->ad,3,2.0,q->ad);
+
+  // the angular acceleration
+  mat_vec_mult_size(Qd,4,3,q->ad,3,q_temp);
+  for (i=1; i<=N_QUAT; ++i)
+    q_temp[i] = 2.*q->qdd[i] - q_temp[i];
+
+  mat_vec_mult_size(Qt,3,4,q_temp,4,q->add);  
   
 }
 
@@ -1781,6 +1822,43 @@ quatMatrix(SL_quat *q, Matrix Q)
   Q[4][3] = -q->q[_Q1_];
   Q[4][4] =  q->q[_Q0_];
 }
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatQMatrix
+\date  April 2021
+\remarks 
+
+ computers the 4x3 Q matrix needed in quaternion derivatives.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : 4D vector for which the matrix is to be computed
+ \param[out]    Q   : a 4x3 matrix
+
+
+ ******************************************************************************/
+void
+quatQMatrix(Vector q, Matrix Q)
+{
+  int i,j;
+  
+  Q[1][1] = -q[_Q1_];
+  Q[1][2] = -q[_Q2_];
+  Q[1][3] = -q[_Q3_];
+
+  Q[2][1] =  q[_Q0_];
+  Q[2][2] =  q[_Q3_];
+  Q[2][3] = -q[_Q2_];
+
+  Q[3][1] = -q[_Q3_];
+  Q[3][2] =  q[_Q0_];
+  Q[3][3] =  q[_Q1_];
+
+  Q[4][1] =  q[_Q2_];
+  Q[4][2] = -q[_Q1_];
+  Q[4][3] =  q[_Q0_];
+}
 
 /*!*****************************************************************************
  *******************************************************************************
@@ -1887,6 +1965,9 @@ quatRelative(double *q1, double *qf, double *q2)
 
   quatMult(q1_inv,qf,q2);
 
+  // make sure there are no rounding error and normalize quaternion
+  quatNorm(q2);
+
   // make sure quaternions have positive _Q0_
   if (q2[_Q0_] < 0.0)
     for (i=1; i<=N_QUAT; ++i)
@@ -1894,6 +1975,117 @@ quatRelative(double *q1, double *qf, double *q2)
     
 }
 
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatLog
+\date  March 2021
+\remarks 
+
+ The log transformation of a quaternion, resulting in a tangent space 3D vector.
+ Assumption: the quaternion is properly normalized to unit length.
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : quaterion vector
+ \param[out]    w   : resulting 3D vector
+
+
+ ******************************************************************************/
+void
+quatLog(double *q, double *w)
+{
+  int i;
+  double aux;
+  double norm_q_vec = 0;
+
+  for (i=_Q1_; i<=N_QUAT; ++i)
+    norm_q_vec += sqr(q[i]);
+
+  norm_q_vec = sqrt(norm_q_vec);
+
+  aux = 2.*acos(q[_Q0_])/(norm_q_vec+1.e-10); // ridge stabilizer added
+
+  for (i=1; i<=N_CART; ++i)
+    w[i] = q[_Q0_+i]*aux;
+    
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatNorm
+\date  March 2021
+\remarks 
+
+ Normalizes a quaternion
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     q   : quaterion vector
+ \param[out]    q   : normalized quaternion
+
+
+ ******************************************************************************/
+void
+quatNorm(double *q)
+{
+  int i;
+  double norm_q_vec = 0;
+
+  for (i=_Q0_; i<=N_QUAT; ++i)
+    norm_q_vec += sqr(q[i]);
+
+  norm_q_vec = sqrt(norm_q_vec);
+
+  if (norm_q_vec != 0) {
+    for (i=_Q0_; i<=N_QUAT; ++i)
+      q[i] /= (norm_q_vec);
+  } else {
+    printf("invalid quaternion -- set to (1 0 0 0)\n");
+    for (i=_Q0_; i<=N_QUAT; ++i) {
+      q[i] = 0;
+    }
+    q[_Q0_] = 1;
+  }
+
+}
+
+
+/*!*****************************************************************************
+ *******************************************************************************
+\note  quatExp
+\date  March 2021
+\remarks 
+
+ The exp transformation from 3D tangent space to 4D quaternion
+
+ *******************************************************************************
+ Function Parameters: [in]=input,[out]=output
+
+ \param[in]     w   : 3D tangent vector
+ \param[out]    q   : 4D quaternion vector
+
+
+ ******************************************************************************/
+void
+quatExp(double *w, double *q)
+{
+  int i;
+  double aux;
+  double norm_q_vec = 0;
+
+  aux = sqrt(vec_mult_inner_size(w,w,3))/2.0;
+  q[_Q0_] = cos(aux);
+  q[_Q1_] = w[_X_]/2.0*sin(aux)/(aux+1.e-10);
+  q[_Q2_] = w[_Y_]/2.0*sin(aux)/(aux+1.e-10);
+  q[_Q3_] = w[_Z_]/2.0*sin(aux)/(aux+1.e-10);  
+
+  // normalize quaternion
+  quatNorm(q);
+  
+}
 
 /*!*****************************************************************************
  *******************************************************************************

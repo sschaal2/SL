@@ -995,7 +995,7 @@ compute_kinematics(void)
   }
 
 
-  /* addititional link information */
+  /* additional link information */
   linkInformation(joint_state,&base_state,&base_orient,endeff,
 		  joint_cog_mpos,joint_axis_pos,joint_origin_pos,
 		  link_pos,Alink,Adof);
