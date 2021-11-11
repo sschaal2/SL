@@ -19,11 +19,7 @@
 #include "SL_system_headers.h"
 
 // openGL headers
-#ifdef powerpc
-#include <GLUT/glut.h>
-#else
-#include "GL/glut.h"
-#endif
+#include "GL/freeglut.h"
 
 // local headers
 #include "SL.h"

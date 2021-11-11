@@ -20,20 +20,11 @@
 #include "SL_system_headers.h"
 
 // UNIX specific headers
-#ifdef UNIX
 #include "sys/ioctl.h"
 #include "sys/stat.h"
-#ifdef sparc
-#include "sys/filio.h"
-#include "unistd.h"
-#endif
-#endif
 
 // openGL headers
-#include "GL/freeglut_std.h"
-#include "GL/freeglut_ext.h"
-#include "GL/glu.h"
-#include <X11/Xlib.h>
+#include "GL/freeglut.h"
 
 // mathematica headers
 #include "mdefs.h"

@@ -29,9 +29,7 @@
 #endif
 
 // openGL headers
-#include "GL/freeglut_std.h"
-#include "GL/freeglut_ext.h"
-#include "GL/glu.h"
+#include "GL/freeglut.h"
 #include <X11/Xlib.h>
 
 // mathematica headers
@@ -277,10 +275,11 @@ osc_display(void)
       glTranslated(offx_left,(n_oscilloscope_plots-i)+offy,0.0);
     else 
       glTranslated(offx_left,(n_oscilloscope_plots-i)+offy-offy_extra,0.0);
-    glScaled(1.-offx_left-offx_right,1-2*offy,1.0);
+    glScaled(1.-offx_left-offx_right,1.-2.*offy,1.0);
     glCallList((GLuint)((unsigned long)listID));
     glPopMatrix();
   }
+
 
   // draw data traces ===========================================================
   // the 0-th plot is special for the A/D signals -------------------------------
@@ -378,7 +377,7 @@ osc_display(void)
   glPushMatrix();
 
   glTranslated(offx_left,n_oscilloscope_plots+offy,0.0);
-  glScaled(1.-offx_left-offx_right,1-2*offy,1.0);
+  glScaled(1.-offx_left-offx_right,1.-2.*offy,1.0);
 
   aux = (-offx_left*0.95)/(1.-offx_left-offx_right);
 
@@ -411,7 +410,6 @@ osc_display(void)
   sprintf(string,"% .2f",osc_data[0].max);
   glRasterPos2d(1.0,1.0-2*offy);
   glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
-
 
   for (j=1; j<=osc_data[0].n_active; ++j) {
 
@@ -451,6 +449,7 @@ osc_display(void)
 
   glPopMatrix();
 
+
   // the variable plots  ---------------------------------------------------------
 
   for (r=1; r<=n_oscilloscope_plots; ++r) {
@@ -469,13 +468,14 @@ osc_display(void)
       glPushMatrix();
 
       glTranslated(offx_left,(n_oscilloscope_plots-r)+offy-offy_extra,0.0);
-      glScaled(1.-offx_left-offx_right,1-2*offy,1.0);
+      glScaled(1.-offx_left-offx_right,1.-2.0*offy,1.0);
 
       aux = (-offx_left*0.95)/(1.-offx_left-offx_right);
 
       glColor4fv(colors[j%10]);    
-      glRasterPos2d(aux,(j-1)*0.1);
-      glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)osc_data[r].names[j]);
+      glRasterPos2d(aux,(double)(j-1)*0.1);
+      sprintf(string,"%s",osc_data[r].names[j]);
+      glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
 
       glColor4f (1.0,1.0,1.0,1.0);      
 
@@ -483,10 +483,11 @@ osc_display(void)
       glRasterPos2d(1.0,0.0);
       glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
 
-      sprintf(string,"% .2f",osc_data[r].max);
-      glRasterPos2d(1.0,1.0-2*offy);
-      glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
 
+      sprintf(string,"% .2f",osc_data[r].max);
+      glRasterPos2d(1.0,(double)1.0-2*offy);
+      glutBitmapString(GLUT_BITMAP_HELVETICA_10,(const unsigned char *)string);
+      
       glColor4fv(colors[j%10]);    
 
       glBegin(GL_LINE_STRIP);
@@ -513,12 +514,14 @@ osc_display(void)
 
     }
 
+
   }
+
 
   glPushMatrix();
 
   glTranslated(offx_left,offy-offy_extra,0.0);
-  glScaled(1.-offx_left-offx_right,1-2*offy,1.0);
+  glScaled(1.-offx_left-offx_right,1.-2.*offy,1.0);
   glColor4f (1.0,1.0,1.0,1.0);      
 
   sprintf(string,"%6.3f",-(tend-tstart));
@@ -531,10 +534,8 @@ osc_display(void)
 
   glPopMatrix();
 
+
   glutSwapBuffers();
-
-
-
 
 }
 

@@ -29,10 +29,7 @@
 #include "SL_userGraphics.h"
 
 // openGL headers
-#include "GL/freeglut_std.h"
-#include "GL/freeglut_ext.h"
-#include "GL/glu.h"
-#include <X11/Xlib.h>
+#include "GL/freeglut.h"
 
 #define TIME_OUT_NS  1000000000
 
