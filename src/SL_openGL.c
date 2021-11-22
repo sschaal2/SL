@@ -2781,25 +2781,25 @@ displayCheckerBoard(void )
   /* glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, goalColor); */
 	
   glTexCoord2f(0.0, 0.0);
-  glVertex3f(-(GLdouble)floorObjectPtr->scale[_X_] /2.0, 
+  glVertex3d(-(GLdouble)floorObjectPtr->scale[_X_] /2.0, 
 	     -(GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
 	     (GLdouble)floorObjectPtr->trans[_Z_]+
 	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + flooroffset);
 	
   glTexCoord2f(0.0, 1.0);
-  glVertex3f(-(GLdouble)floorObjectPtr->scale[_X_] /2.0, 
+  glVertex3d(-(GLdouble)floorObjectPtr->scale[_X_] /2.0, 
 	     (GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
 	     (GLdouble)floorObjectPtr->trans[_Z_]+
 	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + flooroffset);
 	
   glTexCoord2f(1.0, 1.0);
-  glVertex3f((GLdouble)floorObjectPtr->scale[_X_] /2.0, 
+  glVertex3d((GLdouble)floorObjectPtr->scale[_X_] /2.0, 
 	     (GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
 	     (GLdouble)floorObjectPtr->trans[_Z_]+
 	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + flooroffset);
 	
   glTexCoord2f(1.0, 0.0);
-  glVertex3f((GLdouble)floorObjectPtr->scale[_X_] /2.0, 
+  glVertex3d((GLdouble)floorObjectPtr->scale[_X_] /2.0, 
 	     -(GLdouble)floorObjectPtr->scale[_Y_] /2.0, 
 	     (GLdouble)floorObjectPtr->trans[_Z_]+
 	     (GLdouble)floorObjectPtr->scale[_Z_]/2.0 + flooroffset);
@@ -3308,7 +3308,7 @@ drawCoordSystem(double length, double **A, char *name)
 
   v[_X_] = length+0.1;
   mat_vec_mult_size(A,N_CART+1,N_CART+1,v,N_CART+1,r);
-  glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
+  glRasterPos3d(r[_X_],r[_Y_],r[_Z_]);
   glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'X');
 
   v[_Y_] = length;
@@ -3323,7 +3323,7 @@ drawCoordSystem(double length, double **A, char *name)
   
   v[_Y_] = length+0.1;
   mat_vec_mult_size(A,N_CART+1,N_CART+1,v,N_CART+1,r);
-  glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
+  glRasterPos3d(r[_X_],r[_Y_],r[_Z_]);
   glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'Y');
   
   v[_Z_] = length;
@@ -3338,7 +3338,7 @@ drawCoordSystem(double length, double **A, char *name)
   
   v[_Z_] = length+0.1;
   mat_vec_mult_size(A,N_CART+1,N_CART+1,v,N_CART+1,r);
-  glRasterPos3f(r[_X_],r[_Y_],r[_Z_]);
+  glRasterPos3d(r[_X_],r[_Y_],r[_Z_]);
   glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18,'Z');
   
   glColor4f (0.0,0.0,0.0,0.0);
@@ -3346,7 +3346,7 @@ drawCoordSystem(double length, double **A, char *name)
   glVertex3d(A[_X_][4],A[_Y_][4],A[_Z_][4]);
   glVertex3d(A[_X_][4],A[_Y_][4],A[_Z_][4]+0.1);
   glEnd();
-  glRasterPos3f(A[_X_][4],A[_Y_][4],A[_Z_][4]+0.1);
+  glRasterPos3d(A[_X_][4],A[_Y_][4],A[_Z_][4]+0.1);
   glutBitmapString(GLUT_BITMAP_HELVETICA_18,(const unsigned char *)name);
   
   glLineWidth(1.0);
