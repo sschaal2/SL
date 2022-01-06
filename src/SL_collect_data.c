@@ -632,8 +632,6 @@ outMenu(void)
 
   AGAIN:
   
-  printf("\n AAAAA %d \n\n", store_in_buffer_rate);
-  printf("\n sampling_freq: %f \n\n", (double)sampling_freq);
   printf("\n\n\nOUTPUT SCRIPT OPTIONS:\n\n");
   printf("        Sampling Rate                   ---> %d\n",1);
   printf("        Read Script File                ---> %d\n",2);

@@ -1249,6 +1249,29 @@ regress_parameters(void)
   FILE *fp;
   double svdr = 0.01;
   double svdt = 0.01;
+  double range;
+  double max_Atb=-1.e20, min_Atb=1.e20;
+
+  // normalize ATA and ATb for numerical stability
+  for (m=1; m<=(N_DOFS+1)*N_RBD_PARMS; ++m) {
+    if (ATb[m] > max_Atb)
+      max_Atb = ATb[m];
+    if (ATb[m] < min_Atb)
+      min_Atb = ATb[m];
+  }
+
+  range = max_Atb - min_Atb;
+  printf("range = %f\n",range);
+  if (range < 1)
+    range = 1;
+
+  for (m=1; m<=(N_DOFS+1)*N_RBD_PARMS; ++m) 
+    ATb[m] /= range;
+  
+  
+  for (m=1; m<=(N_DOFS+1)*N_RBD_PARMS; ++m)
+    for (n=1; n<=(N_DOFS+1)*N_RBD_PARMS; ++n)
+      ATA[m][n] /= range;
 
   printf("\nStarting SVD ...");
   
