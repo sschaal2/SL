@@ -41,6 +41,9 @@ static int           invdyn = TRUE;
 static double        trans_mult;
 static double        trans_period;
 
+static double        cart_state_min[N_CART+1];
+static double        cart_state_max[N_CART+1];
+
 /* global variables */
 
 /* global functions */
@@ -132,6 +135,12 @@ init_sine_task(void)
      avoid discontinuous motor commands */
   trans_mult = 0.0;
 
+  /* monitor cartesian max/min of endeffector */
+  for (i=1; i<=N_CART; ++i) {
+    cart_state_min[i] =  1.e10;
+    cart_state_max[i] = -1.e10;
+  }
+
   /* what is the longest period? this is what we use to ramp up trans_mult to one */
   trans_period = 0.0;
   for (i=1; i<=n_dofs; ++i) 
@@ -218,6 +227,21 @@ run_sine_task(void)
   if (invdyn)
     SL_InvDyn(joint_state,joint_des_state,endeff,&base_state,&base_orient);
 
+  // udpate min/max of endeffector
+  for (j=1; j<=n_endeffs; ++j) {
+    for (i=1; i<=N_CART; ++i) {
+
+      if (cart_state[j].x[i] < cart_state_min[i]) {
+	cart_state_min[i] = cart_state[j].x[i];
+      }
+
+      if (cart_state[j].x[i] > cart_state_max[i]) {
+	cart_state_max[i] = cart_state[j].x[i];
+      }
+      
+    }
+  }
+
   return TRUE;
 
 }
@@ -242,6 +266,9 @@ change_sine_task(void)
 {
   int j, i;
   char string[100];
+
+  print_vec_size("Cartesian Max:",cart_state_max,N_CART);
+  print_vec_size("Cartesian Min:",cart_state_min,N_CART);  
 
 
   return TRUE;
