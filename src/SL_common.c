@@ -1553,6 +1553,8 @@ linkQuat(Matrix R, SL_quat *q)
   q->q[_Q2_] = q_aux[3];
   q->q[_Q3_] = q_aux[4];
 
+  quatNorm(q->q);
+
 
 }
 
@@ -1578,6 +1580,8 @@ quatDerivatives(SL_quat *q)
   int i,j;
   double Q[4+1][3+1];
   double Qd[4+1][3+1];
+
+  quatNorm(q->q);
 
   Q[1][1] = -q->q[_Q1_];
   Q[1][2] = -q->q[_Q2_];
@@ -1889,6 +1893,9 @@ quatMult(double *q1, double *q2, double *q)
   int i,j;
   double Q[N_QUAT+1][N_QUAT+1];
   double qt[N_QUAT+1];
+
+  quatNorm(q1);
+  quatNorm(q2);  
   
   Q[1][1] =  q2[_Q0_];
   Q[1][2] = -q2[_Q1_];
@@ -1924,6 +1931,8 @@ quatMult(double *q1, double *q2, double *q)
       q[i] = -qt[i];      
     }
   }
+
+  quatNorm(q);    
     
 }
 

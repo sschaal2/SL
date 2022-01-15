@@ -844,6 +844,7 @@ add_to_regression(void)
   int    n_cons;
   int    use_constraint;
   int    nr_K = 0;
+  int    count_skip = 0;
 
   MY_MATRIX(Jc,1,2*N_CART*N_ENDEFFS,1,N_DOFS+2*N_CART);
   MY_MATRIX(Q,1,N_DOFS+2*N_CART,1,N_DOFS+2*N_CART);
@@ -855,6 +856,7 @@ add_to_regression(void)
   MY_VECTOR(cf,1,N_CART*2*N_ENDEFFS);
 
   printf("\nAdd data to regression ");
+  count_skip += skip_data*2;
 
   for (i=1+skip_data; i<=n_rows-skip_data; i+=down_sample) {
 
@@ -866,8 +868,22 @@ add_to_regression(void)
 	flag = TRUE;
       }
     }
-    if (flag)
+
+    /* if joint velocities are close to zero, and no static fiction is estimated
+       skip this data point */
+    for (j=1; j<=N_DOFS-N_DOFS_EST_SKIP; ++j) {
+      if (!coul_flag_dofs[j]) {
+	if (fabs(data_vel[j][i]) < 0.01) {
+	  flag = TRUE;
+	  //	  printf("skip %d due to low vel in %d \n",i,j);
+	}
+      }
+    }
+    
+    if (flag) {
+      ++count_skip;
       continue;
+    }
 
     if (++count%1000==0) {
       printf("%d",count);
@@ -884,7 +900,7 @@ add_to_regression(void)
       state[j].u           = data_u[j][i];
       invdyn_state[j].uff  = 0;
    }
-
+ 
     for (j=1; j<=N_CART; ++j) {
       basec[0].x[j]   = data_bc_pos[j][i];
       basec[0].xd[j]  = data_bc_vel[j][i];
@@ -1163,7 +1179,7 @@ add_to_regression(void)
     }
   }
 
-  printf("done\n");
+  printf("done (skipped=%d)\n",count_skip);
 
   if (get_mse == 0)
     return TRUE;
