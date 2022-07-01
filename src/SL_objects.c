@@ -54,7 +54,6 @@ static char f_cond_names[][20]= {
 ObjectPtr  objs = NULL;
 ContactPtr contacts=NULL;
 SL_uext   *ucontact;
-int        n_contacts;
 
 // local variables
 typedef struct {
