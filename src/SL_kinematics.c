@@ -428,7 +428,7 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
   MY_MATRIX_ARRAY(local_Adof_des,1,4,1,4,N_DOFS+1);
   double         ralpha = 2.0;
   double         condnr;
-  double         condnr_cutoff = 70.0;  // this corresponds to condnr_cutoff^2 in invere space
+  double         condnr_cutoff = 1500.0; 
 
   /* compute the Jacobian */
   linkInformationDes(state,&base_state,&base_orient,eff,
@@ -467,7 +467,7 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
   MY_VECTOR(s,1,N_DOFS);
   MY_VECTOR(si,1,N_DOFS);
 
-  mat_equal_size(Jreal,count,N_DOFS,U);
+  mat_equal_size(Jreal,count,N_DOFS,U); 
   my_svdcmp(U,count,N_DOFS,s,V);
 
   //printf("count=%d\n",count);
@@ -475,21 +475,23 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
 
   // regularize if the condition number gets too large -- after the cutoff, we decay
   // the inverse of the singular value in a smooth way to zero
-  for (i=1; i<=count; ++i)
-    if (s[1]/(s[i]+1.e-10) > condnr_cutoff) {
-      double sc = s[1]/condnr_cutoff;
-      si[i] = -2./(sqr(sc)*sc)*sqr(s[i])+3./sqr(sc)*s[i];
-      //si[i] = sc;
+  for (i=1; i<=count; ++i) {
+    double condnr_i = sqr(s[1])/(sqr(s[i])+1.e-10);
+    if ( condnr_i > condnr_cutoff) {
+      double lambda = sqr(1.0 - sqr(condnr_cutoff/condnr_i)) * 1.e6;
+      //si[i] = -2./(sqr(sc)*sc)*sqr(s[i])+3./sqr(sc)*s[i];
+      si[i] = sqr(s[i])/(sqr(sqr(s[i]))+lambda);
     } else {
-      si[i] = 1./s[i];
+      si[i] = 1./sqr(s[i]);
     }
+  }
 
-  condnr = s[1]/(s[count]+1.e-10);
+  condnr = sqr(s[1])/(sqr(s[count])+1.e-10);
 
   //  P=inv(U*S*V'*V*S'*U')=U*inv(S*S')*U' is the inverse
   for (i=1; i<=count; ++i) 
     for (j=1; j<=count; ++j)
-      M[i][j] = U[j][i]*sqr(si[i]);
+      M[i][j] = U[j][i]*si[i];
 
   mat_mult_size(U,count,count,M,count,count,P);
   
@@ -511,8 +513,27 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
     }
   }
 
+  /* the optimization part using the regularized pseudo inverse */
+  for (i=1; i<=N_DOFS; ++i) {
+    for (j=i; j<=N_DOFS; ++j) {
+      
+      if (i==j) 
+	O[i][j] = 1.0;
+      else
+	O[i][j] = 0.0;
+      
+      for (n=1; n<=count; ++n) {
+	O[i][j] -= B[i][n] * Jreal[n][j];
+      }
+      
+      if (i!=j)
+	O[j][i] = O[i][j];
+    }
+  }
+
   /* the optimization part: we use the unregularized Null space such that we don't
      suddently pop up new null space dimensions when the inversion is ill conditioned */
+  /* does not work correctly
   for (i=1; i<=N_DOFS; ++i) {
     for (j=i; j<=N_DOFS; ++j) {
       O[i][j] = 0.0;
@@ -521,6 +542,7 @@ inverseKinematicsClip(SL_DJstate *state, SL_endeff *eff, SL_OJstate *rest,
       O[j][i] = O[i][j];
     }
   }
+  */
 
   /* add the optimization part to the velocities */
   for (i=1; i<=N_DOFS; ++i) {
