@@ -521,7 +521,6 @@ run_task_servo(void)
   if (dticks != 1 && task_servo_calls > 2) // need transient ticks to sync servos
     task_servo_errors += abs(dticks-1);
 
-
   /*********************************************************************
    * start up chores
    */
@@ -570,7 +569,6 @@ run_task_servo(void)
   }
   
   setOsc(d2a_ct,30.0);
-  
   
   /**********************************************************************
    * receive vision blobs
